@@ -3,9 +3,9 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Bell, LogOut, Menu, Settings } from 'lucide-react';
+import { Bell, LogOut, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -35,25 +35,15 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   };
 
   return (
-    <div className="min-h-screen bg-secondary">
+    <SidebarInset>
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
+              <SidebarTrigger className="lg:hidden" />
               <div className="flex items-center space-x-3">
-                <img 
-                  src="/lovable-uploads/1fc475c2-f7e6-4e6e-bf1b-b349783c2b93.png" 
-                  alt="LocarPay Logo" 
-                  className="w-10 h-10 object-contain"
-                />
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-[#F4D573] to-[#BC942C] bg-clip-text text-transparent">
-                  LocarPay
-                </h1>
-              </div>
-              <div className="hidden md:block">
-                <span className="text-gray-400">|</span>
-                <span className="ml-2 text-gray-800 font-medium">{title}</span>
+                <h1 className="text-xl font-bold text-[#0C1C2E]">{title}</h1>
               </div>
             </div>
 
@@ -90,10 +80,12 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
       </header>
 
       {/* Main Content */}
-      <main className="p-6">
-        {children}
+      <main className="flex-1 overflow-auto">
+        <div className="p-6">
+          {children}
+        </div>
       </main>
-    </div>
+    </SidebarInset>
   );
 };
 
