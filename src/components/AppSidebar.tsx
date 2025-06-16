@@ -23,14 +23,16 @@ import {
   Phone, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 
 const AppSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { state, setOpen } = useSidebar();
 
   const menuItems = [
@@ -78,6 +80,24 @@ const AppSidebar = () => {
 
   const handleNavigation = (url: string) => {
     navigate(url);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const getUserTypeLabel = (type: string) => {
+    const labels = {
+      analista: 'Analista de Conta',
+      juridico: 'Departamento Jurídico',
+      sdr: 'SDR - Comercial',
+      executivo: 'Executivo de Conta',
+      imobiliaria: 'Imobiliária',
+      inquilino: 'Inquilino',
+      admin: 'Administrador'
+    };
+    return labels[type as keyof typeof labels] || type;
   };
 
   const isCollapsed = state === 'collapsed';
@@ -161,9 +181,26 @@ const AppSidebar = () => {
         {/* User info section */}
         <div className="mt-auto p-4 border-t border-gray-600">
           {showExpandedContent ? (
-            <div>
-              <p className="text-sm text-gray-300">{user?.name}</p>
-              <p className="text-xs text-gray-400">{user?.type}</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E] font-semibold text-xs">
+                    {user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm text-gray-300 font-medium">{user?.name}</p>
+                  <p className="text-xs text-gray-400">{getUserTypeLabel(user?.type || '')}</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-white hover:bg-[#1A2F45] p-2 h-8 w-8"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
           ) : (
             <div className="flex justify-center">
