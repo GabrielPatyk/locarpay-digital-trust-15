@@ -142,8 +142,11 @@ const AppSidebar = () => {
                       onClick={() => handleNavigation(item.url)}
                       isActive={isActive}
                       className={`
-                        text-white transition-all duration-300 relative
-                        ${isActive ? '' : 'hover:border hover:border-solid hover:border-[#F4D573]'}
+                        transition-all duration-300 relative
+                        ${isActive 
+                          ? 'bg-[#0C1C2E] text-[#F4D573] hover:bg-[#0C1C2E]' 
+                          : 'bg-[#0C1C2E] text-white hover:bg-[#0C1C2E] hover:text-[#F4D573] hover:border hover:border-solid hover:border-[#F4D573]'
+                        }
                         ${isCollapsed ? 'justify-center' : ''}
                       `}
                       tooltip={isCollapsed ? item.title : undefined}
@@ -151,13 +154,13 @@ const AppSidebar = () => {
                       <item.icon className={`h-5 w-5 flex-shrink-0 ${
                         isActive 
                           ? 'text-[#F4D573]' 
-                          : 'text-white hover:text-[#F4D573]'
+                          : 'text-white group-hover:text-[#F4D573]'
                       }`} />
                       {showExpandedContent && (
                         <span className={`${
                           isActive 
                             ? 'text-[#F4D573] font-medium' 
-                            : 'text-white hover:text-[#F4D573]'
+                            : 'text-white group-hover:text-[#F4D573]'
                         }`}>
                           {item.title}
                         </span>
