@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -24,12 +24,14 @@ import {
   Settings,
   ChevronLeft
 } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const AppSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { state } = useSidebar();
+  const { state, setOpen } = useSidebar();
+  const [isHovered, setIsHovered] = useState(false);
 
   const menuItems = [
     {
@@ -78,71 +80,103 @@ const AppSidebar = () => {
     navigate(url);
   };
 
-  const isCollapsed = state === 'collapsed';
+  const isCollapsed = state === 'collapsed' && !isHovered;
+  const showExpandedContent = state === 'expanded' || isHovered;
+
+  const handleMouseEnter = () => {
+    if (state === 'collapsed') {
+      setIsHovered(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
+  const handleCloseClick = () => {
+    setOpen(false);
+    setIsHovered(false);
+  };
 
   return (
-    <Sidebar className="border-r border-gray-200" collapsible="icon">
-      <SidebarHeader className="bg-[#0C1C2E] p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <img 
-              src="/lovable-uploads/1fc475c2-f7e6-4e6e-bf1b-b349783c2b93.png" 
-              alt="LocarPay Logo" 
-              className="w-8 h-8 object-contain flex-shrink-0"
-            />
-            {!isCollapsed && (
-              <h2 className="text-lg font-bold bg-gradient-to-r from-[#F4D573] to-[#BC942C] bg-clip-text text-transparent">
-                LocarPay
-              </h2>
+    <div 
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <Sidebar className="border-r border-gray-200" collapsible="icon">
+        <SidebarHeader className="bg-[#0C1C2E] p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <img 
+                src="/lovable-uploads/1fc475c2-f7e6-4e6e-bf1b-b349783c2b93.png" 
+                alt="LocarPay Logo" 
+                className="w-8 h-8 object-contain flex-shrink-0"
+              />
+              {showExpandedContent && (
+                <h2 className="text-lg font-bold bg-gradient-to-r from-[#F4D573] to-[#BC942C] bg-clip-text text-transparent">
+                  LocarPay
+                </h2>
+              )}
+            </div>
+            {showExpandedContent && (
+              <button 
+                onClick={handleCloseClick}
+                className="text-white hover:bg-[#1A2F45] p-1 rounded"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
             )}
           </div>
-          {!isCollapsed && (
-            <SidebarTrigger className="text-white hover:bg-[#1A2F45] p-1 rounded">
-              <ChevronLeft className="h-5 w-5" />
-            </SidebarTrigger>
-          )}
-        </div>
-      </SidebarHeader>
+        </SidebarHeader>
 
-      <SidebarContent className="bg-[#0C1C2E]">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => {
-                const isActive = location.pathname === item.url;
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      onClick={() => handleNavigation(item.url)}
-                      isActive={isActive}
-                      className={`
-                        text-white hover:bg-[#1A2F45] transition-all duration-300
-                        ${isActive ? 'bg-gradient-to-r from-[#F4D573]/20 to-[#BC942C]/20 border-r-2 border-[#F4D573]' : ''}
-                        ${isCollapsed ? 'justify-center' : ''}
-                      `}
-                      tooltip={isCollapsed ? item.title : undefined}
-                    >
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                      {!isCollapsed && <span>{item.title}</span>}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <SidebarContent className="bg-[#0C1C2E]">
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {menuItems.map((item) => {
+                  const isActive = location.pathname === item.url;
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        onClick={() => handleNavigation(item.url)}
+                        isActive={isActive}
+                        className={`
+                          text-white hover:bg-[#1A2F45] transition-all duration-300
+                          ${isActive ? 'bg-gradient-to-r from-[#F4D573]/20 to-[#BC942C]/20 border-r-2 border-[#F4D573]' : ''}
+                          ${isCollapsed ? 'justify-center' : ''}
+                        `}
+                        tooltip={isCollapsed ? item.title : undefined}
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {showExpandedContent && <span>{item.title}</span>}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
 
-        {/* User info section */}
-        <div className="mt-auto p-4 border-t border-gray-600">
-          {!isCollapsed && (
-            <div>
-              <p className="text-sm text-gray-300">{user?.name}</p>
-              <p className="text-xs text-gray-400">{user?.type}</p>
-            </div>
-          )}
-        </div>
-      </SidebarContent>
-    </Sidebar>
+          {/* User info section */}
+          <div className="mt-auto p-4 border-t border-gray-600">
+            {showExpandedContent ? (
+              <div>
+                <p className="text-sm text-gray-300">{user?.name}</p>
+                <p className="text-xs text-gray-400">{user?.type}</p>
+              </div>
+            ) : (
+              <div className="flex justify-center">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E] font-semibold text-xs">
+                    {user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            )}
+          </div>
+        </SidebarContent>
+      </Sidebar>
+    </div>
   );
 };
 
