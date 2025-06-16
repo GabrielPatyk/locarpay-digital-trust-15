@@ -44,6 +44,10 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = () => {
+    navigate('/forgot-password');
+  };
+
   const demoUsers = [
     { type: 'Analista', email: 'analista@locarpay.com' },
     { type: 'Jurídico', email: 'juridico@locarpay.com' },
@@ -151,7 +155,11 @@ const Login = () => {
               </form>
 
               <div className="text-center">
-                <Button variant="link" className="text-sm text-[#BC942C] hover:text-[#B48534]">
+                <Button 
+                  variant="link" 
+                  className="text-sm text-[#BC942C] hover:text-[#B48534]"
+                  onClick={handleForgotPassword}
+                >
                   Esqueceu sua senha?
                 </Button>
               </div>

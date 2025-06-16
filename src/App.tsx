@@ -12,6 +12,7 @@ import AppSidebar from "@/components/AppSidebar";
 // Pages
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import Analista from "./pages/Analista";
 import Juridico from "./pages/Juridico";
@@ -27,13 +28,14 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
-  const isLoginPage = location.pathname === '/login' || location.pathname === '/unauthorized';
+  const isLoginPage = location.pathname === '/login' || location.pathname === '/unauthorized' || location.pathname === '/forgot-password';
 
   if (isLoginPage) {
     return (
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         
         {/* Protected routes */}
@@ -98,6 +100,7 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           
           {/* Protected routes */}
