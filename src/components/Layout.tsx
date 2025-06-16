@@ -41,7 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <SidebarTrigger className="lg:hidden" />
+              <SidebarTrigger className="md:hidden" />
               <div className="flex items-center space-x-3">
                 <h1 className="text-xl font-bold text-[#0C1C2E]">{title}</h1>
               </div>
