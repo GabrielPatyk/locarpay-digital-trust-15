@@ -41,14 +41,18 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">LP</span>
-                </div>
-                <h1 className="text-2xl font-bold text-primary">LocarPay</h1>
+              <div className="flex items-center space-x-3">
+                <img 
+                  src="/lovable-uploads/1fc475c2-f7e6-4e6e-bf1b-b349783c2b93.png" 
+                  alt="LocarPay Logo" 
+                  className="w-10 h-10 object-contain"
+                />
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-[#F4D573] to-[#BC942C] bg-clip-text text-transparent">
+                  LocarPay
+                </h1>
               </div>
               <div className="hidden md:block">
-                <span className="text-gray-600">|</span>
+                <span className="text-gray-400">|</span>
                 <span className="ml-2 text-gray-800 font-medium">{title}</span>
               </div>
             </div>
@@ -63,7 +67,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
 
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-success text-white">
+                  <AvatarFallback className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E] font-semibold">
                     {user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
