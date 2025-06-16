@@ -142,14 +142,31 @@ const AppSidebar = () => {
                       onClick={() => handleNavigation(item.url)}
                       isActive={isActive}
                       className={`
-                        text-white hover:bg-[#1A2F45] transition-all duration-300
-                        ${isActive ? 'bg-gradient-to-r from-[#F4D573]/20 to-[#BC942C]/20 border-r-2 border-[#F4D573]' : ''}
+                        text-white transition-all duration-300 relative group
+                        ${isActive 
+                          ? 'bg-transparent text-transparent bg-gradient-to-r from-[#F4D573] to-[#BC942C] bg-clip-text' 
+                          : 'hover:border hover:border-gradient-to-r hover:from-[#F4D573] hover:to-[#BC942C] hover:bg-gradient-to-r hover:from-[#F4D573]/10 hover:to-[#BC942C]/10'
+                        }
                         ${isCollapsed ? 'justify-center' : ''}
+                        before:absolute before:inset-0 before:rounded-md before:p-[1px] before:bg-gradient-to-r before:from-[#F4D573] before:to-[#BC942C] before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300
+                        after:absolute after:inset-[1px] after:bg-[#0C1C2E] after:rounded-md after:opacity-0 hover:after:opacity-100 after:transition-opacity after:duration-300
                       `}
                       tooltip={isCollapsed ? item.title : undefined}
                     >
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                      {showExpandedContent && <span>{item.title}</span>}
+                      <item.icon className={`h-5 w-5 flex-shrink-0 relative z-10 ${
+                        isActive 
+                          ? 'text-transparent bg-gradient-to-r from-[#F4D573] to-[#BC942C] bg-clip-text' 
+                          : 'text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-[#F4D573] group-hover:to-[#BC942C] group-hover:bg-clip-text'
+                      }`} />
+                      {showExpandedContent && (
+                        <span className={`relative z-10 ${
+                          isActive 
+                            ? 'text-transparent bg-gradient-to-r from-[#F4D573] to-[#BC942C] bg-clip-text font-medium' 
+                            : 'text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-[#F4D573] group-hover:to-[#BC942C] group-hover:bg-clip-text'
+                        }`}>
+                          {item.title}
+                        </span>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
