@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, AuthState, UserType } from '@/types/user';
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<{ success: boolean; redirectTo?: string }>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   updateUser: (user: User) => void;
 }
@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; redirectTo?: string }> => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -44,13 +44,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(foundUser);
       setIsAuthenticated(true);
       localStorage.setItem('locarpay_user', JSON.stringify(foundUser));
-      
-      // Redirect SDRs to CRM page
-      const redirectTo = foundUser.type === 'sdr' ? '/crm' : '/dashboard';
-      
-      return { success: true, redirectTo };
+      return true;
     }
-    return { success: false };
+    return false;
   };
 
   const logout = () => {
