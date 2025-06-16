@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,48 +34,78 @@ const AppSidebar = () => {
   const { user, logout } = useAuth();
   const { state, setOpen } = useSidebar();
 
-  const menuItems = [
-    {
-      title: 'Dashboard',
-      url: '/dashboard',
-      icon: Home,
-    },
-    {
-      title: 'Fianças',
-      url: '/fiancas',
-      icon: FileText,
-    },
-    {
-      title: 'Imobiliárias',
-      url: '/imobiliarias',
-      icon: Building,
-    },
-    {
-      title: 'Executivos',
-      url: '/executivos',
-      icon: Briefcase,
-    },
-    {
-      title: 'Contratos',
-      url: '/contratos',
-      icon: ClipboardList,
-    },
-    {
-      title: 'Sinistros',
-      url: '/sinistros',
-      icon: ClipboardList,
-    },
-    {
-      title: 'Leads',
-      url: '/leads',
-      icon: Phone,
-    },
-    {
-      title: 'Configurações',
-      url: '/configuracoes',
-      icon: Settings,
-    },
-  ];
+  const getMenuItems = () => {
+    if (user?.type === 'inquilino') {
+      return [
+        {
+          title: 'Dashboard',
+          url: '/dashboard',
+          icon: Home,
+        },
+        {
+          title: 'Meus Contratos',
+          url: '/contratos',
+          icon: ClipboardList,
+        },
+        {
+          title: 'Minhas Fianças',
+          url: '/fiancas',
+          icon: FileText,
+        },
+        {
+          title: 'Pagamentos',
+          url: '/pagamentos',
+          icon: Phone,
+        },
+      ];
+    }
+
+    // Menu padrão para outros tipos de usuário
+    return [
+      {
+        title: 'Dashboard',
+        url: '/dashboard',
+        icon: Home,
+      },
+      {
+        title: 'Fianças',
+        url: '/fiancas',
+        icon: FileText,
+      },
+      {
+        title: 'Imobiliárias',
+        url: '/imobiliarias',
+        icon: Building,
+      },
+      {
+        title: 'Executivos',
+        url: '/executivos',
+        icon: Briefcase,
+      },
+      {
+        title: 'Contratos',
+        url: '/contratos',
+        icon: ClipboardList,
+      },
+      {
+        title: 'Sinistros',
+        url: '/sinistros',
+        icon: ClipboardList,
+      },
+      {
+        title: 'Leads',
+        url: '/leads',
+        icon: Phone,
+      },
+      {
+        title: 'Configurações',
+        url: '/configuracoes',
+        icon: Settings,
+      },
+    ];
+  };
+
+  const menuItems = getMenuItems();
 
   const handleNavigation = (url: string) => {
     navigate(url);

@@ -23,6 +23,9 @@ import Inquilino from "./pages/Inquilino";
 import Admin from "./pages/Admin";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
+import Contratos from "./pages/Contratos";
+import Fiancas from "./pages/Fiancas";
+import Pagamentos from "./pages/Pagamentos";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +45,24 @@ const AppContent = () => {
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/contratos" element={
+          <ProtectedRoute allowedRoles={['inquilino', 'admin']}>
+            <Contratos />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/fiancas" element={
+          <ProtectedRoute allowedRoles={['inquilino', 'admin']}>
+            <Fiancas />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/pagamentos" element={
+          <ProtectedRoute allowedRoles={['inquilino', 'admin']}>
+            <Pagamentos />
           </ProtectedRoute>
         } />
         
@@ -107,6 +128,24 @@ const AppContent = () => {
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/contratos" element={
+            <ProtectedRoute allowedRoles={['inquilino', 'admin']}>
+              <Contratos />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/fiancas" element={
+            <ProtectedRoute allowedRoles={['inquilino', 'admin']}>
+              <Fiancas />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/pagamentos" element={
+            <ProtectedRoute allowedRoles={['inquilino', 'admin']}>
+              <Pagamentos />
             </ProtectedRoute>
           } />
           
