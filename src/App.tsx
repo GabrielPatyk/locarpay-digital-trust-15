@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
+import CRM from "./pages/CRM";
 import Analista from "./pages/Analista";
 import Juridico from "./pages/Juridico";
 import SDR from "./pages/SDR";
@@ -42,6 +43,12 @@ const AppContent = () => {
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/crm" element={
+          <ProtectedRoute allowedRoles={['sdr', 'admin']}>
+            <CRM />
           </ProtectedRoute>
         } />
         
@@ -107,6 +114,12 @@ const AppContent = () => {
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/crm" element={
+            <ProtectedRoute allowedRoles={['sdr', 'admin']}>
+              <CRM />
             </ProtectedRoute>
           } />
           
