@@ -16,12 +16,6 @@ export interface User {
   avatar?: string;
   imobiliariaId?: string;
   executivoId?: string;
-  firstLogin?: boolean;
-  contractAccepted?: boolean;
-  companyName?: string;
-  cnpj?: string;
-  address?: string;
-  fullName?: string;
 }
 
 export interface AuthState {

@@ -16,18 +16,7 @@ const mockUsers: User[] = [
   { id: '2', email: 'juridico@locarpay.com', name: 'Dr. João Santos', type: 'juridico' },
   { id: '3', email: 'sdr@locarpay.com', name: 'Carlos Oliveira', type: 'sdr' },
   { id: '4', email: 'executivo@locarpay.com', name: 'Ana Costa', type: 'executivo' },
-  { 
-    id: '5', 
-    email: 'imobiliaria@exemplo.com', 
-    name: 'Imobiliária Prime', 
-    type: 'imobiliaria',
-    firstLogin: true,
-    contractAccepted: false,
-    companyName: 'Imobiliária Prime Ltda',
-    cnpj: '12.345.678/0001-90',
-    address: 'Rua das Flores, 456 - Centro, São Paulo/SP',
-    fullName: 'Roberto Silva Santos'
-  },
+  { id: '5', email: 'imobiliaria@exemplo.com', name: 'Imobiliária Prime', type: 'imobiliaria' },
   { id: '6', email: 'inquilino@exemplo.com', name: 'Pedro Almeida', type: 'inquilino' },
   { id: '7', email: 'admin@locarpay.com', name: 'Administrador', type: 'admin' },
 ];
