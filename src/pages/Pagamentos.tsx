@@ -137,20 +137,22 @@ const Pagamentos = () => {
 
   return (
     <Layout title="Pagamentos">
-      <div className="space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-primary">Histórico de Pagamentos</h2>
-          <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Buscar pagamentos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64"
-            />
+      <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
+        {/* Header - Otimizado para mobile */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-primary">Histórico de Pagamentos</h2>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+            <div className="flex items-center space-x-2">
+              <Search className="h-4 w-4 text-gray-400 flex-shrink-0" />
+              <Input
+                placeholder="Buscar pagamentos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full sm:w-64 text-sm"
+              />
+            </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-full sm:w-32">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -163,82 +165,82 @@ const Pagamentos = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Stats Cards - Grid responsivo */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Pago</p>
-                  <p className="text-2xl font-bold text-success">R$ {totalPago.toLocaleString()}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Pago</p>
+                  <p className="text-xl sm:text-2xl font-bold text-success">R$ {totalPago.toLocaleString()}</p>
                 </div>
-                <CheckCircle className="h-8 w-8 text-success" />
+                <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pendente</p>
-                  <p className="text-2xl font-bold text-warning">R$ {totalPendente.toLocaleString()}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pendente</p>
+                  <p className="text-xl sm:text-2xl font-bold text-warning">R$ {totalPendente.toLocaleString()}</p>
                 </div>
-                <Clock className="h-8 w-8 text-warning" />
+                <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-warning" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pagamentos</p>
-                  <p className="text-2xl font-bold text-primary">{statusCounts.pago}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pagamentos</p>
+                  <p className="text-xl sm:text-2xl font-bold text-primary">{statusCounts.pago}</p>
                 </div>
-                <CreditCard className="h-8 w-8 text-primary" />
+                <CreditCard className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Em Atraso</p>
-                  <p className="text-2xl font-bold text-red-500">{statusCounts.vencido}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Em Atraso</p>
+                  <p className="text-xl sm:text-2xl font-bold text-red-500">{statusCounts.vencido}</p>
                 </div>
-                <XCircle className="h-8 w-8 text-red-500" />
+                <XCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Payments List */}
+        {/* Payments List - Otimizado para mobile */}
         <Card>
-          <CardHeader>
-            <CardTitle>Lista de Pagamentos</CardTitle>
-            <CardDescription>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-lg sm:text-xl">Lista de Pagamentos</CardTitle>
+            <CardDescription className="text-sm">
               Histórico completo de pagamentos e links para quitação
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {filteredPagamentos.map((pagamento) => (
                 <div
                   key={pagamento.id}
-                  className="p-4 rounded-lg border hover:shadow-md transition-shadow"
+                  className="p-3 sm:p-4 rounded-lg border hover:shadow-md transition-shadow"
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h4 className="font-medium text-gray-900">{pagamento.numeroFianca}</h4>
-                      <p className="text-sm text-gray-600">Contrato: {pagamento.numeroContrato}</p>
-                      <p className="text-sm text-gray-500">
+                  <div className="flex flex-col sm:flex-row justify-between items-start mb-3 space-y-2 sm:space-y-0">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 text-sm sm:text-base">{pagamento.numeroFianca}</h4>
+                      <p className="text-xs sm:text-sm text-gray-600">Contrato: {pagamento.numeroContrato}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">
                         Vencimento: {new Date(pagamento.dataVencimento).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge className={`${getStatusColor(pagamento.status)} text-white`}>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                      <Badge className={`${getStatusColor(pagamento.status)} text-white text-xs`}>
                         {getStatusText(pagamento.status)}
                       </Badge>
                       <span className="text-lg font-bold text-gray-900">
@@ -248,23 +250,24 @@ const Pagamentos = () => {
                   </div>
                   
                   {pagamento.dataPagamento && (
-                    <div className="mb-3">
-                      <p className="text-sm text-gray-500">
+                    <div className="mb-3 bg-gray-50 p-2 rounded">
+                      <p className="text-xs sm:text-sm text-gray-500">
                         Pago em: {new Date(pagamento.dataPagamento).toLocaleDateString()}
                       </p>
                       {pagamento.metodoPagamento && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-xs sm:text-sm text-gray-500">
                           Método: {pagamento.metodoPagamento}
                         </p>
                       )}
                     </div>
                   )}
 
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setSelectedPagamento(pagamento)}
+                      className="w-full sm:w-auto"
                     >
                       <Eye className="mr-2 h-4 w-4" />
                       Ver Detalhes
@@ -274,7 +277,7 @@ const Pagamentos = () => {
                       <Button
                         size="sm"
                         onClick={() => handlePagamento(pagamento)}
-                        className="bg-success hover:bg-success/90"
+                        className="w-full sm:w-auto bg-success hover:bg-success/90"
                       >
                         <CreditCard className="mr-2 h-4 w-4" />
                         Pagar Agora
@@ -284,6 +287,7 @@ const Pagamentos = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => downloadComprovante(pagamento)}
+                        className="w-full sm:w-auto"
                       >
                         <Download className="mr-2 h-4 w-4" />
                         Comprovante
@@ -296,67 +300,69 @@ const Pagamentos = () => {
           </CardContent>
         </Card>
 
-        {/* Payment Details Modal */}
+        {/* Payment Details Modal - Responsivo */}
         {selectedPagamento && (
-          <Card className="fixed inset-0 z-50 m-4 max-w-2xl mx-auto mt-20 max-h-fit bg-white">
-            <CardHeader>
-              <CardTitle>Detalhes do Pagamento</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-4 right-4"
-                onClick={() => setSelectedPagamento(null)}
-              >
-                ×
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Número da Fiança</p>
-                    <p className="font-medium">{selectedPagamento.numeroFianca}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Número do Contrato</p>
-                    <p className="font-medium">{selectedPagamento.numeroContrato}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Valor</p>
-                    <p className="font-medium">R$ {selectedPagamento.valor.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Status</p>
-                    <Badge className={`${getStatusColor(selectedPagamento.status)} text-white mt-1`}>
-                      {getStatusText(selectedPagamento.status)}
-                    </Badge>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Data de Vencimento</p>
-                    <p className="font-medium">{new Date(selectedPagamento.dataVencimento).toLocaleDateString()}</p>
-                  </div>
-                  {selectedPagamento.dataPagamento && (
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="text-lg sm:text-xl">Detalhes do Pagamento</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-4 right-4"
+                  onClick={() => setSelectedPagamento(null)}
+                >
+                  ×
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <p className="text-sm text-gray-500">Data do Pagamento</p>
-                      <p className="font-medium">{new Date(selectedPagamento.dataPagamento).toLocaleDateString()}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">Número da Fiança</p>
+                      <p className="font-medium text-sm sm:text-base">{selectedPagamento.numeroFianca}</p>
                     </div>
-                  )}
-                  {selectedPagamento.metodoPagamento && (
                     <div>
-                      <p className="text-sm text-gray-500">Método de Pagamento</p>
-                      <p className="font-medium">{selectedPagamento.metodoPagamento}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">Número do Contrato</p>
+                      <p className="font-medium text-sm sm:text-base">{selectedPagamento.numeroContrato}</p>
                     </div>
-                  )}
-                  {selectedPagamento.comprovante && (
                     <div>
-                      <p className="text-sm text-gray-500">Comprovante</p>
-                      <p className="font-medium">{selectedPagamento.comprovante}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">Valor</p>
+                      <p className="font-medium text-sm sm:text-base">R$ {selectedPagamento.valor.toLocaleString()}</p>
                     </div>
-                  )}
+                    <div>
+                      <p className="text-xs sm:text-sm text-gray-500">Status</p>
+                      <Badge className={`${getStatusColor(selectedPagamento.status)} text-white mt-1 text-xs`}>
+                        {getStatusText(selectedPagamento.status)}
+                      </Badge>
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm text-gray-500">Data de Vencimento</p>
+                      <p className="font-medium text-sm sm:text-base">{new Date(selectedPagamento.dataVencimento).toLocaleDateString()}</p>
+                    </div>
+                    {selectedPagamento.dataPagamento && (
+                      <div>
+                        <p className="text-xs sm:text-sm text-gray-500">Data do Pagamento</p>
+                        <p className="font-medium text-sm sm:text-base">{new Date(selectedPagamento.dataPagamento).toLocaleDateString()}</p>
+                      </div>
+                    )}
+                    {selectedPagamento.metodoPagamento && (
+                      <div>
+                        <p className="text-xs sm:text-sm text-gray-500">Método de Pagamento</p>
+                        <p className="font-medium text-sm sm:text-base">{selectedPagamento.metodoPagamento}</p>
+                      </div>
+                    )}
+                    {selectedPagamento.comprovante && (
+                      <div>
+                        <p className="text-xs sm:text-sm text-gray-500">Comprovante</p>
+                        <p className="font-medium text-sm sm:text-base">{selectedPagamento.comprovante}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </Layout>

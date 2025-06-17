@@ -7,26 +7,27 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
-  Shield, 
   FileText, 
-  CreditCard, 
-  Calendar,
-  DollarSign,
+  Shield, 
+  CheckCircle, 
+  Clock,
+  XCircle,
   Eye,
-  Search
+  Search,
+  Download,
+  DollarSign
 } from 'lucide-react';
 
 interface Fianca {
   id: string;
-  numeroContrato: string;
-  numeroFianca: string;
+  numero: string;
   imovel: string;
-  valorCobertura: number;
-  valorMensal: number;
-  dataInicio: string;
-  dataVencimento: string;
-  status: 'ativa' | 'vencida' | 'cancelada';
-  proximoPagamento: string;
+  endereco: string;
+  valor: number;
+  taxa: number;
+  dataEmissao: string;
+  status: 'ativa' | 'vencida' | 'cancelada' | 'pendente';
+  contrato: string;
   imobiliaria: string;
 }
 
@@ -38,28 +39,26 @@ const Fiancas = () => {
   const fiancas: Fianca[] = [
     {
       id: '1',
-      numeroContrato: 'CT-2024-001',
-      numeroFianca: 'FI-2024-001',
-      imovel: 'Apartamento 2 quartos - Centro',
-      valorCobertura: 25000,
-      valorMensal: 125,
-      dataInicio: '2024-01-01',
-      dataVencimento: '2024-12-31',
+      numero: 'FI-2024-001',
+      imovel: 'Apartamento 2 quartos',
+      endereco: 'Rua das Flores, 123 - Centro',
+      valor: 250,
+      taxa: 10,
+      dataEmissao: '2024-01-15',
       status: 'ativa',
-      proximoPagamento: '2024-02-01',
+      contrato: 'CT-2024-001',
       imobiliaria: 'Imobiliária Prime'
     },
     {
       id: '2',
-      numeroContrato: 'CT-2023-045',
-      numeroFianca: 'FI-2023-045',
-      imovel: 'Casa 3 quartos - Jardim América',
-      valorCobertura: 38400,
-      valorMensal: 160,
-      dataInicio: '2023-06-01',
-      dataVencimento: '2024-05-31',
+      numero: 'FI-2023-045',
+      imovel: 'Casa 3 quartos',
+      endereco: 'Av. Principal, 456 - Jardim América',
+      valor: 320,
+      taxa: 10,
+      dataEmissao: '2023-06-01',
       status: 'vencida',
-      proximoPagamento: '2024-06-01',
+      contrato: 'CT-2023-045',
       imobiliaria: 'Imobiliária Top'
     }
   ];
@@ -67,6 +66,7 @@ const Fiancas = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ativa': return 'bg-success';
+      case 'pendente': return 'bg-warning';
       case 'vencida': return 'bg-red-500';
       case 'cancelada': return 'bg-gray-500';
       default: return 'bg-gray-500';
@@ -76,154 +76,153 @@ const Fiancas = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'ativa': return 'Ativa';
+      case 'pendente': return 'Pendente';
       case 'vencida': return 'Vencida';
       case 'cancelada': return 'Cancelada';
       default: return status;
     }
   };
 
-  const handlePagamento = (fianca: Fianca) => {
-    // Simular redirecionamento para pagamento
-    window.open('https://pagamento.exemplo.com/fianca/' + fianca.id, '_blank');
-  };
-
   const filteredFiancas = fiancas.filter(fianca =>
-    fianca.numeroFianca.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fianca.numeroContrato.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fianca.imovel.toLowerCase().includes(searchTerm.toLowerCase())
+    fianca.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    fianca.imovel.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    fianca.contrato.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const downloadCertificate = (fianca: Fianca) => {
+    // Simular download do certificado
+    console.log(`Download do certificado da fiança ${fianca.numero}`);
+  };
 
   return (
     <Layout title="Minhas Fianças">
-      <div className="space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-primary">Minhas Fianças</h2>
-          <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-gray-400" />
+      <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
+        {/* Header - Otimizado para mobile */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-primary">Minhas Fianças</h2>
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <Search className="h-4 w-4 text-gray-400 flex-shrink-0" />
             <Input
               placeholder="Buscar fianças..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64"
+              className="w-full sm:w-64 text-sm"
             />
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Stats Cards - Grid responsivo */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Fianças Ativas</p>
-                  <p className="text-2xl font-bold text-success">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Fianças Ativas</p>
+                  <p className="text-xl sm:text-2xl font-bold text-success">
                     {fiancas.filter(f => f.status === 'ativa').length}
                   </p>
                 </div>
-                <Shield className="h-8 w-8 text-success" />
+                <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Valor Total Mensal</p>
-                  <p className="text-2xl font-bold text-primary">
-                    R$ {fiancas.filter(f => f.status === 'ativa').reduce((acc, f) => acc + f.valorMensal, 0).toLocaleString()}
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pendentes</p>
+                  <p className="text-xl sm:text-2xl font-bold text-warning">
+                    {fiancas.filter(f => f.status === 'pendente').length}
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-primary" />
+                <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-warning" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Cobertura Total</p>
-                  <p className="text-2xl font-bold text-purple-600">
-                    R$ {fiancas.filter(f => f.status === 'ativa').reduce((acc, f) => acc + f.valorCobertura, 0).toLocaleString()}
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Valor Total</p>
+                  <p className="text-xl sm:text-2xl font-bold text-primary">
+                    R$ {fiancas.filter(f => f.status === 'ativa').reduce((acc, f) => acc + f.valor, 0).toLocaleString()}
                   </p>
                 </div>
-                <FileText className="h-8 w-8 text-purple-600" />
+                <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Próx. Vencimento</p>
-                  <p className="text-sm font-bold text-warning">
-                    {fiancas.filter(f => f.status === 'ativa').length > 0 
-                      ? new Date(Math.min(...fiancas.filter(f => f.status === 'ativa').map(f => new Date(f.proximoPagamento).getTime()))).toLocaleDateString()
-                      : 'N/A'
-                    }
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Vencidas</p>
+                  <p className="text-xl sm:text-2xl font-bold text-red-500">
+                    {fiancas.filter(f => f.status === 'vencida').length}
                   </p>
                 </div>
-                <Calendar className="h-8 w-8 text-warning" />
+                <XCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Fianças List */}
+        {/* Warranties List - Otimizado para mobile */}
         <Card>
-          <CardHeader>
-            <CardTitle>Lista de Fianças</CardTitle>
-            <CardDescription>
-              Todas as suas fianças locatícias e seus detalhes
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-lg sm:text-xl">Lista de Fianças</CardTitle>
+            <CardDescription className="text-sm">
+              Todas as suas fianças locatícias
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {filteredFiancas.map((fianca) => (
                 <div
                   key={fianca.id}
-                  className="p-4 rounded-lg border hover:shadow-md transition-shadow"
+                  className="p-3 sm:p-4 rounded-lg border hover:shadow-md transition-shadow"
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h4 className="font-medium text-gray-900">{fianca.numeroFianca}</h4>
-                      <p className="text-sm text-gray-600">Contrato: {fianca.numeroContrato}</p>
-                      <p className="text-sm text-gray-500">{fianca.imovel}</p>
+                  <div className="flex flex-col sm:flex-row justify-between items-start mb-3 space-y-2 sm:space-y-0">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 text-sm sm:text-base">{fianca.numero}</h4>
+                      <p className="text-xs sm:text-sm text-gray-600">{fianca.imovel}</p>
+                      <p className="text-xs sm:text-sm text-gray-500 break-words">{fianca.endereco}</p>
                     </div>
-                    <Badge className={`${getStatusColor(fianca.status)} text-white`}>
+                    <Badge className={`${getStatusColor(fianca.status)} text-white text-xs mt-1 sm:mt-0`}>
                       {getStatusText(fianca.status)}
                     </Badge>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
-                    <div>
-                      <p className="text-sm text-gray-500">Valor Mensal</p>
-                      <p className="text-sm font-medium">R$ {fianca.valorMensal.toLocaleString()}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-3">
+                    <div className="bg-gray-50 p-2 sm:p-3 rounded">
+                      <p className="text-xs text-gray-500">Contrato</p>
+                      <p className="text-xs sm:text-sm font-medium">{fianca.contrato}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Cobertura</p>
-                      <p className="text-sm font-medium">R$ {fianca.valorCobertura.toLocaleString()}</p>
+                    <div className="bg-gray-50 p-2 sm:p-3 rounded">
+                      <p className="text-xs text-gray-500">Valor</p>
+                      <p className="text-xs sm:text-sm font-medium">R$ {fianca.valor.toLocaleString()}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Próximo Pagamento</p>
-                      <p className="text-sm font-medium">
-                        {new Date(fianca.proximoPagamento).toLocaleDateString()}
+                    <div className="bg-gray-50 p-2 sm:p-3 rounded">
+                      <p className="text-xs text-gray-500">Taxa</p>
+                      <p className="text-xs sm:text-sm font-medium">{fianca.taxa}%</p>
+                    </div>
+                    <div className="bg-gray-50 p-2 sm:p-3 rounded">
+                      <p className="text-xs text-gray-500">Emissão</p>
+                      <p className="text-xs sm:text-sm font-medium">
+                        {new Date(fianca.dataEmissao).toLocaleDateString()}
                       </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Imobiliária</p>
-                      <p className="text-sm font-medium">{fianca.imobiliaria}</p>
                     </div>
                   </div>
 
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setSelectedFianca(fianca)}
+                      className="w-full sm:w-auto"
                     >
                       <Eye className="mr-2 h-4 w-4" />
                       Ver Detalhes
@@ -232,11 +231,11 @@ const Fiancas = () => {
                     {fianca.status === 'ativa' && (
                       <Button
                         size="sm"
-                        onClick={() => handlePagamento(fianca)}
-                        className="bg-success hover:bg-success/90"
+                        onClick={() => downloadCertificate(fianca)}
+                        className="w-full sm:w-auto bg-success hover:bg-success/90"
                       >
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        Pagar Agora
+                        <Download className="mr-2 h-4 w-4" />
+                        Certificado
                       </Button>
                     )}
                   </div>
@@ -246,67 +245,67 @@ const Fiancas = () => {
           </CardContent>
         </Card>
 
-        {/* Fiança Details Modal */}
+        {/* Warranty Details Modal - Responsivo */}
         {selectedFianca && (
-          <Card className="fixed inset-0 z-50 m-4 max-w-2xl mx-auto mt-20 max-h-fit bg-white">
-            <CardHeader>
-              <CardTitle>Detalhes da Fiança</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-4 right-4"
-                onClick={() => setSelectedFianca(null)}
-              >
-                ×
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Número da Fiança</Label>
-                    <p className="font-medium">{selectedFianca.numeroFianca}</p>
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="text-lg sm:text-xl">Detalhes da Fiança</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-4 right-4"
+                  onClick={() => setSelectedFianca(null)}
+                >
+                  ×
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <Label className="text-xs sm:text-sm">Número da Fiança</Label>
+                      <p className="font-medium text-sm sm:text-base">{selectedFianca.numero}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs sm:text-sm">Status</Label>
+                      <Badge className={`${getStatusColor(selectedFianca.status)} text-white mt-1 text-xs`}>
+                        {getStatusText(selectedFianca.status)}
+                      </Badge>
+                    </div>
+                    <div>
+                      <Label className="text-xs sm:text-sm">Contrato Vinculado</Label>
+                      <p className="font-medium text-sm sm:text-base">{selectedFianca.contrato}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs sm:text-sm">Imobiliária</Label>
+                      <p className="font-medium text-sm sm:text-base break-words">{selectedFianca.imobiliaria}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs sm:text-sm">Valor da Fiança</Label>
+                      <p className="font-medium text-sm sm:text-base">R$ {selectedFianca.valor.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs sm:text-sm">Taxa Aplicada</Label>
+                      <p className="font-medium text-sm sm:text-base">{selectedFianca.taxa}%</p>
+                    </div>
                   </div>
                   <div>
-                    <Label>Número do Contrato</Label>
-                    <p className="font-medium">{selectedFianca.numeroContrato}</p>
+                    <Label className="text-xs sm:text-sm">Imóvel</Label>
+                    <p className="font-medium text-sm sm:text-base">{selectedFianca.imovel}</p>
                   </div>
                   <div>
-                    <Label>Status</Label>
-                    <Badge className={`${getStatusColor(selectedFianca.status)} text-white mt-1`}>
-                      {getStatusText(selectedFianca.status)}
-                    </Badge>
+                    <Label className="text-xs sm:text-sm">Endereço</Label>
+                    <p className="font-medium text-sm sm:text-base break-words">{selectedFianca.endereco}</p>
                   </div>
                   <div>
-                    <Label>Imobiliária</Label>
-                    <p className="font-medium">{selectedFianca.imobiliaria}</p>
+                    <Label className="text-xs sm:text-sm">Data de Emissão</Label>
+                    <p className="font-medium text-sm sm:text-base">{new Date(selectedFianca.dataEmissao).toLocaleDateString()}</p>
                   </div>
                 </div>
-                <div>
-                  <Label>Imóvel</Label>
-                  <p className="font-medium">{selectedFianca.imovel}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Valor Mensal da Fiança</Label>
-                    <p className="font-medium">R$ {selectedFianca.valorMensal.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <Label>Valor da Cobertura</Label>
-                    <p className="font-medium">R$ {selectedFianca.valorCobertura.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <Label>Data de Início</Label>
-                    <p className="font-medium">{new Date(selectedFianca.dataInicio).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <Label>Data de Vencimento</Label>
-                    <p className="font-medium">{new Date(selectedFianca.dataVencimento).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </Layout>
