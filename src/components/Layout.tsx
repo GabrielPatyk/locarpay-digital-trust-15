@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Menu, Bell, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { Bell, LogOut, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -34,45 +34,6 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
     return labels[type as keyof typeof labels] || type;
   };
 
-  // Layout específico para inquilino
-  if (user?.type === 'inquilino') {
-    return (
-      <SidebarInset>
-        {/* Header simplificado para inquilino */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-          <div className="px-4 py-3">
-            <div className="flex items-center justify-between">
-              {/* Logo */}
-              <div className="flex items-center space-x-3">
-                <img 
-                  src="/lovable-uploads/1fc475c2-f7e6-4e6e-bf1b-b349783c2b93.png" 
-                  alt="LocarPay Logo" 
-                  className="w-8 h-8 object-contain"
-                />
-                <h2 className="text-lg font-bold bg-gradient-to-r from-[#F4D573] to-[#BC942C] bg-clip-text text-transparent">
-                  LocarPay
-                </h2>
-              </div>
-
-              {/* Menu Hambúrguer */}
-              <SidebarTrigger className="p-2">
-                <Menu className="h-6 w-6" />
-              </SidebarTrigger>
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-auto">
-          <div className="p-4 sm:p-6">
-            {children}
-          </div>
-        </main>
-      </SidebarInset>
-    );
-  }
-
-  // Layout padrão para outros tipos de usuário
   return (
     <SidebarInset>
       {/* Header */}
