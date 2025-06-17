@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,12 +27,14 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const AppSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
   const { state, setOpen } = useSidebar();
+  const isMobile = useIsMobile();
 
   const getMenuItems = () => {
     if (user?.type === 'inquilino') {
@@ -138,11 +139,19 @@ const AppSidebar = () => {
   };
 
   const handleCollapseClick = () => {
-    setOpen(false);
+    // Para inquilino em mobile, fechar o sidebar
+    if (user?.type === 'inquilino' && isMobile) {
+      setOpen(false);
+    } else {
+      setOpen(false);
+    }
   };
 
+  // Determinar o lado do sidebar baseado no tipo de usuário e dispositivo
+  const sidebarSide = (user?.type === 'inquilino' && isMobile) ? 'right' : 'left';
+
   return (
-    <Sidebar className="border-r border-gray-200" collapsible="icon">
+    <Sidebar className="border-r border-gray-200" collapsible="icon" side={sidebarSide}>
       <SidebarHeader className="bg-[#0C1C2E] p-4">
         {isCollapsed ? (
           <div className="flex flex-col items-center space-y-3">
@@ -150,7 +159,7 @@ const AppSidebar = () => {
               onClick={handleExpandClick}
               className="text-white hover:bg-[#1A2F45] p-2 rounded transition-colors"
             >
-              <ChevronRight className="h-5 w-5" />
+              {sidebarSide === 'right' ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
             </button>
             <img 
               src="/lovable-uploads/1fc475c2-f7e6-4e6e-bf1b-b349783c2b93.png" 
@@ -174,7 +183,7 @@ const AppSidebar = () => {
               onClick={handleCollapseClick}
               className="text-white hover:bg-[#1A2F45] p-1 rounded"
             >
-              <ChevronLeft className="h-5 w-5" />
+              {sidebarSide === 'right' ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
             </button>
           </div>
         )}
