@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,7 +35,7 @@ const AppSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
-  const { state, setOpen } = useSidebar();
+  const { state, setOpen, setOpenMobile } = useSidebar();
   const isMobile = useIsMobile();
 
   const getMenuItems = () => {
@@ -142,7 +143,7 @@ const AppSidebar = () => {
   const handleCollapseClick = () => {
     // Para inquilino em mobile, fechar o sidebar completamente
     if (user?.type === 'inquilino' && isMobile) {
-      setOpen(false);
+      setOpenMobile(false);
     } else {
       setOpen(false);
     }
