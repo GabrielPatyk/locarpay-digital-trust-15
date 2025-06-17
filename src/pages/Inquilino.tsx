@@ -95,65 +95,65 @@ const Inquilino = () => {
 
   return (
     <Layout title="Área do Inquilino">
-      <div className="space-y-6 animate-fade-in">
-        {/* Welcome Card */}
+      <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
+        {/* Welcome Card - Otimizado para mobile */}
         <Card className="bg-gradient-to-r from-primary to-success text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold mb-2">Bem-vindo à sua área!</h2>
-                <p className="opacity-90">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+              <div className="flex-1">
+                <h2 className="text-xl sm:text-2xl font-bold mb-2">Bem-vindo à sua área!</h2>
+                <p className="opacity-90 text-sm sm:text-base">
                   Aqui você pode acompanhar seu contrato, validar sua conta e realizar pagamentos.
                 </p>
               </div>
-              <Shield className="h-16 w-16 opacity-80" />
+              <Shield className="h-12 w-12 sm:h-16 sm:w-16 opacity-80 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Contract Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <FileText className="mr-2 h-5 w-5 text-primary" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {/* Contract Information - Otimizado para mobile */}
+          <Card className="order-1">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="flex items-center text-lg sm:text-xl">
+                <FileText className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 Meu Contrato
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 Informações do seu contrato de fiança locatícia
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4">
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">Imóvel</h4>
-                <p className="text-sm text-gray-600">{contrato.imovel}</p>
+                <h4 className="font-medium text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">Imóvel</h4>
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">{contrato.imovel}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-medium text-gray-900">Valor do Aluguel</h4>
-                  <p className="text-lg font-bold text-primary">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <h4 className="font-medium text-gray-900 text-sm">Valor do Aluguel</h4>
+                  <p className="text-lg sm:text-xl font-bold text-primary">
                     R$ {contrato.valor.toLocaleString()}
                   </p>
                 </div>
-                <div>
-                  <h4 className="font-medium text-gray-900">Taxa da Fiança</h4>
-                  <p className="text-lg font-bold text-success">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <h4 className="font-medium text-gray-900 text-sm">Taxa da Fiança</h4>
+                  <p className="text-lg sm:text-xl font-bold text-success">
                     {contrato.taxa}%
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <h4 className="font-medium text-gray-900">Data de Assinatura</h4>
+                  <h4 className="font-medium text-gray-900 text-sm">Data de Assinatura</h4>
                   <p className="text-sm text-gray-600">
                     {new Date(contrato.dataAssinatura).toLocaleDateString()}
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">Status</h4>
-                  <Badge className={`${getStatusColor(contrato.status)} text-white`}>
+                  <h4 className="font-medium text-gray-900 text-sm">Status</h4>
+                  <Badge className={`${getStatusColor(contrato.status)} text-white mt-1`}>
                     {contrato.status === 'ativo' ? 'Ativo' : 
                      contrato.status === 'pendente' ? 'Pendente' : 'Vencido'}
                   </Badge>
@@ -163,7 +163,8 @@ const Inquilino = () => {
               <Button 
                 onClick={baixarContrato}
                 variant="outline" 
-                className="w-full"
+                className="w-full mt-4"
+                size="lg"
               >
                 <Download className="mr-2 h-4 w-4" />
                 Baixar Contrato PDF
@@ -171,29 +172,29 @@ const Inquilino = () => {
             </CardContent>
           </Card>
 
-          {/* Account Validation & Payment */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <CreditCard className="mr-2 h-5 w-5 text-primary" />
+          {/* Account Validation & Payment - Otimizado para mobile */}
+          <Card className="order-2">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="flex items-center text-lg sm:text-xl">
+                <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 Pagamento da Fiança
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 Valide sua conta e realize o pagamento
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4">
               {/* Email Validation */}
-              <div className="p-4 border rounded-lg">
+              <div className="p-3 sm:p-4 border rounded-lg bg-gray-50">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-gray-900">Validação de E-mail</h4>
+                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">Validação de E-mail</h4>
                   {emailValidado ? (
-                    <CheckCircle className="h-5 w-5 text-success" />
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
                   ) : (
-                    <Mail className="h-5 w-5 text-warning" />
+                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-warning" />
                   )}
                 </div>
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-xs sm:text-sm text-gray-600 mb-3">
                   {emailValidado 
                     ? 'Sua conta foi validada com sucesso!' 
                     : 'Valide seu e-mail para prosseguir com o pagamento'
@@ -203,7 +204,7 @@ const Inquilino = () => {
                   <Button 
                     onClick={validarEmail}
                     size="sm"
-                    className="bg-warning hover:bg-warning/90 text-primary"
+                    className="bg-warning hover:bg-warning/90 text-primary w-full sm:w-auto"
                   >
                     Validar E-mail
                   </Button>
@@ -211,22 +212,22 @@ const Inquilino = () => {
               </div>
 
               {/* Payment Information */}
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Valor da Fiança</h4>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-2xl font-bold text-primary">
+              <div className="p-3 sm:p-4 border rounded-lg bg-gradient-to-r from-primary/5 to-success/5">
+                <h4 className="font-medium text-gray-900 mb-3 text-sm sm:text-base">Valor da Fiança</h4>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 space-y-2 sm:space-y-0">
+                  <span className="text-2xl sm:text-3xl font-bold text-primary">
                     R$ {contrato.valorFianca.toLocaleString()}
                   </span>
-                  <Badge className={`${getPagamentoStatusColor(contrato.pagamentoStatus)} text-white`}>
+                  <Badge className={`${getPagamentoStatusColor(contrato.pagamentoStatus)} text-white text-xs sm:text-sm`}>
                     {contrato.pagamentoStatus === 'pago' ? 'Pago' : 
                      contrato.pagamentoStatus === 'pendente' ? 'Pendente' : 'Vencido'}
                   </Badge>
                 </div>
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-xs sm:text-sm text-gray-600 mb-3">
                   Taxa de {contrato.taxa}% sobre o valor do aluguel
                 </p>
-                <div className="flex items-center text-sm text-gray-600 mb-3">
-                  <Calendar className="mr-2 h-4 w-4" />
+                <div className="flex items-center text-xs sm:text-sm text-gray-600 mb-3">
+                  <Calendar className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   Vencimento: {new Date(contrato.vencimento).toLocaleDateString()}
                 </div>
               </div>
@@ -238,16 +239,16 @@ const Inquilino = () => {
                   className="w-full bg-success hover:bg-success/90"
                   size="lg"
                 >
-                  <DollarSign className="mr-2 h-5 w-5" />
+                  <DollarSign className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                   Gerar Link de Pagamento
                 </Button>
               )}
 
               {contrato.pagamentoStatus === 'pago' && (
-                <div className="p-4 bg-success/10 border border-success/20 rounded-lg text-center">
-                  <CheckCircle className="mx-auto h-8 w-8 text-success mb-2" />
-                  <p className="font-medium text-success">Pagamento Realizado!</p>
-                  <p className="text-sm text-gray-600">
+                <div className="p-3 sm:p-4 bg-success/10 border border-success/20 rounded-lg text-center">
+                  <CheckCircle className="mx-auto h-6 w-6 sm:h-8 sm:w-8 text-success mb-2" />
+                  <p className="font-medium text-success text-sm sm:text-base">Pagamento Realizado!</p>
+                  <p className="text-xs sm:text-sm text-gray-600">
                     Sua fiança foi quitada com sucesso.
                   </p>
                 </div>
@@ -256,26 +257,27 @@ const Inquilino = () => {
           </Card>
         </div>
 
-        {/* Payment History */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Histórico de Pagamentos</CardTitle>
-            <CardDescription>
+        {/* Payment History - Otimizado para mobile */}
+        <Card className="order-3">
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-lg sm:text-xl">Histórico de Pagamentos</CardTitle>
+            <CardDescription className="text-sm">
               Acompanhe todos os seus pagamentos realizados
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <p className="font-medium">Fiança Locatícia</p>
-                  <p className="text-sm text-gray-600">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded-lg bg-gray-50 space-y-2 sm:space-y-0">
+                <div className="flex-1">
+                  <p className="font-medium text-sm sm:text-base">Fiança Locatícia</p>
+                  <p className="text-xs sm:text-sm text-gray-600 flex items-center">
+                    <Calendar className="mr-1 h-3 w-3" />
                     {new Date(contrato.vencimento).toLocaleDateString()}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium">R$ {contrato.valorFianca.toLocaleString()}</p>
-                  <Badge className={`${getPagamentoStatusColor(contrato.pagamentoStatus)} text-white text-xs`}>
+                <div className="text-left sm:text-right">
+                  <p className="font-medium text-sm sm:text-base">R$ {contrato.valorFianca.toLocaleString()}</p>
+                  <Badge className={`${getPagamentoStatusColor(contrato.pagamentoStatus)} text-white text-xs mt-1`}>
                     {contrato.pagamentoStatus === 'pago' ? 'Pago' : 'Pendente'}
                   </Badge>
                 </div>

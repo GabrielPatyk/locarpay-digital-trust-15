@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,7 +40,7 @@ const AppSidebar = () => {
       return [
         {
           title: 'Dashboard',
-          url: '/dashboard',
+          url: '/inquilino',
           icon: Home,
         },
         {
@@ -184,7 +185,8 @@ const AppSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
-                const isActive = location.pathname === item.url;
+                const isActive = location.pathname === item.url || 
+                  (user?.type === 'inquilino' && item.title === 'Dashboard' && location.pathname === '/inquilino');
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton

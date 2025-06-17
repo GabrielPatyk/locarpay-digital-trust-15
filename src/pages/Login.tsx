@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,13 +26,13 @@ const Login = () => {
     setError('');
 
     try {
-      const success = await login(email, password);
-      if (success) {
+      const result = await login(email, password);
+      if (result.success) {
         toast({
           title: "Login realizado com sucesso!",
-          description: "Redirecionando para o dashboard...",
+          description: "Redirecionando...",
         });
-        navigate('/dashboard');
+        navigate(result.redirectPath || '/dashboard');
       } else {
         setError('Credenciais inválidas. Tente novamente.');
       }
