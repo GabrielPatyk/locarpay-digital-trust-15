@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,7 +19,7 @@ import {
   Building, 
   Briefcase, 
   ClipboardList, 
-  Phone, 
+  DollarSign, 
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -59,7 +58,7 @@ const AppSidebar = () => {
         {
           title: 'Pagamentos',
           url: '/pagamentos',
-          icon: Phone,
+          icon: DollarSign,
         },
       ];
     }
@@ -99,7 +98,7 @@ const AppSidebar = () => {
       {
         title: 'Leads',
         url: '/leads',
-        icon: Phone,
+        icon: DollarSign,
       },
       {
         title: 'Configurações',
