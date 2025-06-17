@@ -55,10 +55,8 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
               </div>
 
               {/* Menu Hambúrguer */}
-              <SidebarTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-2">
-                  <Menu className="h-6 w-6" />
-                </Button>
+              <SidebarTrigger className="p-2">
+                <Menu className="h-6 w-6" />
               </SidebarTrigger>
             </div>
           </div>
