@@ -1,8 +1,11 @@
+
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Menu } from 'lucide-react';
+import { Menu, Bell, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { useNavigate } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,7 +13,26 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, title }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const getUserTypeLabel = (type: string) => {
+    const labels = {
+      analista: 'Analista de Conta',
+      juridico: 'Departamento Jurídico',
+      sdr: 'SDR - Comercial',
+      executivo: 'Executivo de Conta',
+      imobiliaria: 'Imobiliária',
+      inquilino: 'Inquilino',
+      admin: 'Administrador'
+    };
+    return labels[type as keyof typeof labels] || type;
+  };
 
   // Layout específico para inquilino
   if (user?.type === 'inquilino') {
