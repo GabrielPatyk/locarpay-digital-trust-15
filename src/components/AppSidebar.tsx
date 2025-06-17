@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,7 +24,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  X
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -139,7 +141,7 @@ const AppSidebar = () => {
   };
 
   const handleCollapseClick = () => {
-    // Para inquilino em mobile, fechar o sidebar
+    // Para inquilino em mobile, fechar o sidebar completamente
     if (user?.type === 'inquilino' && isMobile) {
       setOpen(false);
     } else {
@@ -149,6 +151,14 @@ const AppSidebar = () => {
 
   // Determinar o lado do sidebar baseado no tipo de usuário e dispositivo
   const sidebarSide = (user?.type === 'inquilino' && isMobile) ? 'right' : 'left';
+
+  // Determinar qual ícone usar para fechar/colapsar
+  const getCollapseIcon = () => {
+    if (user?.type === 'inquilino' && isMobile) {
+      return <X className="h-5 w-5" />; // X para fechar completamente
+    }
+    return sidebarSide === 'right' ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />;
+  };
 
   return (
     <Sidebar className="border-r border-gray-200" collapsible="icon" side={sidebarSide}>
@@ -183,7 +193,7 @@ const AppSidebar = () => {
               onClick={handleCollapseClick}
               className="text-white hover:bg-[#1A2F45] p-1 rounded"
             >
-              {sidebarSide === 'right' ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+              {getCollapseIcon()}
             </button>
           </div>
         )}
