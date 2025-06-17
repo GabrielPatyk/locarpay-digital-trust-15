@@ -5,6 +5,7 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import { 
   TrendingUp, 
   Users, 
@@ -21,6 +22,7 @@ const Dashboard = () => {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const [showContractModal, setShowContractModal] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check if user is imobiliaria on first login and hasn't accepted contract
@@ -38,6 +40,13 @@ const Dashboard = () => {
       };
       updateUser(updatedUser);
       setShowContractModal(false);
+      
+      // Show welcome notification
+      toast({
+        title: "Contrato aceito!",
+        description: "Bem-vindo à LocarPay. Agora você pode utilizar a plataforma com total acesso.",
+        duration: 6000,
+      });
     }
   };
 
