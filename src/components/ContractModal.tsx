@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,6 @@ interface ContractModalProps {
 
 const ContractModal: React.FC<ContractModalProps> = ({ isOpen, user, onAccept }) => {
   const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const getCurrentDate = () => {
@@ -29,43 +29,6 @@ const ContractModal: React.FC<ContractModalProps> = ({ isOpen, user, onAccept })
     
     if (isAtBottom && !hasScrolledToEnd) {
       setHasScrolledToEnd(true);
-    }
-  };
-
-  const handleSignatureProcess = async () => {
-    setIsProcessing(true);
-
-    try {
-      const response = await fetch('https://esignatures.io/api/contracts?token=28e1b771-3f76-4c66-834c-43209ca93aaa', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          template_id: '9c7a86e4-4e05-470f-9a3a-dc5c815f3df4',
-          signers: [
-            {
-              name: user.name,
-              email: user.email
-            }
-          ],
-          redirect_url: 'https://locarpay.com.br/sucesso-assinatura'
-        })
-      });
-
-      const data = await response.json();
-
-      if (data?.contract?.url) {
-        // Call the original onAccept function before redirecting
-        onAccept();
-        window.location.href = data.contract.url;
-      } else {
-        throw new Error('URL de assinatura não encontrada na resposta');
-      }
-    } catch (error) {
-      console.error('Erro ao processar assinatura:', error);
-      alert(`Erro ao processar assinatura: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
-      setIsProcessing(false);
     }
   };
 
@@ -172,11 +135,11 @@ Representante Legal
           
           <div className="flex justify-center">
             <Button
-              onClick={handleSignatureProcess}
-              disabled={!hasScrolledToEnd || isProcessing}
+              onClick={onAccept}
+              disabled={!hasScrolledToEnd}
               className="bg-[#F4D573] text-[#0C1C2E] hover:bg-[#BC942C] hover:text-white font-semibold px-8 py-2"
             >
-              {isProcessing ? 'Processando...' : 'Aceitar e Continuar com a Assinatura'}
+              Aceito o contrato
             </Button>
           </div>
         </div>
