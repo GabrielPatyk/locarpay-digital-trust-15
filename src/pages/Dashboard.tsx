@@ -17,17 +17,26 @@ import {
   ArrowRight
 } from 'lucide-react';
 import ContractModal from '@/components/ContractModal';
+import SignatureModal from '@/components/SignatureModal';
 
 const Dashboard = () => {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const [showContractModal, setShowContractModal] = useState(false);
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     // Check if user is imobiliaria on first login and hasn't accepted contract
     if (user?.type === 'imobiliaria' && user?.firstLogin && !user?.contractAccepted) {
       setShowContractModal(true);
+    }
+    
+    // Show signature modal on first access for any user type
+    const hasSeenSignature = localStorage.getItem(`signature_seen_${user?.id}`);
+    if (user && !hasSeenSignature) {
+      setShowSignatureModal(true);
+      localStorage.setItem(`signature_seen_${user.id}`, 'true');
     }
   }, [user]);
 
@@ -297,6 +306,14 @@ const Dashboard = () => {
           isOpen={showContractModal}
           user={user}
           onAccept={handleContractAccept}
+        />
+      )}
+
+      {/* Signature Modal for first access */}
+      {user && (
+        <SignatureModal
+          isOpen={showSignatureModal}
+          user={user}
         />
       )}
     </>
