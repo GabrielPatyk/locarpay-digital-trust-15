@@ -1,346 +1,361 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  Scale, 
+  Settings, 
   User, 
   Bell, 
   Shield, 
   Save,
-  Eye,
-  EyeOff
+  Mail,
+  Phone
 } from 'lucide-react';
 
 const ConfiguracoesJuridico = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    companyName: 'Departamento Jurídico',
-    cnpj: user?.cnpj || '',
-    address: user?.address || '',
-    fullName: user?.fullName || user?.name || '',
+  // Estados para as configurações
+  const [profileData, setProfileData] = useState({
+    name: user?.name || '',
     email: user?.email || '',
     phone: '',
     oab: '',
-    especialidade: '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-    emailNotifications: true,
-    smsNotifications: false,
-    weeklyReports: true,
-    monthlyReports: true
+    especialidade: ''
   });
 
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  const [notifications, setNotifications] = useState({
+    emailNotifications: true,
+    processUpdates: true,
+    deadlineAlerts: true,
+    newDocuments: false,
+    systemAlerts: true
+  });
 
-  const handleSaveProfile = () => {
-    if (user) {
-      const updatedUser = {
-        ...user,
-        fullName: formData.fullName,
-        email: formData.email
-      };
-      updateUser(updatedUser);
-      
-      toast({
-        title: "Perfil atualizado!",
-        description: "Suas informações foram salvas com sucesso.",
-      });
-    }
-  };
+  const [security, setSecurity] = useState({
+    twoFactorAuth: false,
+    loginAlerts: true,
+    sessionTimeout: '30'
+  });
 
-  const handleChangePassword = () => {
-    if (formData.newPassword !== formData.confirmPassword) {
-      toast({
-        title: "Erro ao alterar senha",
-        description: "As senhas não coincidem.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleProfileSave = () => {
     toast({
-      title: "Senha alterada!",
-      description: "Sua senha foi alterada com sucesso.",
+      title: "Perfil atualizado",
+      description: "Suas informações foram salvas com sucesso.",
     });
-
-    setFormData(prev => ({
-      ...prev,
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    }));
   };
 
-  const handleSaveNotifications = () => {
+  const handleNotificationSave = () => {
     toast({
-      title: "Preferências salvas!",
-      description: "Suas preferências de notificação foram atualizadas.",
+      title: "Notificações atualizadas",
+      description: "Suas preferências de notificação foram salvas.",
+    });
+  };
+
+  const handleSecuritySave = () => {
+    toast({
+      title: "Configurações de segurança atualizadas",
+      description: "Suas configurações de segurança foram salvas com sucesso.",
     });
   };
 
   return (
-    <Layout title="Configurações">
+    <Layout title="Configurações - Jurídico">
       <div className="space-y-6 animate-fade-in">
-        {/* Department Profile */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Scale className="mr-2 h-5 w-5 text-primary" />
-              Dados do Departamento
+              <Settings className="mr-2 h-5 w-5" />
+              Configurações da Conta
             </CardTitle>
             <CardDescription>
-              Informações básicas do departamento jurídico
+              Gerencie suas configurações pessoais e preferências do sistema
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="companyName">Nome do Departamento</Label>
-                <Input
-                  id="companyName"
-                  value={formData.companyName}
-                  onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  placeholder="Nome do departamento"
-                />
-              </div>
-              <div>
-                <Label htmlFor="especialidade">Especialidade</Label>
-                <Input
-                  id="especialidade"
-                  value={formData.especialidade}
-                  onChange={(e) => handleInputChange('especialidade', e.target.value)}
-                  placeholder="Ex: Direito Imobiliário, Direito Civil"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="address">Endereço Completo</Label>
-              <Textarea
-                id="address"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                placeholder="Endereço completo do departamento"
-                rows={3}
-              />
-            </div>
-            
-            <Button onClick={handleSaveProfile} className="bg-primary hover:bg-primary/90">
-              <Save className="mr-2 h-4 w-4" />
-              Salvar Dados do Departamento
-            </Button>
-          </CardContent>
         </Card>
 
-        {/* Personal Profile */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="mr-2 h-5 w-5 text-success" />
-              Dados Pessoais
-            </CardTitle>
-            <CardDescription>
-              Informações do responsável pela conta
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="fullName">Nome Completo</Label>
-                <Input
-                  id="fullName"
-                  value={formData.fullName}
-                  onChange={(e) => handleInputChange('fullName', e.target.value)}
-                  placeholder="Seu nome completo"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="seu@email.com"
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="phone">Telefone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  placeholder="(11) 99999-9999"
-                />
-              </div>
-              <div>
-                <Label htmlFor="oab">OAB</Label>
-                <Input
-                  id="oab"
-                  value={formData.oab}
-                  onChange={(e) => handleInputChange('oab', e.target.value)}
-                  placeholder="SP 123.456"
-                />
-              </div>
-            </div>
-            
-            <Button onClick={handleSaveProfile} className="bg-success hover:bg-success/90">
-              <Save className="mr-2 h-4 w-4" />
-              Salvar Dados Pessoais
-            </Button>
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="perfil" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="perfil">Perfil</TabsTrigger>
+            <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
+            <TabsTrigger value="seguranca">Segurança</TabsTrigger>
+          </TabsList>
 
-        {/* Security */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Shield className="mr-2 h-5 w-5 text-warning" />
-              Segurança
-            </CardTitle>
-            <CardDescription>
-              Altere sua senha de acesso
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="currentPassword">Senha Atual</Label>
-              <div className="relative">
-                <Input
-                  id="currentPassword"
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.currentPassword}
-                  onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-                  placeholder="Digite sua senha atual"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+          <TabsContent value="perfil">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <User className="mr-2 h-5 w-5" />
+                  Informações Pessoais
+                </CardTitle>
+                <CardDescription>
+                  Atualize suas informações pessoais e profissionais
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nome Completo</Label>
+                    <Input
+                      id="name"
+                      value={profileData.name}
+                      onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                      placeholder="Digite seu nome completo"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={profileData.email}
+                      onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                      placeholder="Digite seu e-mail"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefone</Label>
+                    <Input
+                      id="phone"
+                      value={profileData.phone}
+                      onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                      placeholder="(11) 99999-9999"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="oab">OAB</Label>
+                    <Input
+                      id="oab"
+                      value={profileData.oab}
+                      onChange={(e) => setProfileData({...profileData, oab: e.target.value})}
+                      placeholder="SP 123.456"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="especialidade">Especialidade</Label>
+                    <Input
+                      id="especialidade"
+                      value={profileData.especialidade}
+                      onChange={(e) => setProfileData({...profileData, especialidade: e.target.value})}
+                      placeholder="Ex: Direito Imobiliário, Direito Civil"
+                    />
+                  </div>
+                </div>
+                
+                <Button onClick={handleProfileSave} className="w-full md:w-auto">
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar Alterações
                 </Button>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="newPassword">Nova Senha</Label>
-                <Input
-                  id="newPassword"
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.newPassword}
-                  onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                  placeholder="Digite sua nova senha"
-                />
-              </div>
-              <div>
-                <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
-                <Input
-                  id="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  placeholder="Confirme sua nova senha"
-                />
-              </div>
-            </div>
-            
-            <Button onClick={handleChangePassword} className="bg-warning hover:bg-warning/90 text-white">
-              <Save className="mr-2 h-4 w-4" />
-              Alterar Senha
-            </Button>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Notifications */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Bell className="mr-2 h-5 w-5" style={{ color: '#BC942C' }} />
-              Notificações
-            </CardTitle>
-            <CardDescription>
-              Configure suas preferências de notificação
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Notificações por E-mail</p>
-                <p className="text-sm text-gray-600">Receber notificações importantes por e-mail</p>
-              </div>
-              <Switch
-                checked={formData.emailNotifications}
-                onCheckedChange={(checked) => handleInputChange('emailNotifications', checked)}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Notificações por SMS</p>
-                <p className="text-sm text-gray-600">Receber alertas urgentes por SMS</p>
-              </div>
-              <Switch
-                checked={formData.smsNotifications}
-                onCheckedChange={(checked) => handleInputChange('smsNotifications', checked)}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Relatórios Semanais</p>
-                <p className="text-sm text-gray-600">Receber resumo semanal de atividades</p>
-              </div>
-              <Switch
-                checked={formData.weeklyReports}
-                onCheckedChange={(checked) => handleInputChange('weeklyReports', checked)}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Relatórios Mensais</p>
-                <p className="text-sm text-gray-600">Receber relatório mensal detalhado</p>
-              </div>
-              <Switch
-                checked={formData.monthlyReports}
-                onCheckedChange={(checked) => handleInputChange('monthlyReports', checked)}
-              />
-            </div>
-            
-            <Button onClick={handleSaveNotifications} style={{ backgroundColor: '#BC942C' }} className="hover:opacity-90 text-white">
-              <Save className="mr-2 h-4 w-4" />
-              Salvar Preferências
-            </Button>
-          </CardContent>
-        </Card>
+          <TabsContent value="notificacoes">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Bell className="mr-2 h-5 w-5" />
+                  Preferências de Notificação
+                </CardTitle>
+                <CardDescription>
+                  Configure como e quando você deseja receber notificações
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Notificações por E-mail</Label>
+                      <p className="text-sm text-gray-500">
+                        Receber notificações importantes por e-mail
+                      </p>
+                    </div>
+                    <Switch
+                      checked={notifications.emailNotifications}
+                      onCheckedChange={(checked) => 
+                        setNotifications({...notifications, emailNotifications: checked})
+                      }
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Atualizações de Processos</Label>
+                      <p className="text-sm text-gray-500">
+                        Notificações sobre mudanças no status dos processos
+                      </p>
+                    </div>
+                    <Switch
+                      checked={notifications.processUpdates}
+                      onCheckedChange={(checked) => 
+                        setNotifications({...notifications, processUpdates: checked})
+                      }
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Alertas de Prazo</Label>
+                      <p className="text-sm text-gray-500">
+                        Alertas sobre prazos próximos do vencimento
+                      </p>
+                    </div>
+                    <Switch
+                      checked={notifications.deadlineAlerts}
+                      onCheckedChange={(checked) => 
+                        setNotifications({...notifications, deadlineAlerts: checked})
+                      }
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Novos Documentos</Label>
+                      <p className="text-sm text-gray-500">
+                        Notificações sobre novos documentos adicionados
+                      </p>
+                    </div>
+                    <Switch
+                      checked={notifications.newDocuments}
+                      onCheckedChange={(checked) => 
+                        setNotifications({...notifications, newDocuments: checked})
+                      }
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Alertas do Sistema</Label>
+                      <p className="text-sm text-gray-500">
+                        Notificações sobre manutenções e atualizações do sistema
+                      </p>
+                    </div>
+                    <Switch
+                      checked={notifications.systemAlerts}
+                      onCheckedChange={(checked) => 
+                        setNotifications({...notifications, systemAlerts: checked})
+                      }
+                    />
+                  </div>
+                </div>
+                
+                <Button onClick={handleNotificationSave} className="w-full md:w-auto">
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar Preferências
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="seguranca">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Shield className="mr-2 h-5 w-5" />
+                  Configurações de Segurança
+                </CardTitle>
+                <CardDescription>
+                  Gerencie a segurança da sua conta e sessões
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Autenticação de Dois Fatores</Label>
+                      <p className="text-sm text-gray-500">
+                        Adicione uma camada extra de segurança à sua conta
+                      </p>
+                    </div>
+                    <Switch
+                      checked={security.twoFactorAuth}
+                      onCheckedChange={(checked) => 
+                        setSecurity({...security, twoFactorAuth: checked})
+                      }
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Alertas de Login</Label>
+                      <p className="text-sm text-gray-500">
+                        Receber notificação sobre novos logins na sua conta
+                      </p>
+                    </div>
+                    <Switch
+                      checked={security.loginAlerts}
+                      onCheckedChange={(checked) => 
+                        setSecurity({...security, loginAlerts: checked})
+                      }
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="sessionTimeout">Timeout da Sessão (minutos)</Label>
+                    <Input
+                      id="sessionTimeout"
+                      type="number"
+                      value={security.sessionTimeout}
+                      onChange={(e) => setSecurity({...security, sessionTimeout: e.target.value})}
+                      placeholder="30"
+                      className="w-32"
+                    />
+                    <p className="text-sm text-gray-500">
+                      Tempo para logout automático por inatividade
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="border-t pt-6">
+                  <h4 className="font-medium mb-4">Alterar Senha</h4>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="currentPassword">Senha Atual</Label>
+                      <Input
+                        id="currentPassword"
+                        type="password"
+                        placeholder="Digite sua senha atual"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">Nova Senha</Label>
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        placeholder="Digite sua nova senha"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Confirme sua nova senha"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <Button onClick={handleSecuritySave} className="w-full md:w-auto">
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar Configurações
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );
