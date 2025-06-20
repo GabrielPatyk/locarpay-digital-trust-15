@@ -58,7 +58,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('locarpay_user', JSON.stringify(foundUser));
       
       // Define redirect path based on user type
-      const redirectPath = foundUser.type === 'inquilino' ? '/inquilino' : '/dashboard';
+      let redirectPath = '/dashboard';
+      if (foundUser.type === 'inquilino') {
+        redirectPath = '/inquilino';
+      } else if (foundUser.type === 'financeiro') {
+        redirectPath = '/financeiro';
+      }
       
       return { success: true, redirectPath };
     }

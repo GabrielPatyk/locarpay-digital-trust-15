@@ -28,6 +28,12 @@ import Contratos from "./pages/Contratos";
 import Fiancas from "./pages/Fiancas";
 import Pagamentos from "./pages/Pagamentos";
 
+// Financeiro Pages
+import PagamentosFinanceiro from "./pages/PagamentosFinanceiro";
+import RelatoriosFinanceiro from "./pages/RelatoriosFinanceiro";
+import ConfiguracoesFinanceiro from "./pages/ConfiguracoesFinanceiro";
+import InadimplenciaFinanceiro from "./pages/InadimplenciaFinanceiro";
+
 const queryClient = new QueryClient();
 
 const AppContent = () => {
@@ -106,6 +112,31 @@ const AppContent = () => {
         <Route path="/financeiro" element={
           <ProtectedRoute allowedRoles={['financeiro', 'admin']}>
             <Financeiro />
+          </ProtectedRoute>
+        } />
+
+        {/* Financeiro specific routes */}
+        <Route path="/pagamentos-financeiro" element={
+          <ProtectedRoute allowedRoles={['financeiro', 'admin']}>
+            <PagamentosFinanceiro />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/relatorios-financeiro" element={
+          <ProtectedRoute allowedRoles={['financeiro', 'admin']}>
+            <RelatoriosFinanceiro />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/configuracoes-financeiro" element={
+          <ProtectedRoute allowedRoles={['financeiro', 'admin']}>
+            <ConfiguracoesFinanceiro />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/inadimplencia-financeiro" element={
+          <ProtectedRoute allowedRoles={['financeiro', 'admin']}>
+            <InadimplenciaFinanceiro />
           </ProtectedRoute>
         } />
         
@@ -195,6 +226,31 @@ const AppContent = () => {
           <Route path="/financeiro" element={
             <ProtectedRoute allowedRoles={['financeiro', 'admin']}>
               <Financeiro />
+            </ProtectedRoute>
+          } />
+
+          {/* Financeiro specific routes */}
+          <Route path="/pagamentos-financeiro" element={
+            <ProtectedRoute allowedRoles={['financeiro', 'admin']}>
+              <PagamentosFinanceiro />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/relatorios-financeiro" element={
+            <ProtectedRoute allowedRoles={['financeiro', 'admin']}>
+              <RelatoriosFinanceiro />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/configuracoes-financeiro" element={
+            <ProtectedRoute allowedRoles={['financeiro', 'admin']}>
+              <ConfiguracoesFinanceiro />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/inadimplencia-financeiro" element={
+            <ProtectedRoute allowedRoles={['financeiro', 'admin']}>
+              <InadimplenciaFinanceiro />
             </ProtectedRoute>
           } />
           

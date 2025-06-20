@@ -29,7 +29,9 @@ import {
   Users,
   Scale,
   Phone,
-  CreditCard
+  CreditCard,
+  TrendingDown,
+  BarChart3
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -206,13 +208,18 @@ const AppSidebar = () => {
           icon: CreditCard,
         },
         {
+          title: 'Inadimplência',
+          url: '/inadimplencia-financeiro',
+          icon: TrendingDown,
+        },
+        {
           title: 'Relatórios',
           url: '/relatorios-financeiro',
-          icon: ClipboardList,
+          icon: BarChart3,
         },
         {
           title: 'Configurações',
-          url: '/config-financeiro',
+          url: '/configuracoes-financeiro',
           icon: Settings,
         },
       ];
