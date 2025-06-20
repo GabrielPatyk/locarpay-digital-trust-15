@@ -40,6 +40,12 @@ import PropostasExecutivo from "./pages/PropostasExecutivo";
 import PerformanceExecutivo from "./pages/PerformanceExecutivo";
 import ConfiguracoesExecutivo from "./pages/ConfiguracoesExecutivo";
 
+// Juridico Pages
+import ContratosJuridico from "./pages/ContratosJuridico";
+import Processos from "./pages/Processos";
+import Documentos from "./pages/Documentos";
+import ConfiguracoesJuridico from "./pages/ConfiguracoesJuridico";
+
 const queryClient = new QueryClient();
 
 const AppContent = () => {
@@ -102,6 +108,31 @@ const AppContent = () => {
           <Route path="/juridico" element={
             <ProtectedRoute allowedRoles={['juridico', 'admin']}>
               <Juridico />
+            </ProtectedRoute>
+          } />
+
+          {/* Juridico specific routes */}
+          <Route path="/contratos-juridico" element={
+            <ProtectedRoute allowedRoles={['juridico', 'admin']}>
+              <ContratosJuridico />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/processos" element={
+            <ProtectedRoute allowedRoles={['juridico', 'admin']}>
+              <Processos />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/documentos" element={
+            <ProtectedRoute allowedRoles={['juridico', 'admin']}>
+              <Documentos />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/configuracoes-juridico" element={
+            <ProtectedRoute allowedRoles={['juridico', 'admin']}>
+              <ConfiguracoesJuridico />
             </ProtectedRoute>
           } />
           

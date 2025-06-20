@@ -118,6 +118,11 @@ const AppSidebar = () => {
           url: '/documentos',
           icon: ClipboardList,
         },
+        {
+          title: 'Configurações',
+          url: '/configuracoes-juridico',
+          icon: Settings,
+        },
       ];
     }
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Scale, 
   FileText, 
@@ -49,6 +49,7 @@ interface Fianca {
 }
 
 const Juridico = () => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab, setSelectedTab] = useState('contratos');
 
@@ -201,6 +202,28 @@ const Juridico = () => {
   return (
     <Layout title="Departamento Jurídico">
       <div className="space-y-6 animate-fade-in">
+        {/* Banner de Boas-vindas */}
+        <Card className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E] border-none">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold mb-2">
+                  Olá, {user?.name}! 👋
+                </h1>
+                <p className="text-[#0C1C2E]/80 text-lg">
+                  Bem-vindo ao <span className="font-semibold">Departamento Jurídico</span>
+                </p>
+                <p className="text-[#0C1C2E]/70 mt-1">
+                  Gerencie contratos, processos e documentos legais
+                </p>
+              </div>
+              <div className="hidden md:block">
+                <Scale className="h-16 w-16 text-[#0C1C2E]/20" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Header Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>

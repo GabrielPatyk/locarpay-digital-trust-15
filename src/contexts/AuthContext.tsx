@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, AuthState, UserType } from '@/types/user';
 
@@ -66,6 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         redirectPath = '/imobiliaria';
       } else if (foundUser.type === 'executivo') {
         redirectPath = '/executivo';
+      } else if (foundUser.type === 'juridico') {
+        redirectPath = '/juridico';
       }
       
       return { success: true, redirectPath };
