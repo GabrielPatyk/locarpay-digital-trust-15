@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -43,6 +44,12 @@ import ConfiguracoesExecutivo from "./pages/ConfiguracoesExecutivo";
 import InquilinosImobiliaria from "./pages/InquilinosImobiliaria";
 import ContratosImobiliaria from "./pages/ContratosImobiliaria";
 import ConfiguracoesImobiliaria from "./pages/ConfiguracoesImobiliaria";
+
+// Juridico Pages
+import ContratosJuridico from "./pages/ContratosJuridico";
+import Processos from "./pages/Processos";
+import Documentos from "./pages/Documentos";
+import ConfiguracoesJuridico from "./pages/ConfiguracoesJuridico";
 
 const queryClient = new QueryClient();
 

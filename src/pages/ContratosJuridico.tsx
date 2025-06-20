@@ -2,124 +2,96 @@
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { 
   FileText, 
-  Search,
-  Eye,
-  Download,
+  Search, 
+  Plus, 
+  Eye, 
+  Download, 
   Calendar,
-  Building,
-  User
+  DollarSign,
+  User,
+  Building
 } from 'lucide-react';
 
-interface Contrato {
+interface ContratoJuridico {
   id: string;
-  inquilino: string;
-  imovel: string;
-  valor: number;
+  cliente: string;
+  tipo: string;
   dataInicio: string;
-  dataVencimento: string;
-  status: 'ativo' | 'vencido' | 'cancelado' | 'em_revisao';
-  imobiliaria: string;
-  observacoes?: string;
+  dataFim: string;
+  valor: number;
+  status: 'ativo' | 'pendente' | 'revisao' | 'finalizado';
 }
 
 const ContratosJuridico = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Mock data
-  const contratos: Contrato[] = [
+  const contratos: ContratoJuridico[] = [
     {
-      id: '1',
-      inquilino: 'João Silva Santos',
-      imovel: 'Apartamento 2 quartos - Jardins',
-      valor: 2500,
+      id: 'JUR-001',
+      cliente: 'Imobiliária Central',
+      tipo: 'Fiança Locatícia',
       dataInicio: '2024-01-15',
-      dataVencimento: '2025-01-15',
-      status: 'ativo',
-      imobiliaria: 'Imobiliária Prime',
-      observacoes: 'Contrato regular sem pendências'
+      dataFim: '2025-01-15',
+      valor: 2500,
+      status: 'ativo'
     },
     {
-      id: '2',
-      inquilino: 'Maria Oliveira',
-      imovel: 'Casa 3 quartos - Vila Madalena',
-      valor: 4000,
-      dataInicio: '2023-12-01',
-      dataVencimento: '2024-12-01',
-      status: 'em_revisao',
-      imobiliaria: 'Imobiliária Central',
-      observacoes: 'Necessita revisão de cláusulas'
-    },
-    {
-      id: '3',
-      inquilino: 'Carlos Ferreira',
-      imovel: 'Apartamento 1 quarto - Pinheiros',
-      valor: 3200,
-      dataInicio: '2023-11-15',
-      dataVencimento: '2024-11-15',
-      status: 'vencido',
-      imobiliaria: 'Imobiliária Top',
-      observacoes: 'Contrato vencido - aguardando renovação'
+      id: 'JUR-002',
+      cliente: 'Construtora Silva',
+      tipo: 'Garantia Comercial',
+      dataInicio: '2024-02-01',
+      dataFim: '2025-02-01',
+      valor: 5000,
+      status: 'revisao'
     }
   ];
+
+  const filteredContratos = contratos.filter(contrato =>
+    contrato.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contrato.tipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contrato.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ativo':
-        return 'bg-success';
-      case 'vencido':
-        return 'bg-red-500';
-      case 'cancelado':
-        return 'bg-gray-500';
-      case 'em_revisao':
-        return 'bg-warning';
+        return 'bg-green-100 text-green-800';
+      case 'pendente':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'revisao':
+        return 'bg-blue-100 text-blue-800';
+      case 'finalizado':
+        return 'bg-gray-100 text-gray-800';
       default:
-        return 'bg-gray-500';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getStatusText = (status: string) => {
-    const statusMap: { [key: string]: string } = {
-      'ativo': 'Ativo',
-      'vencido': 'Vencido',
-      'cancelado': 'Cancelado',
-      'em_revisao': 'Em Revisão'
-    };
-    return statusMap[status] || status;
-  };
-
-  const filteredContratos = contratos.filter(c => 
-    c.inquilino.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.imovel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.imobiliaria.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
-    <Layout title="Contratos - Jurídico">
+    <Layout title="Contratos Jurídicos">
       <div className="space-y-6 animate-fade-in">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <FileText className="mr-2 h-5 w-5" />
-              Contratos Jurídicos
-            </CardTitle>
-            <CardDescription>
-              Gestão e análise jurídica de todos os contratos
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Contratos Jurídicos</h1>
+            <p className="text-gray-600">Gerencie todos os contratos do departamento jurídico</p>
+          </div>
+          <Button className="bg-primary hover:bg-primary/90">
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Contrato
+          </Button>
+        </div>
 
-        {/* Search */}
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Buscar contratos por inquilino, imóvel ou imobiliária..."
+                placeholder="Buscar contratos por cliente, tipo ou ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -128,62 +100,60 @@ const ContratosJuridico = () => {
           </CardContent>
         </Card>
 
-        {/* Contratos List */}
-        <div className="space-y-4">
+        <div className="grid gap-4">
           {filteredContratos.map((contrato) => (
             <Card key={contrato.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {contrato.inquilino}
-                    </h3>
-                    <p className="text-gray-600 flex items-center">
-                      <Building className="mr-1 h-4 w-4" />
-                      {contrato.imovel}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-primary/10 p-2 rounded-full">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">{contrato.id}</h3>
+                      <Badge className={getStatusColor(contrato.status)}>
+                        {contrato.status}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Valor</p>
+                    <p className="text-xl font-bold text-primary">
+                      R$ {contrato.valor.toLocaleString('pt-BR')}
                     </p>
                   </div>
-                  <Badge className={`${getStatusColor(contrato.status)} text-white`}>
-                    {getStatusText(contrato.status)}
-                  </Badge>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Valor</p>
-                    <p className="text-sm font-medium">R$ {contrato.valor.toLocaleString()}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Cliente</p>
+                      <p className="font-medium">{contrato.cliente}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Data de Início</p>
-                    <p className="text-sm font-medium flex items-center">
-                      <Calendar className="mr-1 h-3 w-3" />
-                      {new Date(contrato.dataInicio).toLocaleDateString()}
-                    </p>
+                  <div className="flex items-center space-x-2">
+                    <FileText className="h-4 w-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Tipo</p>
+                      <p className="font-medium">{contrato.tipo}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Vencimento</p>
-                    <p className="text-sm font-medium flex items-center">
-                      <Calendar className="mr-1 h-3 w-3" />
-                      {new Date(contrato.dataVencimento).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Imobiliária</p>
-                    <p className="text-sm font-medium">{contrato.imobiliaria}</p>
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Período</p>
+                      <p className="font-medium">
+                        {new Date(contrato.dataInicio).toLocaleDateString('pt-BR')} - {new Date(contrato.dataFim).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
                   </div>
                 </div>
-
-                {contrato.observacoes && (
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-500">Observações</p>
-                    <p className="text-sm text-gray-700">{contrato.observacoes}</p>
-                  </div>
-                )}
-
+                
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm">
                     <Eye className="mr-2 h-4 w-4" />
-                    Ver Detalhes
+                    Visualizar
                   </Button>
                   <Button variant="outline" size="sm">
                     <Download className="mr-2 h-4 w-4" />
@@ -202,8 +172,11 @@ const ContratosJuridico = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Nenhum contrato encontrado
               </h3>
-              <p className="text-gray-500">
-                Tente ajustar os filtros de busca ou verifique os critérios.
+              <p className="text-gray-600">
+                {searchTerm 
+                  ? 'Tente ajustar sua busca ou adicione um novo contrato.'
+                  : 'Adicione seu primeiro contrato para começar.'
+                }
               </p>
             </CardContent>
           </Card>
