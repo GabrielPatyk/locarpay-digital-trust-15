@@ -5,13 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Scale, 
   Search,
   Eye,
   Calendar,
-  DollarSign,
   AlertTriangle,
   FileText,
   Clock
@@ -33,7 +32,7 @@ interface Processo {
 
 const Processos = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTab, setSelectedTab] = useState('todos');
+  const [filtroStatus, setFiltroStatus] = useState('todos');
   
   // Mock data
   const processos: Processo[] = [
@@ -135,8 +134,9 @@ const Processos = () => {
       p.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.imovel.toLowerCase().includes(searchTerm.toLowerCase());
     
-    if (selectedTab === 'todos') return matchesSearch;
-    return matchesSearch && p.status === selectedTab;
+    const matchesStatus = filtroStatus === 'todos' || p.status === filtroStatus;
+    
+    return matchesSearch && matchesStatus;
   });
 
   const stats = {
@@ -212,118 +212,121 @@ const Processos = () => {
           </Card>
         </div>
 
-        {/* Search */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+        {/* Search and Filters */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-primary">Lista de Processos</h2>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+            <div className="flex items-center space-x-2">
+              <Search className="h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Buscar por número do processo, inquilino ou imóvel..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="w-full sm:w-64"
               />
             </div>
-          </CardContent>
-        </Card>
+            <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="aberto">Aberto</SelectItem>
+                <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                <SelectItem value="suspenso">Suspenso</SelectItem>
+                <SelectItem value="finalizado">Finalizado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-        {/* Tabs */}
-        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="todos">Todos</TabsTrigger>
-            <TabsTrigger value="aberto">Abertos</TabsTrigger>
-            <TabsTrigger value="em_andamento">Em Andamento</TabsTrigger>
-            <TabsTrigger value="suspenso">Suspensos</TabsTrigger>
-            <TabsTrigger value="finalizado">Finalizados</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value={selectedTab} className="space-y-4 mt-6">
-            {filteredProcessos.map((processo) => (
-              <Card key={processo.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {processo.numero}
-                        </h3>
-                        <Badge className={getTipoColor(processo.tipo)}>
-                          {getTipoText(processo.tipo)}
-                        </Badge>
-                      </div>
-                      <p className="text-gray-600 font-medium">{processo.inquilino}</p>
-                      <p className="text-gray-500 text-sm">{processo.imovel}</p>
+        {/* Processos List */}
+        <div className="space-y-4">
+          {filteredProcessos.map((processo) => (
+            <Card key={processo.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {processo.numero}
+                      </h3>
+                      <Badge className={getTipoColor(processo.tipo)}>
+                        {getTipoText(processo.tipo)}
+                      </Badge>
                     </div>
-                    <Badge className={`${getStatusColor(processo.status)} text-white`}>
-                      {getStatusText(processo.status)}
-                    </Badge>
+                    <p className="text-gray-600 font-medium">{processo.inquilino}</p>
+                    <p className="text-gray-500 text-sm">{processo.imovel}</p>
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:gri-cols-4 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Valor da Causa</p>
-                      <p className="text-sm font-medium text-green-600">
-                        R$ {processo.valorCausa.toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Data de Abertura</p>
-                      <p className="text-sm font-medium flex items-center">
-                        <Calendar className="mr-1 h-3 w-3" />
-                        {new Date(processo.dataAbertura).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Advogado</p>
-                      <p className="text-sm font-medium">{processo.advogado}</p>
-                    </div>
-                    {processo.prazoLimite && (
-                      <div>
-                        <p className="text-sm text-gray-500">Prazo Limite</p>
-                        <p className="text-sm font-medium text-red-600 flex items-center">
-                          <Clock className="mr-1 h-3 w-3" />
-                          {new Date(processo.prazoLimite).toLocaleDateString()}
-                        </p>
-                      </div>
-                    )}
+                  <Badge className={`${getStatusColor(processo.status)} text-white`}>
+                    {getStatusText(processo.status)}
+                  </Badge>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Valor da Causa</p>
+                    <p className="text-sm font-medium text-green-600">
+                      R$ {processo.valorCausa.toLocaleString()}
+                    </p>
                   </div>
-
-                  {processo.observacoes && (
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-500">Observações</p>
-                      <p className="text-sm text-gray-700">{processo.observacoes}</p>
+                  <div>
+                    <p className="text-sm text-gray-500">Data de Abertura</p>
+                    <p className="text-sm font-medium flex items-center">
+                      <Calendar className="mr-1 h-3 w-3" />
+                      {new Date(processo.dataAbertura).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Advogado</p>
+                    <p className="text-sm font-medium">{processo.advogado}</p>
+                  </div>
+                  {processo.prazoLimite && (
+                    <div>
+                      <p className="text-sm text-gray-500">Prazo Limite</p>
+                      <p className="text-sm font-medium text-red-600 flex items-center">
+                        <Clock className="mr-1 h-3 w-3" />
+                        {new Date(processo.prazoLimite).toLocaleDateString()}
+                      </p>
                     </div>
                   )}
+                </div>
 
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="mr-2 h-4 w-4" />
-                      Ver Detalhes
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <FileText className="mr-2 h-4 w-4" />
-                      Documentos
-                    </Button>
+                {processo.observacoes && (
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-500">Observações</p>
+                    <p className="text-sm text-gray-700">{processo.observacoes}</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                )}
 
-            {filteredProcessos.length === 0 && (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <Scale className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Nenhum processo encontrado
-                  </h3>
-                  <p className="text-gray-500">
-                    Tente ajustar os filtros de busca ou verifique os critérios.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm">
+                    <Eye className="mr-2 h-4 w-4" />
+                    Ver Detalhes
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <FileText className="mr-2 h-4 w-4" />
+                    Documentos
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+          {filteredProcessos.length === 0 && (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Scale className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Nenhum processo encontrado
+                </h3>
+                <p className="text-gray-500">
+                  Tente ajustar os filtros de busca ou verifique os critérios.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </Layout>
   );
