@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +52,7 @@ interface Fianca {
 }
 
 const Executivo = () => {
+  const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState('imobiliarias');
 
   // Mock data
@@ -188,8 +189,25 @@ const Executivo = () => {
   return (
     <Layout title="Executivo de Contas">
       <div className="space-y-6 animate-fade-in">
+        {/* Golden Banner */}
+        <div className="bg-gradient-to-r from-[#F4D573] via-[#E6C46E] to-[#BC942C] rounded-lg p-6 shadow-lg relative overflow-hidden">
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#FFD700]/20 via-transparent to-[#B8860B]/20"></div>
+            <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-tl from-[#DAA520]/20 via-transparent to-[#CD853F]/20"></div>
+          </div>
+          <div className="relative">
+            <h1 className="text-2xl md:text-3xl font-bold text-[#0C1C2E] mb-2">
+              Olá, {user?.name}! 👋
+            </h1>
+            <p className="text-[#0C1C2E]/80 text-lg">
+              Bem-vindo ao seu painel executivo. Gerencie suas imobiliárias e negociações.
+            </p>
+          </div>
+        </div>
+
         {/* Header Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Header Stats */}
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">

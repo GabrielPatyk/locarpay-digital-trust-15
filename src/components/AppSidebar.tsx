@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -153,18 +152,18 @@ const AppSidebar = () => {
           icon: Home,
         },
         {
-          title: 'Clientes',
-          url: '/clientes-executivo',
-          icon: Users,
+          title: 'Imobiliárias',
+          url: '/imobiliarias-executivo',
+          icon: Building,
         },
         {
           title: 'Propostas',
-          url: '/propostas',
+          url: '/propostas-executivo',
           icon: FileText,
         },
         {
           title: 'Performance',
-          url: '/performance',
+          url: '/performance-executivo',
           icon: ClipboardList,
         },
       ];
