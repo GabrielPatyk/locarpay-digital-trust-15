@@ -29,7 +29,8 @@ const mockUsers: User[] = [
     fullName: 'Roberto Silva'
   },
   { id: '6', email: 'inquilino@exemplo.com', name: 'Pedro Almeida', type: 'inquilino' },
-  { id: '7', email: 'admin@locarpay.com', name: 'Administrador', type: 'admin' },
+  { id: '7', email: 'financeiro@locarpay.com', name: 'Lucas Ferreira', type: 'financeiro' },
+  { id: '8', email: 'admin@locarpay.com', name: 'Administrador', type: 'admin' },
 ];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

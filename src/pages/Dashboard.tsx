@@ -58,6 +58,7 @@ const Dashboard = () => {
       case 'executivo': return '/executivo';
       case 'imobiliaria': return '/imobiliaria';
       case 'inquilino': return '/inquilino';
+      case 'financeiro': return '/financeiro';
       case 'admin': return '/admin';
       default: return '/dashboard';
     }

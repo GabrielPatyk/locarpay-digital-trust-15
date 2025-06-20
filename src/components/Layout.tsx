@@ -31,16 +31,17 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
       executivo: 'Executivo de Conta',
       imobiliaria: 'Imobiliária',
       inquilino: 'Inquilino',
+      financeiro: 'Departamento Financeiro',
       admin: 'Administrador'
     };
     return labels[type as keyof typeof labels] || type;
   };
 
-  // Header específico para inquilino em mobile
-  if (user?.type === 'inquilino' && isMobile) {
+  // Header específico para mobile
+  if (isMobile) {
     return (
       <SidebarInset>
-        {/* Header Mobile para Inquilino */}
+        {/* Header Mobile */}
         <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
           <div className="px-4 py-3">
             <div className="flex items-center justify-between">
@@ -51,9 +52,12 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
                   alt="LocarPay Logo" 
                   className="w-8 h-8 object-contain"
                 />
-                <h2 className="text-lg font-bold bg-gradient-to-r from-[#F4D573] to-[#BC942C] bg-clip-text text-transparent">
-                  LocarPay
-                </h2>
+                <div>
+                  <h2 className="text-lg font-bold bg-gradient-to-r from-[#F4D573] to-[#BC942C] bg-clip-text text-transparent">
+                    LocarPay
+                  </h2>
+                  <p className="text-xs text-gray-600">{getUserTypeLabel(user?.type || '')}</p>
+                </div>
               </div>
               
               {/* Menu Hambúrguer */}
@@ -74,7 +78,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
     );
   }
 
-  // Header padrão para outros usuários ou desktop
+  // Header padrão para desktop
   return (
     <SidebarInset>
       {/* Header */}

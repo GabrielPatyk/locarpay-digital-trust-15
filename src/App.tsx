@@ -20,6 +20,7 @@ import SDR from "./pages/SDR";
 import Executivo from "./pages/Executivo";
 import Imobiliaria from "./pages/Imobiliaria";
 import Inquilino from "./pages/Inquilino";
+import Financeiro from "./pages/Financeiro";
 import Admin from "./pages/Admin";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
@@ -99,6 +100,12 @@ const AppContent = () => {
         <Route path="/inquilino" element={
           <ProtectedRoute allowedRoles={['inquilino', 'admin']}>
             <Inquilino />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/financeiro" element={
+          <ProtectedRoute allowedRoles={['financeiro', 'admin']}>
+            <Financeiro />
           </ProtectedRoute>
         } />
         
@@ -182,6 +189,12 @@ const AppContent = () => {
           <Route path="/inquilino" element={
             <ProtectedRoute allowedRoles={['inquilino', 'admin']}>
               <Inquilino />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/financeiro" element={
+            <ProtectedRoute allowedRoles={['financeiro', 'admin']}>
+              <Financeiro />
             </ProtectedRoute>
           } />
           

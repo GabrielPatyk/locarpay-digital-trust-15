@@ -6,6 +6,7 @@ export type UserType =
   | 'executivo'
   | 'imobiliaria'
   | 'inquilino'
+  | 'financeiro'
   | 'admin';
 
 export interface User {

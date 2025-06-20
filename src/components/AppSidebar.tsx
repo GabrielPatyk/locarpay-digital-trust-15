@@ -25,7 +25,11 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  X
+  X,
+  Users,
+  Scale,
+  Phone,
+  CreditCard
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -64,7 +68,157 @@ const AppSidebar = () => {
       ];
     }
 
-    // Menu padrão para outros tipos de usuário
+    if (user?.type === 'analista') {
+      return [
+        {
+          title: 'Dashboard',
+          url: '/analista',
+          icon: Home,
+        },
+        {
+          title: 'Análises',
+          url: '/analises',
+          icon: FileText,
+        },
+        {
+          title: 'Clientes',
+          url: '/clientes',
+          icon: Users,
+        },
+        {
+          title: 'Relatórios',
+          url: '/relatorios',
+          icon: ClipboardList,
+        },
+      ];
+    }
+
+    if (user?.type === 'juridico') {
+      return [
+        {
+          title: 'Dashboard',
+          url: '/juridico',
+          icon: Home,
+        },
+        {
+          title: 'Contratos',
+          url: '/contratos-juridico',
+          icon: FileText,
+        },
+        {
+          title: 'Processos',
+          url: '/processos',
+          icon: Scale,
+        },
+        {
+          title: 'Documentos',
+          url: '/documentos',
+          icon: ClipboardList,
+        },
+      ];
+    }
+
+    if (user?.type === 'sdr') {
+      return [
+        {
+          title: 'Dashboard',
+          url: '/sdr',
+          icon: Home,
+        },
+        {
+          title: 'Leads',
+          url: '/leads',
+          icon: Users,
+        },
+        {
+          title: 'Campanhas',
+          url: '/campanhas',
+          icon: Phone,
+        },
+        {
+          title: 'Relatórios',
+          url: '/relatorios-sdr',
+          icon: ClipboardList,
+        },
+      ];
+    }
+
+    if (user?.type === 'executivo') {
+      return [
+        {
+          title: 'Dashboard',
+          url: '/executivo',
+          icon: Home,
+        },
+        {
+          title: 'Clientes',
+          url: '/clientes-executivo',
+          icon: Users,
+        },
+        {
+          title: 'Propostas',
+          url: '/propostas',
+          icon: FileText,
+        },
+        {
+          title: 'Performance',
+          url: '/performance',
+          icon: ClipboardList,
+        },
+      ];
+    }
+
+    if (user?.type === 'imobiliaria') {
+      return [
+        {
+          title: 'Dashboard',
+          url: '/imobiliaria',
+          icon: Home,
+        },
+        {
+          title: 'Imóveis',
+          url: '/imoveis',
+          icon: Building,
+        },
+        {
+          title: 'Contratos',
+          url: '/contratos-imob',
+          icon: FileText,
+        },
+        {
+          title: 'Clientes',
+          url: '/clientes-imob',
+          icon: Users,
+        },
+      ];
+    }
+
+    if (user?.type === 'financeiro') {
+      return [
+        {
+          title: 'Dashboard',
+          url: '/financeiro',
+          icon: Home,
+        },
+        {
+          title: 'Pagamentos',
+          url: '/pagamentos-financeiro',
+          icon: CreditCard,
+        },
+        {
+          title: 'Relatórios',
+          url: '/relatorios-financeiro',
+          icon: ClipboardList,
+        },
+        {
+          title: 'Configurações',
+          url: '/config-financeiro',
+          icon: Settings,
+        },
+      ];
+    }
+
+    // Menu padrão para admin
     return [
       {
         title: 'Dashboard',
@@ -128,6 +282,7 @@ const AppSidebar = () => {
       executivo: 'Executivo de Conta',
       imobiliaria: 'Imobiliária',
       inquilino: 'Inquilino',
+      financeiro: 'Departamento Financeiro',
       admin: 'Administrador'
     };
     return labels[type as keyof typeof labels] || type;
@@ -141,21 +296,21 @@ const AppSidebar = () => {
   };
 
   const handleCollapseClick = () => {
-    // Para inquilino em mobile, fechar o sidebar completamente
-    if (user?.type === 'inquilino' && isMobile) {
+    // Para mobile, fechar o sidebar completamente
+    if (isMobile) {
       setOpenMobile(false);
     } else {
       setOpen(false);
     }
   };
 
-  // Determinar o lado do sidebar baseado no tipo de usuário e dispositivo
-  const sidebarSide = (user?.type === 'inquilino' && isMobile) ? 'right' : 'left';
+  // Determinar o lado do sidebar baseado no dispositivo
+  const sidebarSide = isMobile ? 'right' : 'left';
 
   // Determinar qual ícone usar para fechar/colapsar
   const getCollapseIcon = () => {
-    if (user?.type === 'inquilino' && isMobile) {
-      return <X className="h-5 w-5" />; // X para fechar completamente
+    if (isMobile) {
+      return <X className="h-5 w-5" />; // X para fechar completamente em mobile
     }
     return sidebarSide === 'right' ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />;
   };
@@ -205,7 +360,7 @@ const AppSidebar = () => {
             <SidebarMenu>
               {menuItems.map((item) => {
                 const isActive = location.pathname === item.url || 
-                  (user?.type === 'inquilino' && item.title === 'Dashboard' && location.pathname === '/inquilino');
+                  (item.title === 'Dashboard' && location.pathname === `/${user?.type}`);
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
