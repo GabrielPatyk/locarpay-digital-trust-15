@@ -21,7 +21,9 @@ import {
   DollarSign,
   FileText,
   Download,
-  Calendar
+  Calendar,
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 
 const RelatoriosFinanceiro = () => {
