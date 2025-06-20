@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,7 +31,8 @@ import {
   Phone,
   CreditCard,
   TrendingDown,
-  BarChart3
+  BarChart3,
+  TrendingUp
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -164,7 +166,12 @@ const AppSidebar = () => {
         {
           title: 'Performance',
           url: '/performance-executivo',
-          icon: ClipboardList,
+          icon: TrendingUp,
+        },
+        {
+          title: 'Configurações',
+          url: '/configuracoes-executivo',
+          icon: Settings,
         },
       ];
     }

@@ -34,6 +34,12 @@ import RelatoriosFinanceiro from "./pages/RelatoriosFinanceiro";
 import ConfiguracoesFinanceiro from "./pages/ConfiguracoesFinanceiro";
 import InadimplenciaFinanceiro from "./pages/InadimplenciaFinanceiro";
 
+// Executivo Pages
+import ImobiliariasExecutivo from "./pages/ImobiliariasExecutivo";
+import PropostasExecutivo from "./pages/PropostasExecutivo";
+import PerformanceExecutivo from "./pages/PerformanceExecutivo";
+import ConfiguracoesExecutivo from "./pages/ConfiguracoesExecutivo";
+
 const queryClient = new QueryClient();
 
 const AppContent = () => {
@@ -108,6 +114,31 @@ const AppContent = () => {
           <Route path="/executivo" element={
             <ProtectedRoute allowedRoles={['executivo', 'admin']}>
               <Executivo />
+            </ProtectedRoute>
+          } />
+
+          {/* Executivo specific routes */}
+          <Route path="/imobiliarias-executivo" element={
+            <ProtectedRoute allowedRoles={['executivo', 'admin']}>
+              <ImobiliariasExecutivo />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/propostas-executivo" element={
+            <ProtectedRoute allowedRoles={['executivo', 'admin']}>
+              <PropostasExecutivo />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/performance-executivo" element={
+            <ProtectedRoute allowedRoles={['executivo', 'admin']}>
+              <PerformanceExecutivo />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/configuracoes-executivo" element={
+            <ProtectedRoute allowedRoles={['executivo', 'admin']}>
+              <ConfiguracoesExecutivo />
             </ProtectedRoute>
           } />
           
