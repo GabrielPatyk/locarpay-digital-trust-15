@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,8 @@ import {
   Clock, 
   XCircle,
   PenTool,
-  Eye
+  Eye,
+  ArrowRight
 } from 'lucide-react';
 
 interface Proposta {
@@ -34,6 +35,7 @@ interface Proposta {
 }
 
 const Imobiliaria = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [showNewForm, setShowNewForm] = useState(false);
   const [selectedProposta, setSelectedProposta] = useState<Proposta | null>(null);
@@ -89,6 +91,15 @@ const Imobiliaria = () => {
       dataEnvio: '2024-01-08'
     }
   ]);
+
+  const getWelcomeMessage = () => {
+    const hour = new Date().getHours();
+    let greeting = 'Bom dia';
+    if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
+    else if (hour >= 18) greeting = 'Boa noite';
+    
+    return `${greeting}, ${user?.companyName || user?.name}!`;
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -174,57 +185,30 @@ const Imobiliaria = () => {
   };
 
   return (
-    <Layout title="Imobiliária">
+    <Layout title="Dashboard Imobiliária">
       <div className="space-y-6 animate-fade-in">
-        {/* Header Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Enviadas</p>
-                  <p className="text-2xl font-bold text-gray-800">{statusCounts.enviado}</p>
-                </div>
-                <FileText className="h-8 w-8 text-gray-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Em Análise</p>
-                  <p className="text-2xl font-bold text-warning">{statusCounts.analise}</p>
-                </div>
-                <Clock className="h-8 w-8 text-warning" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Aprovadas</p>
-                  <p className="text-2xl font-bold text-success">{statusCounts.aprovado}</p>
-                </div>
-                <CheckCircle className="h-8 w-8 text-success" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Assinadas</p>
-                  <p className="text-2xl font-bold text-primary">{statusCounts.assinado}</p>
-                </div>
-                <PenTool className="h-8 w-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Welcome Section with LocarPay branding */}
+        <div className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] rounded-lg p-6 text-[#0C1C2E] relative overflow-hidden">
+          <div className="absolute top-4 right-4 opacity-20">
+            <img 
+              src="/lovable-uploads/1fc475c2-f7e6-4e6e-bf1b-b349783c2b93.png" 
+              alt="LocarPay Logo" 
+              className="w-16 h-16 object-contain"
+            />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">{getWelcomeMessage()}</h1>
+          <p className="opacity-90 mb-4">
+            Bem-vindo à plataforma LocarPay. Gerencie suas propostas de fiança e acompanhe o status de todas as solicitações em um só lugar.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Button 
+              onClick={() => setShowNewForm(true)}
+              className="bg-white text-[#0C1C2E] hover:bg-gray-100 font-semibold shadow-md"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Proposta
+            </Button>
+          </div>
         </div>
 
         <div className="flex justify-between items-center">

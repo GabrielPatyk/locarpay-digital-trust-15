@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -54,6 +55,8 @@ const Login = () => {
     { type: 'Executivo', email: 'executivo@locarpay.com' },
     { type: 'Imobiliária', email: 'imobiliaria@exemplo.com' },
     { type: 'Inquilino', email: 'inquilino@exemplo.com' },
+    { type: 'Financeiro', email: 'financeiro@locarpay.com' },
+    { type: 'Admin', email: 'admin@locarpay.com' },
   ];
 
   return (

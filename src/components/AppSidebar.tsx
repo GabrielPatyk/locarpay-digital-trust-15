@@ -178,19 +178,19 @@ const AppSidebar = () => {
           icon: Home,
         },
         {
-          title: 'Imóveis',
-          url: '/imoveis',
-          icon: Building,
+          title: 'Inquilinos',
+          url: '/inquilinos-imobiliaria',
+          icon: Users,
         },
         {
           title: 'Contratos',
-          url: '/contratos-imob',
+          url: '/contratos-imobiliaria',
           icon: FileText,
         },
         {
-          title: 'Clientes',
-          url: '/clientes-imob',
-          icon: Users,
+          title: 'Configurações',
+          url: '/configuracoes-imobiliaria',
+          icon: Settings,
         },
       ];
     }
