@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -40,11 +39,10 @@ import PropostasExecutivo from "./pages/PropostasExecutivo";
 import PerformanceExecutivo from "./pages/PerformanceExecutivo";
 import ConfiguracoesExecutivo from "./pages/ConfiguracoesExecutivo";
 
-// Juridico Pages
-import ContratosJuridico from "./pages/ContratosJuridico";
-import Processos from "./pages/Processos";
-import Documentos from "./pages/Documentos";
-import ConfiguracoesJuridico from "./pages/ConfiguracoesJuridico";
+// Imobiliaria Pages
+import InquilinosImobiliaria from "./pages/InquilinosImobiliaria";
+import ContratosImobiliaria from "./pages/ContratosImobiliaria";
+import ConfiguracoesImobiliaria from "./pages/ConfiguracoesImobiliaria";
 
 const queryClient = new QueryClient();
 
@@ -176,6 +174,25 @@ const AppContent = () => {
           <Route path="/imobiliaria" element={
             <ProtectedRoute allowedRoles={['imobiliaria', 'admin']}>
               <Imobiliaria />
+            </ProtectedRoute>
+          } />
+
+          {/* Imobiliaria specific routes */}
+          <Route path="/inquilinos-imobiliaria" element={
+            <ProtectedRoute allowedRoles={['imobiliaria', 'admin']}>
+              <InquilinosImobiliaria />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/contratos-imobiliaria" element={
+            <ProtectedRoute allowedRoles={['imobiliaria', 'admin']}>
+              <ContratosImobiliaria />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/configuracoes-imobiliaria" element={
+            <ProtectedRoute allowedRoles={['imobiliaria', 'admin']}>
+              <ConfiguracoesImobiliaria />
             </ProtectedRoute>
           } />
           
