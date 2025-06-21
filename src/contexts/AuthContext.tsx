@@ -73,7 +73,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           sdr: '/sdr',
           executivo: '/executivo',
           financeiro: '/financeiro',
-          admin: '/dashboard'
+          admin: '/dashboard',
+          corretor: '/dashboard'
         };
         
         return { 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -151,7 +150,8 @@ const Admin = () => {
       'imobiliaria': 'Imobiliária',
       'inquilino': 'Inquilino',
       'financeiro': 'Departamento Financeiro',
-      'admin': 'Administrador'
+      'admin': 'Administrador',
+      'corretor': 'Corretor'
     };
     return labels[tipo] || tipo;
   };
@@ -165,7 +165,8 @@ const Admin = () => {
       'imobiliaria': 'bg-yellow-500',
       'inquilino': 'bg-gray-500',
       'financeiro': 'bg-teal-500',
-      'admin': 'bg-red-500'
+      'admin': 'bg-red-500',
+      'corretor': 'bg-indigo-500'
     };
     return colors[tipo] || 'bg-gray-500';
   };
@@ -191,6 +192,7 @@ const Admin = () => {
       imobiliaria: usuarios.filter(u => u.tipo === 'imobiliaria').length,
       inquilino: usuarios.filter(u => u.tipo === 'inquilino').length,
       financeiro: usuarios.filter(u => u.tipo === 'financeiro').length,
+      corretor: usuarios.filter(u => u.tipo === 'corretor').length,
     }
   };
 
@@ -203,6 +205,7 @@ const Admin = () => {
     { name: 'Imobiliárias', value: stats.porTipo.imobiliaria, color: '#eab308' },
     { name: 'Inquilinos', value: stats.porTipo.inquilino, color: '#6b7280' },
     { name: 'Financeiro', value: stats.porTipo.financeiro, color: '#14b8a6' },
+    { name: 'Corretores', value: stats.porTipo.corretor, color: '#6366f1' },
   ];
 
   const crescimentoUsuarios = [

@@ -17,6 +17,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import ContractModal from '@/components/ContractModal';
+import { UserType } from '@/types/user';
 
 const Dashboard = () => {
   const { user, updateUser } = useAuth();
@@ -60,6 +61,7 @@ const Dashboard = () => {
       case 'inquilino': return '/inquilino';
       case 'financeiro': return '/financeiro';
       case 'admin': return '/admin';
+      case 'corretor': return '/dashboard';
       default: return '/dashboard';
     }
   };

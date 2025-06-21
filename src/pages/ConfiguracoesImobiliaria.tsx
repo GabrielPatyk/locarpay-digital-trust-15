@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
@@ -25,12 +24,12 @@ const ConfiguracoesImobiliaria = () => {
   
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    companyName: user?.companyName || '',
-    cnpj: user?.cnpj || '',
-    address: user?.address || '',
-    fullName: user?.fullName || '',
+    companyName: '',
+    cnpj: '',
+    address: '',
+    fullName: '',
     email: user?.email || '',
-    phone: '',
+    phone: user?.telefone || '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -51,10 +50,6 @@ const ConfiguracoesImobiliaria = () => {
     if (user) {
       const updatedUser = {
         ...user,
-        companyName: formData.companyName,
-        cnpj: formData.cnpj,
-        address: formData.address,
-        fullName: formData.fullName,
         email: formData.email
       };
       updateUser(updatedUser);
