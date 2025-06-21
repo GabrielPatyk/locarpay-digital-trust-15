@@ -2,109 +2,135 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, Settings } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Bell, LogOut, Settings, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import AppSidebar from '@/components/AppSidebar';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
-import { PWAInstallButton } from '@/components/PWAInstallButton';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LayoutProps {
   children: React.ReactNode;
-  title?: string;
+  title: string;
 }
 
-const Layout = ({ children, title }: LayoutProps) => {
+const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
-        <AppSidebar />
-        <SidebarInset className="flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b bg-white px-4">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mr-2 h-4" />
-              {title && (
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="/dashboard">
-                        Dashboard
-                      </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="hidden md:block" />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>{title}</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
-              )}
+  const getUserTypeLabel = (type: string) => {
+    const labels = {
+      analista: 'Analista de Conta',
+      juridico: 'Departamento Jurídico',
+      sdr: 'SDR - Comercial',
+      executivo: 'Executivo de Conta',
+      imobiliaria: 'Imobiliária',
+      inquilino: 'Inquilino',
+      financeiro: 'Departamento Financeiro',
+      admin: 'Administrador'
+    };
+    return labels[type as keyof typeof labels] || type;
+  };
+
+  // Header específico para mobile
+  if (isMobile) {
+    return (
+      <SidebarInset>
+        {/* Header Mobile */}
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              {/* Logo e Texto */}
+              <div className="flex items-center space-x-3">
+                <img 
+                  src="/lovable-uploads/1fc475c2-f7e6-4e6e-bf1b-b349783c2b93.png" 
+                  alt="LocarPay Logo" 
+                  className="w-8 h-8 object-contain"
+                />
+                <div>
+                  <h2 className="text-lg font-bold bg-gradient-to-r from-[#F4D573] to-[#BC942C] bg-clip-text text-transparent">
+                    LocarPay
+                  </h2>
+                  <p className="text-xs text-gray-600">{getUserTypeLabel(user?.type || '')}</p>
+                </div>
+              </div>
+              
+              {/* Menu Hambúrguer */}
+              <SidebarTrigger>
+                <Menu className="h-6 w-6" />
+              </SidebarTrigger>
             </div>
-            
-            <div className="ml-auto flex items-center gap-2">
-              <PWAInstallButton />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="/placeholder.svg" alt={user?.name} />
-                      <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Configurações</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sair</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </header>
-          <main className="flex-1 p-4 sm:p-6">
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          <div className="p-4">
             {children}
-          </main>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+          </div>
+        </main>
+      </SidebarInset>
+    );
+  }
+
+  // Header padrão para desktop
+  return (
+    <SidebarInset>
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <SidebarTrigger className="md:hidden" />
+              <div className="flex items-center space-x-3">
+                <h1 className="text-xl font-bold text-[#0C1C2E]">{title}</h1>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" size="sm" className="relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  3
+                </span>
+              </Button>
+
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E] font-semibold">
+                    {user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="hidden md:block text-sm">
+                  <p className="font-medium text-gray-900">{user?.name}</p>
+                  <p className="text-gray-500">{getUserTypeLabel(user?.type || '')}</p>
+                </div>
+              </div>
+
+              <Button variant="ghost" size="sm">
+                <Settings className="h-5 w-5" />
+              </Button>
+
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="p-6">
+          {children}
+        </div>
+      </main>
+    </SidebarInset>
   );
 };
 
