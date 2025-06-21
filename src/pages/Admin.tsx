@@ -340,7 +340,6 @@ const Admin = () => {
       imobiliaria: usuarios.filter(u => u.cargo === 'imobiliaria').length,
       inquilino: usuarios.filter(u => u.cargo === 'inquilino').length,
       financeiro: usuarios.filter(u => u.cargo === 'financeiro').length,
-      corretor: usuarios.filter(u => u.cargo === 'corretor').length,
       admin: usuarios.filter(u => u.cargo === 'admin').length,
     }
   };
@@ -354,7 +353,6 @@ const Admin = () => {
     { name: 'Imobiliárias', value: stats.porTipo.imobiliaria, color: '#eab308' },
     { name: 'Inquilinos', value: stats.porTipo.inquilino, color: '#6b7280' },
     { name: 'Financeiro', value: stats.porTipo.financeiro, color: '#14b8a6' },
-    { name: 'Corretores', value: stats.porTipo.corretor, color: '#6366f1' },
     { name: 'Admins', value: stats.porTipo.admin, color: '#ef4444' },
   ].filter(item => item.value > 0);
 
@@ -376,8 +374,7 @@ const Admin = () => {
       'imobiliaria': 'Imobiliária',
       'inquilino': 'Inquilino',
       'financeiro': 'Departamento Financeiro',
-      'admin': 'Administrador',
-      'corretor': 'Corretor'
+      'admin': 'Administrador'
     };
     return labels[tipo] || tipo;
   };
@@ -391,8 +388,7 @@ const Admin = () => {
       'imobiliaria': 'bg-yellow-500',
       'inquilino': 'bg-gray-500',
       'financeiro': 'bg-teal-500',
-      'admin': 'bg-red-500',
-      'corretor': 'bg-indigo-500'
+      'admin': 'bg-red-500'
     };
     return colors[tipo] || 'bg-gray-500';
   };
@@ -632,7 +628,6 @@ const Admin = () => {
                             <SelectItem value="imobiliaria">Imobiliária</SelectItem>
                             <SelectItem value="inquilino">Inquilino</SelectItem>
                             <SelectItem value="financeiro">Departamento Financeiro</SelectItem>
-                            <SelectItem value="corretor">Corretor</SelectItem>
                             <SelectItem value="admin">Administrador</SelectItem>
                           </SelectContent>
                         </Select>
@@ -692,7 +687,6 @@ const Admin = () => {
                       <SelectItem value="imobiliaria">Imobiliária</SelectItem>
                       <SelectItem value="inquilino">Inquilino</SelectItem>
                       <SelectItem value="financeiro">Financeiro</SelectItem>
-                      <SelectItem value="corretor">Corretor</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
