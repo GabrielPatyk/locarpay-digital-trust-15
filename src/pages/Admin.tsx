@@ -53,6 +53,8 @@ const Admin = () => {
   const fetchUsuarios = async () => {
     try {
       setLoading(true);
+      console.log('Iniciando busca de usuários...');
+      
       const { data, error } = await supabase
         .from('usuarios')
         .select('*')
@@ -62,11 +64,13 @@ const Admin = () => {
         console.error('Erro ao buscar usuários:', error);
         toast({
           title: "Erro",
-          description: "Erro ao carregar usuários.",
+          description: `Erro ao carregar usuários: ${error.message}`,
           variant: "destructive"
         });
         return;
       }
+
+      console.log('Dados recebidos:', data);
 
       // Fazer o cast do campo cargo para UserType
       const usuariosFormatados = data?.map(usuario => ({
@@ -74,12 +78,13 @@ const Admin = () => {
         cargo: usuario.cargo as UserType
       })) || [];
 
+      console.log('Usuários formatados:', usuariosFormatados);
       setUsuarios(usuariosFormatados);
     } catch (err) {
       console.error('Erro:', err);
       toast({
         title: "Erro",
-        description: "Erro ao carregar usuários.",
+        description: "Erro inesperado ao carregar usuários.",
         variant: "destructive"
       });
     } finally {
@@ -102,6 +107,8 @@ const Admin = () => {
     }
 
     try {
+      console.log('Criando usuário:', novoUsuario);
+      
       const { data, error } = await supabase
         .from('usuarios')
         .insert([
@@ -122,12 +129,13 @@ const Admin = () => {
           title: "Erro",
           description: error.message.includes('duplicate') 
             ? "Este e-mail já está em uso."
-            : "Erro ao criar usuário.",
+            : `Erro ao criar usuário: ${error.message}`,
           variant: "destructive"
         });
         return;
       }
 
+      console.log('Usuário criado:', data);
       toast({
         title: "Usuário criado!",
         description: `Usuário ${novoUsuario.nome} criado com sucesso.`,
@@ -140,7 +148,7 @@ const Admin = () => {
       console.error('Erro:', err);
       toast({
         title: "Erro",
-        description: "Erro ao criar usuário.",
+        description: "Erro inesperado ao criar usuário.",
         variant: "destructive"
       });
     }
@@ -148,6 +156,8 @@ const Admin = () => {
 
   const alterarStatusUsuario = async (usuarioId: string, novoStatus: boolean) => {
     try {
+      console.log('Alterando status do usuário:', usuarioId, 'para:', novoStatus);
+      
       const { error } = await supabase
         .from('usuarios')
         .update({ ativo: novoStatus })
@@ -157,7 +167,7 @@ const Admin = () => {
         console.error('Erro ao alterar status:', error);
         toast({
           title: "Erro",
-          description: "Erro ao alterar status do usuário.",
+          description: `Erro ao alterar status: ${error.message}`,
           variant: "destructive"
         });
         return;
@@ -173,7 +183,7 @@ const Admin = () => {
       console.error('Erro:', err);
       toast({
         title: "Erro",
-        description: "Erro ao alterar status do usuário.",
+        description: "Erro inesperado ao alterar status.",
         variant: "destructive"
       });
     }
@@ -183,6 +193,8 @@ const Admin = () => {
     if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
 
     try {
+      console.log('Excluindo usuário:', usuarioId);
+      
       const { error } = await supabase
         .from('usuarios')
         .delete()
@@ -192,7 +204,7 @@ const Admin = () => {
         console.error('Erro ao excluir usuário:', error);
         toast({
           title: "Erro",
-          description: "Erro ao excluir usuário.",
+          description: `Erro ao excluir usuário: ${error.message}`,
           variant: "destructive"
         });
         return;
@@ -208,11 +220,47 @@ const Admin = () => {
       console.error('Erro:', err);
       toast({
         title: "Erro",
-        description: "Erro ao excluir usuário.",
+        description: "Erro inesperado ao excluir usuário.",
         variant: "destructive"
       });
     }
   };
+
+  // Estatísticas calculadas dos dados reais
+  const stats = {
+    totalUsuarios: usuarios.length,
+    usuariosAtivos: usuarios.filter(u => u.ativo).length,
+    usuariosInativos: usuarios.filter(u => !u.ativo).length,
+    porTipo: {
+      analista: usuarios.filter(u => u.cargo === 'analista').length,
+      juridico: usuarios.filter(u => u.cargo === 'juridico').length,
+      sdr: usuarios.filter(u => u.cargo === 'sdr').length,
+      executivo: usuarios.filter(u => u.cargo === 'executivo').length,
+      imobiliaria: usuarios.filter(u => u.cargo === 'imobiliaria').length,
+      inquilino: usuarios.filter(u => u.cargo === 'inquilino').length,
+      financeiro: usuarios.filter(u => u.cargo === 'financeiro').length,
+      corretor: usuarios.filter(u => u.cargo === 'corretor').length,
+      admin: usuarios.filter(u => u.cargo === 'admin').length,
+    }
+  };
+
+  // Dados para os gráficos
+  const chartDataTipos = [
+    { name: 'Analistas', value: stats.porTipo.analista, color: '#3b82f6' },
+    { name: 'Jurídico', value: stats.porTipo.juridico, color: '#8b5cf6' },
+    { name: 'SDR', value: stats.porTipo.sdr, color: '#f97316' },
+    { name: 'Executivos', value: stats.porTipo.executivo, color: '#10b981' },
+    { name: 'Imobiliárias', value: stats.porTipo.imobiliaria, color: '#eab308' },
+    { name: 'Inquilinos', value: stats.porTipo.inquilino, color: '#6b7280' },
+    { name: 'Financeiro', value: stats.porTipo.financeiro, color: '#14b8a6' },
+    { name: 'Corretores', value: stats.porTipo.corretor, color: '#6366f1' },
+    { name: 'Admins', value: stats.porTipo.admin, color: '#ef4444' },
+  ].filter(item => item.value > 0);
+
+  const statusData = [
+    { name: 'Ativos', value: stats.usuariosAtivos, color: '#10b981' },
+    { name: 'Inativos', value: stats.usuariosInativos, color: '#ef4444' },
+  ];
 
   const getStatusColor = (ativo: boolean) => {
     return ativo ? 'bg-green-500' : 'bg-red-500';
@@ -258,42 +306,6 @@ const Admin = () => {
     
     return matchesSearch && matchesTipo && matchesStatus;
   });
-
-  // Estatísticas calculadas dos dados reais
-  const stats = {
-    totalUsuarios: usuarios.length,
-    usuariosAtivos: usuarios.filter(u => u.ativo).length,
-    usuariosInativos: usuarios.filter(u => !u.ativo).length,
-    porTipo: {
-      analista: usuarios.filter(u => u.cargo === 'analista').length,
-      juridico: usuarios.filter(u => u.cargo === 'juridico').length,
-      sdr: usuarios.filter(u => u.cargo === 'sdr').length,
-      executivo: usuarios.filter(u => u.cargo === 'executivo').length,
-      imobiliaria: usuarios.filter(u => u.cargo === 'imobiliaria').length,
-      inquilino: usuarios.filter(u => u.cargo === 'inquilino').length,
-      financeiro: usuarios.filter(u => u.cargo === 'financeiro').length,
-      corretor: usuarios.filter(u => u.cargo === 'corretor').length,
-      admin: usuarios.filter(u => u.cargo === 'admin').length,
-    }
-  };
-
-  // Dados para os gráficos
-  const chartDataTipos = [
-    { name: 'Analistas', value: stats.porTipo.analista, color: '#3b82f6' },
-    { name: 'Jurídico', value: stats.porTipo.juridico, color: '#8b5cf6' },
-    { name: 'SDR', value: stats.porTipo.sdr, color: '#f97316' },
-    { name: 'Executivos', value: stats.porTipo.executivo, color: '#10b981' },
-    { name: 'Imobiliárias', value: stats.porTipo.imobiliaria, color: '#eab308' },
-    { name: 'Inquilinos', value: stats.porTipo.inquilino, color: '#6b7280' },
-    { name: 'Financeiro', value: stats.porTipo.financeiro, color: '#14b8a6' },
-    { name: 'Corretores', value: stats.porTipo.corretor, color: '#6366f1' },
-    { name: 'Admins', value: stats.porTipo.admin, color: '#ef4444' },
-  ].filter(item => item.value > 0);
-
-  const statusData = [
-    { name: 'Ativos', value: stats.usuariosAtivos, color: '#10b981' },
-    { name: 'Inativos', value: stats.usuariosInativos, color: '#ef4444' },
-  ];
 
   if (loading) {
     return (
