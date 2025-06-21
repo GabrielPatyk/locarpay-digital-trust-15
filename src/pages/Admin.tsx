@@ -6,45 +6,45 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Users, 
-  Settings, 
-  BarChart3, 
-  Shield, 
   Search,
   Plus,
   Eye,
   Edit,
   Trash2,
-  Activity
+  Filter,
+  UserPlus
 } from 'lucide-react';
+import { UserType } from '@/types/user';
 
 interface Usuario {
   id: string;
   nome: string;
   email: string;
-  tipo: string;
+  tipo: UserType;
   status: 'ativo' | 'inativo';
   ultimoAcesso: string;
   dataCreacao: string;
 }
 
-interface LogAcao {
-  id: string;
-  usuario: string;
-  acao: string;
-  timestamp: string;
-  detalhes: string;
-}
-
 const Admin = () => {
   const { toast } = useToast();
-  const [selectedTab, setSelectedTab] = useState('usuarios');
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterTipo, setFilterTipo] = useState<string>('todos');
+  const [filterStatus, setFilterStatus] = useState<string>('todos');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [novoUsuario, setNovoUsuario] = useState({
+    nome: '',
+    email: '',
+    tipo: 'inquilino' as UserType,
+    senha: ''
+  });
 
-  // Mock data
+  // Mock data expandido
   const usuarios: Usuario[] = [
     {
       id: '1',
@@ -81,39 +81,54 @@ const Admin = () => {
       status: 'ativo',
       ultimoAcesso: '2024-01-14T16:20:00',
       dataCreacao: '2023-07-15'
+    },
+    {
+      id: '5',
+      nome: 'Imobiliária Prime',
+      email: 'prime@imobiliarias.com',
+      tipo: 'imobiliaria',
+      status: 'ativo',
+      ultimoAcesso: '2024-01-15T08:30:00',
+      dataCreacao: '2023-08-01'
+    },
+    {
+      id: '6',
+      nome: 'João Silva Santos',
+      email: 'joao@inquilino.com',
+      tipo: 'inquilino',
+      status: 'ativo',
+      ultimoAcesso: '2024-01-15T12:15:00',
+      dataCreacao: '2023-09-15'
+    },
+    {
+      id: '7',
+      nome: 'Lucas Oliveira',
+      email: 'financeiro@locarpay.com',
+      tipo: 'financeiro',
+      status: 'ativo',
+      ultimoAcesso: '2024-01-15T14:20:00',
+      dataCreacao: '2023-10-01'
     }
   ];
 
-  const logsAcoes: LogAcao[] = [
-    {
-      id: '1',
-      usuario: 'Maria Silva',
-      acao: 'Proposta Aprovada',
-      timestamp: '2024-01-15T10:30:00',
-      detalhes: 'Proposta ID: 123 - João Silva Santos'
-    },
-    {
-      id: '2',
-      usuario: 'Carlos Oliveira',
-      acao: 'Lead Qualificado',
-      timestamp: '2024-01-15T10:15:00',
-      detalhes: 'Lead: Roberto Silva - Imobiliária Sucesso'
-    },
-    {
-      id: '3',
-      usuario: 'Ana Costa',
-      acao: 'Imobiliária Vinculada',
-      timestamp: '2024-01-15T09:45:00',
-      detalhes: 'Imobiliária: Prime - Contato: Roberto'
-    },
-    {
-      id: '4',
-      usuario: 'Dr. João Santos',
-      acao: 'Sinistro Analisado',
-      timestamp: '2024-01-15T09:30:00',
-      detalhes: 'Contrato ID: 456 - Inadimplência'
+  const criarUsuario = () => {
+    if (!novoUsuario.nome || !novoUsuario.email || !novoUsuario.senha) {
+      toast({
+        title: "Erro",
+        description: "Todos os campos são obrigatórios.",
+        variant: "destructive"
+      });
+      return;
     }
-  ];
+
+    toast({
+      title: "Usuário criado!",
+      description: `Usuário ${novoUsuario.nome} criado com sucesso.`,
+    });
+    
+    setIsCreateModalOpen(false);
+    setNovoUsuario({ nome: '', email: '', tipo: 'inquilino', senha: '' });
+  };
 
   const alterarStatusUsuario = (usuarioId: string, novoStatus: 'ativo' | 'inativo') => {
     toast({
@@ -123,41 +138,65 @@ const Admin = () => {
   };
 
   const getStatusColor = (status: string) => {
-    return status === 'ativo' ? 'bg-success' : 'bg-red-500';
+    return status === 'ativo' ? 'bg-green-500' : 'bg-red-500';
   };
 
-  const getTipoLabel = (tipo: string) => {
-    const labels: { [key: string]: string } = {
+  const getTipoLabel = (tipo: UserType) => {
+    const labels: { [key in UserType]: string } = {
       'analista': 'Analista de Conta',
       'juridico': 'Departamento Jurídico',
       'sdr': 'SDR - Comercial',
       'executivo': 'Executivo de Conta',
       'imobiliaria': 'Imobiliária',
       'inquilino': 'Inquilino',
+      'financeiro': 'Departamento Financeiro',
       'admin': 'Administrador'
     };
     return labels[tipo] || tipo;
   };
 
-  const filteredUsuarios = usuarios.filter(u => 
-    u.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.tipo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getTipoColor = (tipo: UserType) => {
+    const colors: { [key in UserType]: string } = {
+      'analista': 'bg-blue-500',
+      'juridico': 'bg-purple-500',
+      'sdr': 'bg-orange-500',
+      'executivo': 'bg-green-500',
+      'imobiliaria': 'bg-yellow-500',
+      'inquilino': 'bg-gray-500',
+      'financeiro': 'bg-teal-500',
+      'admin': 'bg-red-500'
+    };
+    return colors[tipo] || 'bg-gray-500';
+  };
+
+  const filteredUsuarios = usuarios.filter(u => {
+    const matchesSearch = u.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         u.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTipo = filterTipo === 'todos' || u.tipo === filterTipo;
+    const matchesStatus = filterStatus === 'todos' || u.status === filterStatus;
+    
+    return matchesSearch && matchesTipo && matchesStatus;
+  });
 
   const stats = {
     totalUsuarios: usuarios.length,
     usuariosAtivos: usuarios.filter(u => u.status === 'ativo').length,
     usuariosInativos: usuarios.filter(u => u.status === 'inativo').length,
-    logsHoje: logsAcoes.filter(l => 
-      new Date(l.timestamp).toDateString() === new Date().toDateString()
-    ).length
+    porTipo: {
+      analista: usuarios.filter(u => u.tipo === 'analista').length,
+      juridico: usuarios.filter(u => u.tipo === 'juridico').length,
+      sdr: usuarios.filter(u => u.tipo === 'sdr').length,
+      executivo: usuarios.filter(u => u.tipo === 'executivo').length,
+      imobiliaria: usuarios.filter(u => u.tipo === 'imobiliaria').length,
+      inquilino: usuarios.filter(u => u.tipo === 'inquilino').length,
+      financeiro: usuarios.filter(u => u.tipo === 'financeiro').length,
+    }
   };
 
   return (
-    <Layout title="Administração">
+    <Layout title="Gestão de Usuários">
       <div className="space-y-6 animate-fade-in">
-        {/* Header Stats */}
+        {/* Dashboard Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
@@ -176,9 +215,9 @@ const Admin = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Usuários Ativos</p>
-                  <p className="text-2xl font-bold text-success">{stats.usuariosAtivos}</p>
+                  <p className="text-2xl font-bold text-green-500">{stats.usuariosAtivos}</p>
                 </div>
-                <Shield className="h-8 w-8 text-success" />
+                <UserPlus className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
@@ -199,239 +238,250 @@ const Admin = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Ações Hoje</p>
-                  <p className="text-2xl font-bold text-warning">{stats.logsHoje}</p>
+                  <p className="text-sm font-medium text-gray-600">Imobiliárias</p>
+                  <p className="text-2xl font-bold text-yellow-500">{stats.porTipo.imobiliaria}</p>
                 </div>
-                <Activity className="h-8 w-8 text-warning" />
+                <Users className="h-8 w-8 text-yellow-500" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="usuarios">Usuários</TabsTrigger>
-            <TabsTrigger value="logs">Logs de Ação</TabsTrigger>
-            <TabsTrigger value="configuracoes">Configurações</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="usuarios" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle className="flex items-center">
-                      <Users className="mr-2 h-5 w-5" />
-                      Gestão de Usuários
-                    </CardTitle>
-                    <CardDescription>
-                      Gerencie todos os usuários da plataforma
-                    </CardDescription>
+        {/* Distribuição por Tipo */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Distribuição por Tipo de Usuário</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+              {Object.entries(stats.porTipo).map(([tipo, count]) => (
+                <div key={tipo} className="text-center">
+                  <div className={`w-12 h-12 rounded-full ${getTipoColor(tipo as UserType)} flex items-center justify-center mx-auto mb-2`}>
+                    <span className="text-white font-bold">{count}</span>
                   </div>
+                  <p className="text-sm font-medium">{getTipoLabel(tipo as UserType)}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Gestão de Usuários */}
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="flex items-center">
+                  <Users className="mr-2 h-5 w-5" />
+                  Gestão de Usuários
+                </CardTitle>
+                <CardDescription>
+                  Gerencie todos os usuários da plataforma
+                </CardDescription>
+              </div>
+              
+              <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                <DialogTrigger asChild>
                   <Button className="bg-primary hover:bg-primary/90">
                     <Plus className="mr-2 h-4 w-4" />
                     Novo Usuário
                   </Button>
-                </div>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Buscar usuários..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {filteredUsuarios.map((usuario) => (
-                    <div
-                      key={usuario.id}
-                      className="p-4 rounded-lg border hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h4 className="font-medium text-gray-900">{usuario.nome}</h4>
-                          <p className="text-sm text-gray-600">{usuario.email}</p>
-                          <p className="text-sm text-gray-500">{getTipoLabel(usuario.tipo)}</p>
-                        </div>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Criar Novo Usuário</DialogTitle>
+                    <DialogDescription>
+                      Preencha os dados para criar um novo usuário na plataforma.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="nome">Nome Completo</Label>
+                      <Input
+                        id="nome"
+                        value={novoUsuario.nome}
+                        onChange={(e) => setNovoUsuario(prev => ({ ...prev, nome: e.target.value }))}
+                        placeholder="Digite o nome completo"
+                      />
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="email">E-mail</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={novoUsuario.email}
+                        onChange={(e) => setNovoUsuario(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="Digite o e-mail"
+                      />
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="tipo">Tipo de Usuário</Label>
+                      <Select 
+                        value={novoUsuario.tipo} 
+                        onValueChange={(value: UserType) => setNovoUsuario(prev => ({ ...prev, tipo: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="analista">Analista de Conta</SelectItem>
+                          <SelectItem value="juridico">Departamento Jurídico</SelectItem>
+                          <SelectItem value="sdr">SDR - Comercial</SelectItem>
+                          <SelectItem value="executivo">Executivo de Conta</SelectItem>
+                          <SelectItem value="imobiliaria">Imobiliária</SelectItem>
+                          <SelectItem value="inquilino">Inquilino</SelectItem>
+                          <SelectItem value="financeiro">Departamento Financeiro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="senha">Senha Temporária</Label>
+                      <Input
+                        id="senha"
+                        type="password"
+                        value={novoUsuario.senha}
+                        onChange={(e) => setNovoUsuario(prev => ({ ...prev, senha: e.target.value }))}
+                        placeholder="Digite uma senha temporária"
+                      />
+                    </div>
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button onClick={criarUsuario}>
+                      Criar Usuário
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+            
+            {/* Filtros */}
+            <div className="flex flex-col md:flex-row gap-4 mt-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Buscar por nome ou e-mail..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <div className="flex gap-2">
+                <Select value={filterTipo} onValueChange={setFilterTipo}>
+                  <SelectTrigger className="w-[180px]">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Filtrar por tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os tipos</SelectItem>
+                    <SelectItem value="analista">Analista</SelectItem>
+                    <SelectItem value="juridico">Jurídico</SelectItem>
+                    <SelectItem value="sdr">SDR</SelectItem>
+                    <SelectItem value="executivo">Executivo</SelectItem>
+                    <SelectItem value="imobiliaria">Imobiliária</SelectItem>
+                    <SelectItem value="inquilino">Inquilino</SelectItem>
+                    <SelectItem value="financeiro">Financeiro</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    <SelectItem value="ativo">Ativo</SelectItem>
+                    <SelectItem value="inativo">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            <div className="space-y-4">
+              {filteredUsuarios.map((usuario) => (
+                <div
+                  key={usuario.id}
+                  className="p-4 rounded-lg border hover:shadow-md transition-shadow"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h4 className="font-medium text-gray-900">{usuario.nome}</h4>
+                        <Badge className={`${getTipoColor(usuario.tipo)} text-white`}>
+                          {getTipoLabel(usuario.tipo)}
+                        </Badge>
                         <Badge className={`${getStatusColor(usuario.status)} text-white`}>
                           {usuario.status === 'ativo' ? 'Ativo' : 'Inativo'}
                         </Badge>
                       </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                        <div>
-                          <p className="text-sm text-gray-500">Último Acesso</p>
-                          <p className="text-sm font-medium">
-                            {new Date(usuario.ultimoAcesso).toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Data de Criação</p>
-                          <p className="text-sm font-medium">
-                            {new Date(usuario.dataCreacao).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="mr-2 h-4 w-4" />
-                          Ver Detalhes
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => alterarStatusUsuario(
-                            usuario.id, 
-                            usuario.status === 'ativo' ? 'inativo' : 'ativo'
-                          )}
-                        >
-                          {usuario.status === 'ativo' ? 'Desativar' : 'Ativar'}
-                        </Button>
-                      </div>
+                      <p className="text-sm text-gray-600">{usuario.email}</p>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="logs" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Activity className="mr-2 h-5 w-5" />
-                  Logs de Ação
-                </CardTitle>
-                <CardDescription>
-                  Histórico de todas as ações realizadas no sistema
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {logsAcoes.map((log) => (
-                    <div
-                      key={log.id}
-                      className="p-4 rounded-lg border"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-medium text-gray-900">{log.acao}</h4>
-                          <p className="text-sm text-gray-600">Por: {log.usuario}</p>
-                        </div>
-                        <p className="text-sm text-gray-500">
-                          {new Date(log.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                      <p className="text-sm text-gray-700">{log.detalhes}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="configuracoes" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Settings className="mr-2 h-5 w-5" />
-                  Configurações do Sistema
-                </CardTitle>
-                <CardDescription>
-                  Configure parâmetros gerais da plataforma
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="taxaMinima">Taxa Mínima de Fiança (%)</Label>
-                    <Input
-                      id="taxaMinima"
-                      type="number"
-                      defaultValue="8"
-                      className="w-32"
-                    />
                   </div>
                   
-                  <div>
-                    <Label htmlFor="taxaMaxima">Taxa Máxima de Fiança (%)</Label>
-                    <Input
-                      id="taxaMaxima"
-                      type="number"
-                      defaultValue="15"
-                      className="w-32"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                    <div>
+                      <p className="text-sm text-gray-500">Último Acesso</p>
+                      <p className="text-sm font-medium">
+                        {new Date(usuario.ultimoAcesso).toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Data de Criação</p>
+                      <p className="text-sm font-medium">
+                        {new Date(usuario.dataCreacao).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="scoreMinimo">Score Mínimo para Aprovação</Label>
-                    <Input
-                      id="scoreMinimo"
-                      type="number"
-                      defaultValue="500"
-                      className="w-32"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="emailNotificacao">E-mail para Notificações</Label>
-                    <Input
-                      id="emailNotificacao"
-                      type="email"
-                      defaultValue="admin@locarpay.com"
-                      className="w-80"
-                    />
+                  <div className="flex space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver Detalhes
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Edit className="mr-2 h-4 w-4" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => alterarStatusUsuario(
+                        usuario.id, 
+                        usuario.status === 'ativo' ? 'inativo' : 'ativo'
+                      )}
+                    >
+                      {usuario.status === 'ativo' ? 'Desativar' : 'Ativar'}
+                    </Button>
+                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Excluir
+                    </Button>
                   </div>
                 </div>
-
-                <Button className="bg-primary hover:bg-primary/90">
-                  Salvar Configurações
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="mr-2 h-5 w-5" />
-                  Relatórios e Estatísticas
-                </CardTitle>
-                <CardDescription>
-                  Gere relatórios gerenciais do sistema
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button variant="outline" className="h-20 flex-col">
-                    <BarChart3 className="h-6 w-6 mb-2" />
-                    Relatório de Fianças
-                  </Button>
-                  <Button variant="outline" className="h-20 flex-col">
-                    <Users className="h-6 w-6 mb-2" />
-                    Relatório de Usuários
-                  </Button>
-                  <Button variant="outline" className="h-20 flex-col">
-                    <Activity className="h-6 w-6 mb-2" />
-                    Relatório de Atividades
-                  </Button>
-                  <Button variant="outline" className="h-20 flex-col">
-                    <Shield className="h-6 w-6 mb-2" />
-                    Relatório de Segurança
-                  </Button>
+              ))}
+              
+              {filteredUsuarios.length === 0 && (
+                <div className="text-center py-8">
+                  <Users className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum usuário encontrado</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Tente ajustar os filtros ou termos de busca.
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

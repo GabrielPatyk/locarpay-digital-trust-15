@@ -61,6 +61,14 @@ import Leads from "./pages/Leads";
 import Campanhas from "./pages/Campanhas";
 import RelatoriosSDR from "./pages/RelatoriosSDR";
 
+// Admin Pages
+import FiancasAdmin from "./pages/FiancasAdmin";
+import ImobiliariasAdmin from "./pages/ImobiliariasAdmin";
+import ExecutivosAdmin from "./pages/ExecutivosAdmin";
+import SinistrosAdmin from "./pages/SinistrosAdmin";
+import LeadsAdmin from "./pages/LeadsAdmin";
+import ConfiguracoesAdmin from "./pages/ConfiguracoesAdmin";
+
 const queryClient = new QueryClient();
 
 const AppContent = () => {
@@ -297,6 +305,43 @@ const AppContent = () => {
           <Route path="/admin" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <Admin />
+            </ProtectedRoute>
+          } />
+
+          {/* Admin specific routes */}
+          <Route path="/fiancas-admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <FiancasAdmin />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/imobiliarias-admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <ImobiliariasAdmin />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/executivos-admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <ExecutivosAdmin />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/sinistros-admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <SinistrosAdmin />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/leads-admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <LeadsAdmin />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/configuracoes-admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <ConfiguracoesAdmin />
             </ProtectedRoute>
           } />
           

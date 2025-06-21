@@ -248,18 +248,23 @@ const AppSidebar = () => {
         icon: Home,
       },
       {
+        title: 'Usuários',
+        url: '/admin',
+        icon: Users,
+      },
+      {
         title: 'Fianças',
-        url: '/fiancas',
+        url: '/fiancas-admin',
         icon: FileText,
       },
       {
         title: 'Imobiliárias',
-        url: '/imobiliarias',
+        url: '/imobiliarias-admin',
         icon: Building,
       },
       {
         title: 'Executivos',
-        url: '/executivos',
+        url: '/executivos-admin',
         icon: Briefcase,
       },
       {
@@ -269,17 +274,17 @@ const AppSidebar = () => {
       },
       {
         title: 'Sinistros',
-        url: '/sinistros',
+        url: '/sinistros-admin',
         icon: ClipboardList,
       },
       {
         title: 'Leads',
-        url: '/leads',
+        url: '/leads-admin',
         icon: DollarSign,
       },
       {
         title: 'Configurações',
-        url: '/configuracoes',
+        url: '/configuracoes-admin',
         icon: Settings,
       },
     ];
