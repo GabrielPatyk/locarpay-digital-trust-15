@@ -31,42 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [perfil_usuario, setPerfilUsuario] = useState<Profile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      fetchUserProfile(parsedUser.id);
-    }
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        // Convert supabase user to our User type
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.name || session.user.email || '',
-          type: 'inquilino', // Default type, will be updated from profile
-          fullName: session.user.user_metadata?.full_name || '',
-          firstLogin: true,
-          contractAccepted: false
-        };
-        
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        await fetchUserProfile(session.user.id);
-      } else {
-        setUser(null);
-        setPerfilUsuario(null);
-        localStorage.removeItem('user');
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
   const fetchUserProfile = async (userId: string) => {
+    console.log('Buscando perfil para usuário:', userId);
     setIsLoadingProfile(true);
     try {
       const { data: profile, error } = await supabase
@@ -77,9 +43,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Erro ao buscar perfil:', error);
-        return;
+        return null;
       }
 
+      console.log('Perfil encontrado:', profile);
       setPerfilUsuario(profile);
       
       // Update user type based on profile
@@ -93,43 +60,104 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return prevUser;
         });
       }
+      
+      return profile;
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);
+      return null;
     } finally {
       setIsLoadingProfile(false);
     }
   };
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; redirectPath?: string }> => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
+  useEffect(() => {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Sessão existente:', session);
+      if (session?.user) {
+        const userData: User = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.email || '',
+          type: 'inquilino', // Default, será atualizado pelo perfil
+          fullName: '',
+          firstLogin: false,
+          contractAccepted: true
+        };
+        
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Fetch profile after setting user
+        setTimeout(() => {
+          fetchUserProfile(session.user.id);
+        }, 0);
+      }
     });
 
-    if (data.user && !error) {
-      const userData: User = {
-        id: data.user.id,
-        email: data.user.email || '',
-        name: data.user.user_metadata?.name || data.user.email || '',
-        type: 'inquilino', // Default type, will be updated from profile
-        fullName: data.user.user_metadata?.full_name || '',
-        firstLogin: true,
-        contractAccepted: false
-      };
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event, session);
+      
+      if (session?.user) {
+        const userData: User = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.email || '',
+          type: 'inquilino', // Default, será atualizado pelo perfil
+          fullName: '',
+          firstLogin: false,
+          contractAccepted: true
+        };
+        
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Fetch profile after auth change
+        setTimeout(() => {
+          fetchUserProfile(session.user.id);
+        }, 0);
+      } else {
+        console.log('Usuário deslogado');
+        setUser(null);
+        setPerfilUsuario(null);
+        localStorage.removeItem('user');
+      }
+    });
 
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      // Fetch profile to check if complete
-      await fetchUserProfile(data.user.id);
-      
-      return { success: true, redirectPath: '/dashboard' };
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const login = async (email: string, password: string): Promise<{ success: boolean; redirectPath?: string }> => {
+    console.log('Tentando fazer login com:', email);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      console.log('Resultado do login:', { data, error });
+
+      if (error) {
+        console.error('Erro no login:', error);
+        return { success: false };
+      }
+
+      if (data.user) {
+        console.log('Login bem-sucedido para:', data.user.email);
+        return { success: true, redirectPath: '/dashboard' };
+      }
+
+      return { success: false };
+    } catch (error) {
+      console.error('Erro inesperado no login:', error);
+      return { success: false };
     }
-
-    return { success: false };
   };
 
   const logout = async () => {
+    console.log('Fazendo logout');
     await supabase.auth.signOut();
     setUser(null);
     setPerfilUsuario(null);

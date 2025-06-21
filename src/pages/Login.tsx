@@ -23,22 +23,40 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Iniciando processo de login...');
     setIsLoading(true);
     setError('');
 
     try {
       const result = await login(email, password);
+      console.log('Resultado do login:', result);
+      
       if (result.success) {
         toast({
           title: "Login realizado com sucesso!",
-          description: "Redirecionando...",
+          description: "Redirecionando para o dashboard...",
         });
-        navigate(result.redirectPath || '/dashboard');
+        
+        // Aguardar um pouco antes de redirecionar para garantir que o perfil seja carregado
+        setTimeout(() => {
+          navigate(result.redirectPath || '/dashboard');
+        }, 1000);
       } else {
-        setError('Credenciais inválidas. Tente novamente.');
+        setError('Email ou senha incorretos. Verifique suas credenciais.');
+        toast({
+          title: "Erro no login",
+          description: "Credenciais inválidas. Tente novamente.",
+          variant: "destructive"
+        });
       }
     } catch (err) {
-      setError('Erro ao fazer login. Tente novamente.');
+      console.error('Erro no processo de login:', err);
+      setError('Erro interno. Tente novamente em alguns instantes.');
+      toast({
+        title: "Erro no sistema",
+        description: "Ocorreu um erro inesperado. Tente novamente.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -62,6 +80,11 @@ const Login = () => {
     { type: 'Financeiro', email: 'financeiro@locarpay.com.br' },
     { type: 'Admin', email: 'admin@locarpay.com.br' },
   ];
+
+  const fillDemoCredentials = (demoEmail: string) => {
+    setEmail(demoEmail);
+    setPassword('123456');
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -87,7 +110,7 @@ const Login = () => {
           {/* Login Card */}
           <Card className="shadow-2xl border-0 backdrop-blur-sm bg-white/95 overflow-hidden">
             <CardHeader className="space-y-6 pb-4">
-              {/* Logo Section - moved inside the card */}
+              {/* Logo Section */}
               <div className="text-center">
                 <div className="inline-flex items-center justify-center mb-4">
                   <img 
@@ -179,7 +202,7 @@ const Login = () => {
                     <button
                       key={index}
                       type="button"
-                      onClick={() => setEmail(user.email)}
+                      onClick={() => fillDemoCredentials(user.email)}
                       className="text-left p-2 rounded-lg bg-gradient-to-r from-[#F4D573]/20 to-[#E6C46E]/20 hover:from-[#F4D573]/30 hover:to-[#E6C46E]/30 transition-all duration-200 border border-[#BC942C]/20"
                     >
                       <div className="font-medium text-[#0C1C2E]">{user.type}</div>
