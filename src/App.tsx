@@ -12,6 +12,7 @@ import AppSidebar from "@/components/AppSidebar";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
+import CompletarCadastro from "./pages/CompletarCadastro";
 import Dashboard from "./pages/Dashboard";
 import Analista from "./pages/Analista";
 import Juridico from "./pages/Juridico";
@@ -74,7 +75,10 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
-  const isLoginPage = location.pathname === '/login' || location.pathname === '/unauthorized' || location.pathname === '/forgot-password';
+  const isLoginPage = location.pathname === '/login' || 
+                     location.pathname === '/unauthorized' || 
+                     location.pathname === '/forgot-password' ||
+                     location.pathname === '/completar-cadastro';
 
   if (isLoginPage) {
     return (
@@ -82,6 +86,7 @@ const AppContent = () => {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/completar-cadastro" element={<CompletarCadastro />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -93,9 +98,10 @@ const AppContent = () => {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/completar-cadastro" element={<CompletarCadastro />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           
           {/* Protected routes */}
