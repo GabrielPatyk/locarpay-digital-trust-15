@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,7 +42,15 @@ const Admin = () => {
     nome: '',
     email: '',
     tipo: 'inquilino' as UserType,
-    senha: ''
+    senha: '',
+    // Campos específicos
+    nomeCompleto: '',
+    whatsapp: '',
+    cpf: '',
+    cnpj: '',
+    nomeEmpresa: '',
+    endereco: '',
+    telefone: ''
   });
 
   // Mock data expandido
@@ -112,10 +121,23 @@ const Admin = () => {
   ];
 
   const criarUsuario = () => {
-    if (!novoUsuario.nome || !novoUsuario.email || !novoUsuario.senha) {
+    // Validações específicas por tipo
+    const camposObrigatorios = ['email', 'senha'];
+    
+    if (novoUsuario.tipo === 'inquilino') {
+      camposObrigatorios.push('nomeCompleto', 'whatsapp', 'cpf');
+    } else if (novoUsuario.tipo === 'imobiliaria') {
+      camposObrigatorios.push('nomeEmpresa', 'cnpj', 'endereco', 'telefone');
+    } else {
+      camposObrigatorios.push('nome');
+    }
+
+    const campoVazio = camposObrigatorios.find(campo => !novoUsuario[campo as keyof typeof novoUsuario]);
+    
+    if (campoVazio) {
       toast({
         title: "Erro",
-        description: "Todos os campos são obrigatórios.",
+        description: "Todos os campos obrigatórios devem ser preenchidos.",
         variant: "destructive"
       });
       return;
@@ -123,11 +145,23 @@ const Admin = () => {
 
     toast({
       title: "Usuário criado!",
-      description: `Usuário ${novoUsuario.nome} criado com sucesso.`,
+      description: `Usuário ${novoUsuario.nome || novoUsuario.nomeCompleto || novoUsuario.nomeEmpresa} criado com sucesso.`,
     });
     
     setIsCreateModalOpen(false);
-    setNovoUsuario({ nome: '', email: '', tipo: 'inquilino', senha: '' });
+    setNovoUsuario({ 
+      nome: '', 
+      email: '', 
+      tipo: 'inquilino', 
+      senha: '',
+      nomeCompleto: '',
+      whatsapp: '',
+      cpf: '',
+      cnpj: '',
+      nomeEmpresa: '',
+      endereco: '',
+      telefone: ''
+    });
   };
 
   const alterarStatusUsuario = (usuarioId: string, novoStatus: 'ativo' | 'inativo') => {
@@ -194,14 +228,9 @@ const Admin = () => {
   };
 
   // Dados para os gráficos
-  const chartDataTipos = [
-    { name: 'Analistas', value: stats.porTipo.analista, color: '#3b82f6' },
-    { name: 'Jurídico', value: stats.porTipo.juridico, color: '#8b5cf6' },
-    { name: 'SDR', value: stats.porTipo.sdr, color: '#f97316' },
-    { name: 'Executivos', value: stats.porTipo.executivo, color: '#10b981' },
-    { name: 'Imobiliárias', value: stats.porTipo.imobiliaria, color: '#eab308' },
-    { name: 'Inquilinos', value: stats.porTipo.inquilino, color: '#6b7280' },
-    { name: 'Financeiro', value: stats.porTipo.financeiro, color: '#14b8a6' },
+  const statusData = [
+    { name: 'Ativos', value: stats.usuariosAtivos, color: '#10b981' },
+    { name: 'Inativos', value: stats.usuariosInativos, color: '#ef4444' },
   ];
 
   const crescimentoUsuarios = [
@@ -215,95 +244,162 @@ const Admin = () => {
     { mes: 'Jan', usuarios: 67 },
   ];
 
-  const statusData = [
-    { name: 'Ativos', value: stats.usuariosAtivos, color: '#10b981' },
-    { name: 'Inativos', value: stats.usuariosInativos, color: '#ef4444' },
-  ];
+  const renderFormularioEspecifico = () => {
+    switch (novoUsuario.tipo) {
+      case 'inquilino':
+        return (
+          <>
+            <div className="grid gap-2">
+              <Label htmlFor="nomeCompleto">Nome Completo *</Label>
+              <Input
+                id="nomeCompleto"
+                value={novoUsuario.nomeCompleto}
+                onChange={(e) => setNovoUsuario(prev => ({ ...prev, nomeCompleto: e.target.value }))}
+                placeholder="Digite o nome completo"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="whatsapp">WhatsApp *</Label>
+              <Input
+                id="whatsapp"
+                value={novoUsuario.whatsapp}
+                onChange={(e) => setNovoUsuario(prev => ({ ...prev, whatsapp: e.target.value }))}
+                placeholder="(11) 99999-9999"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="cpf">CPF *</Label>
+              <Input
+                id="cpf"
+                value={novoUsuario.cpf}
+                onChange={(e) => setNovoUsuario(prev => ({ ...prev, cpf: e.target.value }))}
+                placeholder="000.000.000-00"
+              />
+            </div>
+          </>
+        );
+        
+      case 'imobiliaria':
+        return (
+          <>
+            <div className="grid gap-2">
+              <Label htmlFor="nomeEmpresa">Nome da Empresa *</Label>
+              <Input
+                id="nomeEmpresa"
+                value={novoUsuario.nomeEmpresa}
+                onChange={(e) => setNovoUsuario(prev => ({ ...prev, nomeEmpresa: e.target.value }))}
+                placeholder="Digite o nome da imobiliária"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="cnpj">CNPJ *</Label>
+              <Input
+                id="cnpj"
+                value={novoUsuario.cnpj}
+                onChange={(e) => setNovoUsuario(prev => ({ ...prev, cnpj: e.target.value }))}
+                placeholder="00.000.000/0000-00"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="endereco">Endereço *</Label>
+              <Input
+                id="endereco"
+                value={novoUsuario.endereco}
+                onChange={(e) => setNovoUsuario(prev => ({ ...prev, endereco: e.target.value }))}
+                placeholder="Endereço completo"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="telefone">Telefone *</Label>
+              <Input
+                id="telefone"
+                value={novoUsuario.telefone}
+                onChange={(e) => setNovoUsuario(prev => ({ ...prev, telefone: e.target.value }))}
+                placeholder="(11) 3333-4444"
+              />
+            </div>
+          </>
+        );
+        
+      default:
+        return (
+          <div className="grid gap-2">
+            <Label htmlFor="nome">Nome Completo *</Label>
+            <Input
+              id="nome"
+              value={novoUsuario.nome}
+              onChange={(e) => setNovoUsuario(prev => ({ ...prev, nome: e.target.value }))}
+              placeholder="Digite o nome completo"
+            />
+          </div>
+        );
+    }
+  };
 
   return (
     <Layout title="Gestão de Usuários">
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in p-2 sm:p-0">
         {/* Dashboard Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Card className="p-3 sm:p-4">
+            <CardContent className="p-0">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Usuários</p>
-                  <p className="text-2xl font-bold text-primary">{stats.totalUsuarios}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Usuários</p>
+                  <p className="text-lg sm:text-2xl font-bold text-primary">{stats.totalUsuarios}</p>
                 </div>
-                <Users className="h-8 w-8 text-primary" />
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="p-4">
+          <Card className="p-3 sm:p-4">
+            <CardContent className="p-0">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Usuários Ativos</p>
-                  <p className="text-2xl font-bold text-green-500">{stats.usuariosAtivos}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Usuários Ativos</p>
+                  <p className="text-lg sm:text-2xl font-bold text-green-500">{stats.usuariosAtivos}</p>
                 </div>
-                <UserPlus className="h-8 w-8 text-green-500" />
+                <UserPlus className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="p-4">
+          <Card className="p-3 sm:p-4">
+            <CardContent className="p-0">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Usuários Inativos</p>
-                  <p className="text-2xl font-bold text-red-500">{stats.usuariosInativos}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Usuários Inativos</p>
+                  <p className="text-lg sm:text-2xl font-bold text-red-500">{stats.usuariosInativos}</p>
                 </div>
-                <Users className="h-8 w-8 text-red-500" />
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
               </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="p-4">
+          <Card className="p-3 sm:p-4">
+            <CardContent className="p-0">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Imobiliárias</p>
-                  <p className="text-2xl font-bold text-yellow-500">{stats.porTipo.imobiliaria}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Imobiliárias</p>
+                  <p className="text-lg sm:text-2xl font-bold text-yellow-500">{stats.porTipo.imobiliaria}</p>
                 </div>
-                <Users className="h-8 w-8 text-yellow-500" />
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Distribuição por Tipo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={chartDataTipos}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    dataKey="value"
-                  >
-                    {chartDataTipos.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Status dos Usuários</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Status dos Usuários</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
@@ -320,7 +416,7 @@ const Admin = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Crescimento Mensal</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Crescimento Mensal</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
@@ -339,25 +435,25 @@ const Admin = () => {
         {/* Gestão de Usuários */}
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <CardTitle className="flex items-center">
+                <CardTitle className="flex items-center text-base sm:text-lg">
                   <Users className="mr-2 h-5 w-5" />
                   Gestão de Usuários
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Gerencie todos os usuários da plataforma
                 </CardDescription>
               </div>
               
               <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90">
+                  <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
                     <Plus className="mr-2 h-4 w-4" />
                     Novo Usuário
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Criar Novo Usuário</DialogTitle>
                     <DialogDescription>
@@ -367,28 +463,7 @@ const Admin = () => {
                   
                   <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="nome">Nome Completo</Label>
-                      <Input
-                        id="nome"
-                        value={novoUsuario.nome}
-                        onChange={(e) => setNovoUsuario(prev => ({ ...prev, nome: e.target.value }))}
-                        placeholder="Digite o nome completo"
-                      />
-                    </div>
-                    
-                    <div className="grid gap-2">
-                      <Label htmlFor="email">E-mail</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={novoUsuario.email}
-                        onChange={(e) => setNovoUsuario(prev => ({ ...prev, email: e.target.value }))}
-                        placeholder="Digite o e-mail"
-                      />
-                    </div>
-                    
-                    <div className="grid gap-2">
-                      <Label htmlFor="tipo">Tipo de Usuário</Label>
+                      <Label htmlFor="tipo">Tipo de Usuário *</Label>
                       <Select 
                         value={novoUsuario.tipo} 
                         onValueChange={(value: UserType) => setNovoUsuario(prev => ({ ...prev, tipo: value }))}
@@ -407,9 +482,22 @@ const Admin = () => {
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {renderFormularioEspecifico()}
                     
                     <div className="grid gap-2">
-                      <Label htmlFor="senha">Senha Temporária</Label>
+                      <Label htmlFor="email">E-mail *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={novoUsuario.email}
+                        onChange={(e) => setNovoUsuario(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="Digite o e-mail"
+                      />
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="senha">Senha Temporária *</Label>
                       <Input
                         id="senha"
                         type="password"
@@ -420,11 +508,11 @@ const Admin = () => {
                     </div>
                   </div>
                   
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                  <DialogFooter className="flex flex-col sm:flex-row gap-2">
+                    <Button variant="outline" onClick={() => setIsCreateModalOpen(false)} className="w-full sm:w-auto">
                       Cancelar
                     </Button>
-                    <Button onClick={criarUsuario}>
+                    <Button onClick={criarUsuario} className="w-full sm:w-auto">
                       Criar Usuário
                     </Button>
                   </DialogFooter>
@@ -433,8 +521,8 @@ const Admin = () => {
             </div>
             
             {/* Filtros */}
-            <div className="flex flex-col md:flex-row gap-4 mt-4">
-              <div className="relative flex-1">
+            <div className="flex flex-col gap-4 mt-4">
+              <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Buscar por nome ou e-mail..."
@@ -444,9 +532,9 @@ const Admin = () => {
                 />
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Select value={filterTipo} onValueChange={setFilterTipo}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px]">
                     <Filter className="mr-2 h-4 w-4" />
                     <SelectValue placeholder="Filtrar por tipo" />
                   </SelectTrigger>
@@ -463,7 +551,7 @@ const Admin = () => {
                 </Select>
                 
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-full sm:w-[150px]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -481,45 +569,45 @@ const Admin = () => {
               {filteredUsuarios.map((usuario) => (
                 <div
                   key={usuario.id}
-                  className="p-4 rounded-lg border hover:shadow-md transition-shadow"
+                  className="p-3 sm:p-4 rounded-lg border hover:shadow-md transition-shadow"
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-medium text-gray-900">{usuario.nome}</h4>
-                        <Badge className={`${getTipoColor(usuario.tipo)} text-white`}>
+                  <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2">
+                    <div className="flex-1 w-full">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h4 className="font-medium text-gray-900 text-sm sm:text-base">{usuario.nome}</h4>
+                        <Badge className={`${getTipoColor(usuario.tipo)} text-white text-xs`}>
                           {getTipoLabel(usuario.tipo)}
                         </Badge>
-                        <Badge className={`${getStatusColor(usuario.status)} text-white`}>
+                        <Badge className={`${getStatusColor(usuario.status)} text-white text-xs`}>
                           {usuario.status === 'ativo' ? 'Ativo' : 'Inativo'}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600">{usuario.email}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">{usuario.email}</p>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3 text-sm">
                     <div>
-                      <p className="text-sm text-gray-500">Último Acesso</p>
-                      <p className="text-sm font-medium">
+                      <p className="text-xs text-gray-500">Último Acesso</p>
+                      <p className="text-xs sm:text-sm font-medium">
                         {new Date(usuario.ultimoAcesso).toLocaleString()}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Data de Criação</p>
-                      <p className="text-sm font-medium">
+                      <p className="text-xs text-gray-500">Data de Criação</p>
+                      <p className="text-xs sm:text-sm font-medium">
                         {new Date(usuario.dataCreacao).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="mr-2 h-4 w-4" />
-                      Ver Detalhes
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" className="text-xs">
+                      <Eye className="mr-1 h-3 w-3" />
+                      Ver
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Edit className="mr-2 h-4 w-4" />
+                    <Button variant="outline" size="sm" className="text-xs">
+                      <Edit className="mr-1 h-3 w-3" />
                       Editar
                     </Button>
                     <Button
@@ -529,11 +617,12 @@ const Admin = () => {
                         usuario.id, 
                         usuario.status === 'ativo' ? 'inativo' : 'ativo'
                       )}
+                      className="text-xs"
                     >
                       {usuario.status === 'ativo' ? 'Desativar' : 'Ativar'}
                     </Button>
-                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                      <Trash2 className="mr-2 h-4 w-4" />
+                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 text-xs">
+                      <Trash2 className="mr-1 h-3 w-3" />
                       Excluir
                     </Button>
                   </div>
