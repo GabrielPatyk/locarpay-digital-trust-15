@@ -77,16 +77,14 @@ const Login = () => {
   ];
 
   return (
-    <>
-      <div className="min-h-screen relative overflow-hidden">
-        {/* Background image with overlay */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('/lovable-uploads/5bdbd93e-9136-4714-9c8d-216c143ab781.png')`
-          }}
-        ></div>
-        
+    <div className="min-h-screen w-full flex">
+      {/* Background image with overlay */}
+      <div 
+        className="flex-1 relative bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('/lovable-uploads/5bdbd93e-9136-4714-9c8d-216c143ab781.png')`
+        }}
+      >
         {/* Dark blue overlay with 65% opacity */}
         <div 
           className="absolute inset-0"
@@ -96,12 +94,12 @@ const Login = () => {
           }}
         ></div>
 
-        <div className="relative min-h-screen flex items-center justify-center p-4">
+        <div className="relative flex items-center justify-center min-h-screen p-4">
           <div className="w-full max-w-md">
             {/* Login Card */}
             <Card className="shadow-2xl border-0 backdrop-blur-sm bg-white/95 overflow-hidden">
               <CardHeader className="space-y-6 pb-4">
-                {/* Logo Section - moved inside the card */}
+                {/* Logo Section */}
                 <div className="text-center">
                   <div className="inline-flex items-center justify-center mb-4">
                     <img 
@@ -246,7 +244,7 @@ const Login = () => {
           userName={unverifiedUserData.name}
         />
       )}
-    </>
+    </div>
   );
 };
 
