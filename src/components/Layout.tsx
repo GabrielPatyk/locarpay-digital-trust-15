@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogOut, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { AppSidebar } from '@/components/AppSidebar';
+import AppSidebar from '@/components/AppSidebar';
 import {
   Sidebar,
   SidebarContent,
