@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserType } from '@/types/user';
+import type { Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
@@ -18,64 +19,123 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+  // Função para buscar dados do usuário da tabela usuarios
+  const fetchUserData = async (email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', email)
+        .eq('ativo', true)
+        .single();
+
+      if (error) {
+        console.error('Erro ao buscar dados do usuário:', error);
+        return null;
+      }
+
+      return {
+        id: data.id,
+        email: data.email,
+        name: data.nome,
+        type: data.cargo as UserType,
+        telefone: data.telefone,
+        ativo: data.ativo
+      };
+    } catch (err) {
+      console.error('Erro inesperado ao buscar usuário:', err);
+      return null;
     }
-    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    // Verificar sessão inicial
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user?.email) {
+          const userData = await fetchUserData(session.user.email);
+          if (userData) {
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+        }
+      } catch (error) {
+        console.error('Erro na inicialização da autenticação:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Listener para mudanças no estado de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        if (session?.user?.email) {
+          const userData = await fetchUserData(session.user.email);
+          if (userData) {
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+        } else {
+          setUser(null);
+          localStorage.removeItem('user');
+        }
+        setIsLoading(false);
+      }
+    );
+
+    initAuth();
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; redirectPath?: string }> => {
     try {
       setIsLoading(true);
       
-      // Chamar a função do Supabase para validar login
-      const { data, error } = await supabase.rpc('validar_login', {
-        email_input: email,
-        senha_input: password
+      // Primeiro, autenticar com o Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
 
-      if (error) {
-        console.error('Erro na validação:', error);
+      if (authError) {
+        console.error('Erro na autenticação:', authError);
         return { success: false };
       }
 
-      if (data && data.length > 0) {
-        const userData = data[0];
-        
-        const user: User = {
-          id: userData.id,
-          email: userData.email,
-          name: userData.nome,
-          type: userData.cargo as UserType,
-          telefone: userData.telefone,
-          ativo: userData.ativo
-        };
-
-        setUser(user);
-        localStorage.setItem('user', JSON.stringify(user));
-        
-        // Define redirect path based on user type
-        const redirectPaths: Record<string, string> = {
-          inquilino: '/inquilino',
-          imobiliaria: '/imobiliaria',
-          analista: '/analista',
-          juridico: '/juridico',
-          sdr: '/sdr',
-          executivo: '/executivo',
-          financeiro: '/financeiro',
-          admin: '/dashboard',
-          corretor: '/dashboard'
-        };
-        
-        return { 
-          success: true, 
-          redirectPath: redirectPaths[userData.cargo] || '/dashboard'
-        };
-      }
+      // Buscar dados do usuário na tabela usuarios
+      const userData = await fetchUserData(email);
       
-      return { success: false };
+      if (!userData) {
+        console.error('Usuário não encontrado na tabela usuarios');
+        await supabase.auth.signOut();
+        return { success: false };
+      }
+
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Define redirect path based on user type
+      const redirectPaths: Record<string, string> = {
+        inquilino: '/inquilino',
+        imobiliaria: '/imobiliaria',
+        analista: '/analista',
+        juridico: '/juridico',
+        sdr: '/sdr',
+        executivo: '/executivo',
+        financeiro: '/financeiro',
+        admin: '/admin',
+        corretor: '/dashboard'
+      };
+      
+      return { 
+        success: true, 
+        redirectPath: redirectPaths[userData.type] || '/dashboard'
+      };
     } catch (err) {
       console.error('Erro no login:', err);
       return { success: false };
@@ -84,7 +144,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     localStorage.removeItem('user');
   };
