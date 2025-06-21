@@ -1,179 +1,138 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types/user';
-import { supabase } from '@/integrations/supabase/client';
-
-interface Profile {
-  id: string;
-  nome_completo: string | null;
-  tipo_usuario: 'inquilino' | 'analista' | 'juridico' | 'admin' | 'sdr' | 'executivo' | 'imobiliaria' | 'financeiro' | null;
-  documento: string | null;
-  telefone: string | null;
-  data_nascimento: string | null;
-  criado_em: string;
-}
 
 interface AuthContextType {
   user: User | null;
-  perfil_usuario: Profile | null;
   login: (email: string, password: string) => Promise<{ success: boolean; redirectPath?: string }>;
   logout: () => void;
   updateUser: (updatedUser: User) => void;
-  updateProfile: (profile: Profile) => void;
   isAuthenticated: boolean;
-  isLoadingProfile: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const mockUsers: User[] = [
+  { 
+    id: '1', 
+    name: 'João Silva', 
+    email: 'inquilino@exemplo.com', 
+    type: 'inquilino',
+    fullName: 'João Silva dos Santos',
+    firstLogin: false,
+    contractAccepted: true
+  },
+  { 
+    id: '2', 
+    name: 'Imobiliária Prime', 
+    email: 'imobiliaria@exemplo.com', 
+    type: 'imobiliaria',
+    companyName: 'Imobiliária Prime Ltda',
+    cnpj: '12.345.678/0001-90',
+    address: 'Av. Paulista, 1000 - São Paulo, SP',
+    fullName: 'Roberto Silva',
+    firstLogin: true,
+    contractAccepted: false
+  },
+  { 
+    id: '3', 
+    name: 'Ana Costa', 
+    email: 'analista@locarpay.com', 
+    type: 'analista',
+    fullName: 'Ana Costa Oliveira',
+    firstLogin: false,
+    contractAccepted: true
+  },
+  { 
+    id: '4', 
+    name: 'Carlos Mendes', 
+    email: 'juridico@locarpay.com', 
+    type: 'juridico',
+    fullName: 'Carlos Mendes Santos',
+    firstLogin: false,
+    contractAccepted: true
+  },
+  { 
+    id: '5', 
+    name: 'Maria Santos', 
+    email: 'sdr@locarpay.com', 
+    type: 'sdr',
+    fullName: 'Maria Santos Lima',
+    firstLogin: false,
+    contractAccepted: true
+  },
+  { 
+    id: '6', 
+    name: 'Pedro Lima', 
+    email: 'executivo@locarpay.com', 
+    type: 'executivo',
+    fullName: 'Pedro Lima Costa',
+    firstLogin: false,
+    contractAccepted: true
+  },
+  { 
+    id: '7', 
+    name: 'Lucas Oliveira', 
+    email: 'financeiro@locarpay.com', 
+    type: 'financeiro',
+    fullName: 'Lucas Oliveira Santos',
+    firstLogin: false,
+    contractAccepted: true
+  },
+  { 
+    id: '8', 
+    name: 'Admin Sistema', 
+    email: 'admin@locarpay.com', 
+    type: 'admin',
+    fullName: 'Administrador do Sistema',
+    firstLogin: false,
+    contractAccepted: true
+  },
+];
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [perfil_usuario, setPerfilUsuario] = useState<Profile | null>(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
-
-  const fetchUserProfile = async (userId: string) => {
-    console.log('Buscando perfil para usuário:', userId);
-    setIsLoadingProfile(true);
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Erro ao buscar perfil:', error);
-        setPerfilUsuario(null);
-        return null;
-      }
-
-      console.log('Perfil encontrado:', profile);
-      
-      if (profile) {
-        setPerfilUsuario(profile);
-        
-        // Update user type based on profile
-        if (profile.tipo_usuario) {
-          setUser(prevUser => {
-            if (prevUser) {
-              const updatedUser = { 
-                ...prevUser, 
-                type: profile.tipo_usuario,
-                fullName: profile.nome_completo || prevUser.email
-              };
-              localStorage.setItem('user', JSON.stringify(updatedUser));
-              console.log('Usuário atualizado com tipo:', profile.tipo_usuario);
-              return updatedUser;
-            }
-            return prevUser;
-          });
-        }
-      } else {
-        console.log('Nenhum perfil encontrado para o usuário');
-        setPerfilUsuario(null);
-      }
-      
-      return profile;
-    } catch (error) {
-      console.error('Erro ao buscar perfil:', error);
-      setPerfilUsuario(null);
-      return null;
-    } finally {
-      setIsLoadingProfile(false);
-    }
-  };
 
   useEffect(() => {
-    // Listen for auth state changes FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session?.user?.email);
-      
-      if (session?.user) {
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.email || '',
-          type: 'inquilino', // Default, será atualizado pelo perfil
-          fullName: session.user.email || '',
-          firstLogin: false,
-          contractAccepted: true
-        };
-        
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        
-        // Fetch profile after setting user - usando setTimeout para evitar problemas de timing
-        setTimeout(async () => {
-          await fetchUserProfile(session.user.id);
-        }, 100);
-      } else {
-        console.log('Usuário deslogado');
-        setUser(null);
-        setPerfilUsuario(null);
-        localStorage.removeItem('user');
-      }
-    });
-
-    // Check for existing session AFTER setting up the listener
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Sessão existente:', session?.user?.email);
-      if (session?.user) {
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.email || '',
-          type: 'inquilino', // Default, será atualizado pelo perfil
-          fullName: session.user.email || '',
-          firstLogin: false,
-          contractAccepted: true
-        };
-        
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        
-        // Fetch profile for existing session
-        setTimeout(async () => {
-          await fetchUserProfile(session.user.id);
-        }, 100);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; redirectPath?: string }> => {
-    console.log('Tentando fazer login com:', email);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      console.log('Resultado do login:', { data, error });
-
-      if (error) {
-        console.error('Erro no login:', error);
-        return { success: false };
-      }
-
-      if (data.user) {
-        console.log('Login bem-sucedido para:', data.user.email);
-        return { success: true, redirectPath: '/dashboard' };
-      }
-
-      return { success: false };
-    } catch (error) {
-      console.error('Erro inesperado no login:', error);
-      return { success: false };
+    const foundUser = mockUsers.find(u => u.email === email);
+    
+    if (foundUser && password === '123456') {
+      setUser(foundUser);
+      localStorage.setItem('user', JSON.stringify(foundUser));
+      
+      // Define redirect path based on user type
+      const redirectPaths = {
+        inquilino: '/inquilino',
+        imobiliaria: '/imobiliaria',
+        analista: '/analista',
+        juridico: '/juridico',
+        sdr: '/sdr',
+        executivo: '/executivo',
+        financeiro: '/financeiro',
+        admin: '/dashboard'
+      };
+      
+      return { 
+        success: true, 
+        redirectPath: redirectPaths[foundUser.type] 
+      };
     }
+    
+    return { success: false };
   };
 
-  const logout = async () => {
-    console.log('Fazendo logout');
-    await supabase.auth.signOut();
+  const logout = () => {
     setUser(null);
-    setPerfilUsuario(null);
     localStorage.removeItem('user');
   };
 
@@ -182,23 +141,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
-  const updateProfile = (profile: Profile) => {
-    setPerfilUsuario(profile);
-  };
-
   const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      perfil_usuario, 
-      login, 
-      logout, 
-      updateUser, 
-      updateProfile, 
-      isAuthenticated, 
-      isLoadingProfile 
-    }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

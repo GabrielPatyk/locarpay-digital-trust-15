@@ -19,17 +19,17 @@ import {
 import ContractModal from '@/components/ContractModal';
 
 const Dashboard = () => {
-  const { user, perfil_usuario, updateUser, isLoadingProfile } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const [showContractModal, setShowContractModal] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     // Check if user is imobiliaria on first login and hasn't accepted contract
-    if (perfil_usuario?.tipo_usuario === 'imobiliaria' && user?.firstLogin && !user?.contractAccepted) {
+    if (user?.type === 'imobiliaria' && user?.firstLogin && !user?.contractAccepted) {
       setShowContractModal(true);
     }
-  }, [perfil_usuario, user]);
+  }, [user]);
 
   const handleContractAccept = () => {
     if (user) {
@@ -51,11 +51,7 @@ const Dashboard = () => {
   };
 
   const getDashboardRoute = () => {
-    // Use the profile type instead of user type
-    const userType = perfil_usuario?.tipo_usuario || user?.type;
-    console.log('Determinando rota para tipo de usuário:', userType);
-    
-    switch (userType) {
+    switch (user?.type) {
       case 'analista': return '/analista';
       case 'juridico': return '/juridico';
       case 'sdr': return '/sdr';
@@ -74,36 +70,8 @@ const Dashboard = () => {
     if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
     else if (hour >= 18) greeting = 'Boa noite';
     
-    const displayName = perfil_usuario?.nome_completo || user?.name || 'Usuário';
-    return `${greeting}, ${displayName}!`;
+    return `${greeting}, ${user?.name}!`;
   };
-
-  const getUserTypeDisplay = () => {
-    const userType = perfil_usuario?.tipo_usuario || user?.type;
-    const typeMap = {
-      'analista': 'Analista',
-      'juridico': 'Jurídico',
-      'sdr': 'SDR',
-      'executivo': 'Executivo',
-      'imobiliaria': 'Imobiliária',
-      'inquilino': 'Inquilino',
-      'financeiro': 'Financeiro',
-      'admin': 'Administrador'
-    };
-    return typeMap[userType as keyof typeof typeMap] || 'Usuário';
-  };
-
-  // Show loading while profile is being fetched
-  if (isLoadingProfile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando perfil...</p>
-        </div>
-      </div>
-    );
-  }
 
   const getQuickStats = () => {
     // Mock data - in real app this would come from API
@@ -167,16 +135,6 @@ const Dashboard = () => {
               />
             </div>
             <h1 className="text-2xl font-bold mb-2">{getWelcomeMessage()}</h1>
-            <div className="flex items-center space-x-2 mb-4">
-              <Badge variant="outline" className="bg-white/20 text-[#0C1C2E] border-[#0C1C2E]/30">
-                {getUserTypeDisplay()}
-              </Badge>
-              {perfil_usuario && (
-                <Badge variant="outline" className="bg-white/20 text-[#0C1C2E] border-[#0C1C2E]/30">
-                  {user?.email}
-                </Badge>
-              )}
-            </div>
             <p className="opacity-90 mb-4">
               Bem-vindo à plataforma LocarPay. Aqui você tem acesso aos principais indicadores e pode navegar para sua área específica.
             </p>
