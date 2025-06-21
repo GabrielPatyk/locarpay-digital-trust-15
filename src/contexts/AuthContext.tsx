@@ -43,27 +43,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Erro ao buscar perfil:', error);
+        setPerfilUsuario(null);
         return null;
       }
 
       console.log('Perfil encontrado:', profile);
-      setPerfilUsuario(profile);
       
-      // Update user type based on profile
-      if (profile && profile.tipo_usuario) {
-        setUser(prevUser => {
-          if (prevUser) {
-            const updatedUser = { ...prevUser, type: profile.tipo_usuario };
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            return updatedUser;
-          }
-          return prevUser;
-        });
+      if (profile) {
+        setPerfilUsuario(profile);
+        
+        // Update user type based on profile
+        if (profile.tipo_usuario) {
+          setUser(prevUser => {
+            if (prevUser) {
+              const updatedUser = { 
+                ...prevUser, 
+                type: profile.tipo_usuario,
+                fullName: profile.nome_completo || prevUser.email
+              };
+              localStorage.setItem('user', JSON.stringify(updatedUser));
+              console.log('Usuário atualizado com tipo:', profile.tipo_usuario);
+              return updatedUser;
+            }
+            return prevUser;
+          });
+        }
+      } else {
+        console.log('Nenhum perfil encontrado para o usuário');
+        setPerfilUsuario(null);
       }
       
       return profile;
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);
+      setPerfilUsuario(null);
       return null;
     } finally {
       setIsLoadingProfile(false);
@@ -71,33 +84,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Sessão existente:', session);
-      if (session?.user) {
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.email || '',
-          type: 'inquilino', // Default, será atualizado pelo perfil
-          fullName: '',
-          firstLogin: false,
-          contractAccepted: true
-        };
-        
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        
-        // Fetch profile after setting user
-        setTimeout(() => {
-          fetchUserProfile(session.user.id);
-        }, 0);
-      }
-    });
-
-    // Listen for auth state changes
+    // Listen for auth state changes FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session);
+      console.log('Auth state change:', event, session?.user?.email);
       
       if (session?.user) {
         const userData: User = {
@@ -105,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: session.user.email || '',
           name: session.user.email || '',
           type: 'inquilino', // Default, será atualizado pelo perfil
-          fullName: '',
+          fullName: session.user.email || '',
           firstLogin: false,
           contractAccepted: true
         };
@@ -113,15 +102,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         
-        // Fetch profile after auth change
-        setTimeout(() => {
-          fetchUserProfile(session.user.id);
-        }, 0);
+        // Fetch profile after setting user - usando setTimeout para evitar problemas de timing
+        setTimeout(async () => {
+          await fetchUserProfile(session.user.id);
+        }, 100);
       } else {
         console.log('Usuário deslogado');
         setUser(null);
         setPerfilUsuario(null);
         localStorage.removeItem('user');
+      }
+    });
+
+    // Check for existing session AFTER setting up the listener
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Sessão existente:', session?.user?.email);
+      if (session?.user) {
+        const userData: User = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.email || '',
+          type: 'inquilino', // Default, será atualizado pelo perfil
+          fullName: session.user.email || '',
+          firstLogin: false,
+          contractAccepted: true
+        };
+        
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Fetch profile for existing session
+        setTimeout(async () => {
+          await fetchUserProfile(session.user.id);
+        }, 100);
       }
     });
 
