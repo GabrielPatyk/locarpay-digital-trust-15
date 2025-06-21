@@ -35,7 +35,13 @@ export interface UserProfile {
   usuario_id: string;
   nome_empresa?: string;
   cnpj?: string;
-  endereco_completo?: string;
+  endereco?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  pais?: string;
   criado_em: string;
   atualizado_em: string;
 }
