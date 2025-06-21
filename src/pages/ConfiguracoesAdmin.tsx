@@ -9,9 +9,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Copy, RefreshCw, Eye, EyeOff } from 'lucide-react';
 
 const ConfiguracoesAdmin = () => {
   const { toast } = useToast();
+  const [showToken, setShowToken] = useState(false);
+  const [apiToken, setApiToken] = useState('lcp_test_1234567890abcdef1234567890abcdef');
   const [configuracoes, setConfiguracoes] = useState({
     taxaMinima: 8,
     taxaMaxima: 15,
@@ -27,6 +30,23 @@ const ConfiguracoesAdmin = () => {
     toast({
       title: "Configurações salvas!",
       description: "As configurações foram atualizadas com sucesso.",
+    });
+  };
+
+  const gerarNovoToken = () => {
+    const newToken = 'lcp_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    setApiToken(newToken);
+    toast({
+      title: "Token gerado!",
+      description: "Um novo token de acesso foi gerado com sucesso.",
+    });
+  };
+
+  const copiarToken = () => {
+    navigator.clipboard.writeText(apiToken);
+    toast({
+      title: "Token copiado!",
+      description: "O token foi copiado para a área de transferência.",
     });
   };
 
@@ -207,6 +227,122 @@ const ConfiguracoesAdmin = () => {
                       />
                     </div>
                   )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Nova seção de API */}
+            <Card>
+              <CardHeader>
+                <CardTitle>API da Plataforma</CardTitle>
+                <CardDescription>
+                  Documentação e configurações da API LocarPay
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Documentação da API */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold">Documentação da API</h4>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                    <div>
+                      <h5 className="font-medium">Base URL</h5>
+                      <code className="text-sm bg-gray-100 px-2 py-1 rounded">https://api.locarpay.com/v1</code>
+                    </div>
+                    
+                    <div>
+                      <h5 className="font-medium">Autenticação</h5>
+                      <p className="text-sm text-gray-600">
+                        Todas as requisições devem incluir o header: <code>Authorization: Bearer YOUR_TOKEN</code>
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h5 className="font-medium">Endpoints Principais</h5>
+                      <div className="space-y-2 text-sm">
+                        <div><code>GET /users</code> - Listar usuários</div>
+                        <div><code>POST /users</code> - Criar usuário</div>
+                        <div><code>GET /fiancas</code> - Listar fianças</div>
+                        <div><code>POST /fiancas</code> - Criar fiança</div>
+                        <div><code>GET /contratos</code> - Listar contratos</div>
+                        <div><code>POST /contratos</code> - Criar contrato</div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h5 className="font-medium">Exemplo de Requisição</h5>
+                      <pre className="bg-gray-900 text-green-400 p-3 rounded text-xs overflow-x-auto">
+{`curl -X GET "https://api.locarpay.com/v1/users" \\
+  -H "Authorization: Bearer lcp_your_token_here" \\
+  -H "Content-Type: application/json"`}
+                      </pre>
+                    </div>
+                    
+                    <div>
+                      <h5 className="font-medium">Rate Limiting</h5>
+                      <p className="text-sm text-gray-600">
+                        Limite de 1000 requisições por hora por token
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Geração de Token */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold">Token de Acesso</h4>
+                  <div className="space-y-3">
+                    <Label>Token Atual</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type={showToken ? "text" : "password"}
+                        value={apiToken}
+                        readOnly
+                        className="flex-1 font-mono text-sm"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowToken(!showToken)}
+                      >
+                        {showToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={copiarToken}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <Button 
+                      onClick={gerarNovoToken}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Gerar Novo Token
+                    </Button>
+                    
+                    <p className="text-sm text-amber-600">
+                      ⚠️ Ao gerar um novo token, o token anterior será invalidado imediatamente.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Webhooks */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold">Webhooks</h4>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-3">
+                      Configure endpoints para receber notificações automáticas sobre eventos da plataforma.
+                    </p>
+                    <div className="space-y-2 text-sm">
+                      <div>• <code>user.created</code> - Novo usuário criado</div>
+                      <div>• <code>fianca.approved</code> - Fiança aprovada</div>
+                      <div>• <code>contrato.signed</code> - Contrato assinado</div>
+                      <div>• <code>payment.completed</code> - Pagamento realizado</div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

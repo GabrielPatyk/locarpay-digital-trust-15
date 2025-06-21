@@ -68,6 +68,7 @@ import ExecutivosAdmin from "./pages/ExecutivosAdmin";
 import SinistrosAdmin from "./pages/SinistrosAdmin";
 import LeadsAdmin from "./pages/LeadsAdmin";
 import ConfiguracoesAdmin from "./pages/ConfiguracoesAdmin";
+import RelatoriosAdmin from "./pages/RelatoriosAdmin";
 
 const queryClient = new QueryClient();
 
@@ -336,6 +337,12 @@ const AppContent = () => {
           <Route path="/leads-admin" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <LeadsAdmin />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/relatorios-admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <RelatoriosAdmin />
             </ProtectedRoute>
           } />
 
