@@ -6,17 +6,17 @@ import { UserType } from '@/types/user';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedUserTypes?: UserType[];
+  allowedRoles?: UserType[];
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedUserTypes }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
   const { isAuthenticated, user } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedUserTypes && user && !allowedUserTypes.includes(user.type)) {
+  if (allowedRoles && user && !allowedRoles.includes(user.type)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
