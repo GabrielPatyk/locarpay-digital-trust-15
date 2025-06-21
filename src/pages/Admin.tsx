@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,15 +21,17 @@ import {
   UserPlus
 } from 'lucide-react';
 import { UserType } from '@/types/user';
+import { supabase } from '@/integrations/supabase/client';
 
-interface Usuario {
+interface UsuarioDB {
   id: string;
   nome: string;
   email: string;
-  tipo: UserType;
-  status: 'ativo' | 'inativo';
-  ultimoAcesso: string;
-  dataCreacao: string;
+  cargo: UserType;
+  ativo: boolean;
+  telefone: string | null;
+  criado_em: string;
+  atualizado_em: string;
 }
 
 const Admin = () => {
@@ -37,108 +40,177 @@ const Admin = () => {
   const [filterTipo, setFilterTipo] = useState<string>('todos');
   const [filterStatus, setFilterStatus] = useState<string>('todos');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [usuarios, setUsuarios] = useState<UsuarioDB[]>([]);
+  const [loading, setLoading] = useState(true);
   const [novoUsuario, setNovoUsuario] = useState({
     nome: '',
     email: '',
     tipo: 'inquilino' as UserType,
-    senha: ''
+    senha: '',
+    telefone: ''
   });
 
-  // Mock data expandido
-  const usuarios: Usuario[] = [
-    {
-      id: '1',
-      nome: 'Maria Silva',
-      email: 'analista@locarpay.com',
-      tipo: 'analista',
-      status: 'ativo',
-      ultimoAcesso: '2024-01-15T10:30:00',
-      dataCreacao: '2023-06-15'
-    },
-    {
-      id: '2',
-      nome: 'Dr. João Santos',
-      email: 'juridico@locarpay.com',
-      tipo: 'juridico',
-      status: 'ativo',
-      ultimoAcesso: '2024-01-15T09:15:00',
-      dataCreacao: '2023-06-15'
-    },
-    {
-      id: '3',
-      nome: 'Carlos Oliveira',
-      email: 'sdr@locarpay.com',
-      tipo: 'sdr',
-      status: 'ativo',
-      ultimoAcesso: '2024-01-15T11:45:00',
-      dataCreacao: '2023-07-01'
-    },
-    {
-      id: '4',
-      nome: 'Ana Costa',
-      email: 'executivo@locarpay.com',
-      tipo: 'executivo',
-      status: 'ativo',
-      ultimoAcesso: '2024-01-14T16:20:00',
-      dataCreacao: '2023-07-15'
-    },
-    {
-      id: '5',
-      nome: 'Imobiliária Prime',
-      email: 'prime@imobiliarias.com',
-      tipo: 'imobiliaria',
-      status: 'ativo',
-      ultimoAcesso: '2024-01-15T08:30:00',
-      dataCreacao: '2023-08-01'
-    },
-    {
-      id: '6',
-      nome: 'João Silva Santos',
-      email: 'joao@inquilino.com',
-      tipo: 'inquilino',
-      status: 'ativo',
-      ultimoAcesso: '2024-01-15T12:15:00',
-      dataCreacao: '2023-09-15'
-    },
-    {
-      id: '7',
-      nome: 'Lucas Oliveira',
-      email: 'financeiro@locarpay.com',
-      tipo: 'financeiro',
-      status: 'ativo',
-      ultimoAcesso: '2024-01-15T14:20:00',
-      dataCreacao: '2023-10-01'
-    }
-  ];
+  // Buscar usuários do banco de dados
+  const fetchUsuarios = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .order('criado_em', { ascending: false });
 
-  const criarUsuario = () => {
+      if (error) {
+        console.error('Erro ao buscar usuários:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar usuários.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setUsuarios(data || []);
+    } catch (err) {
+      console.error('Erro:', err);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar usuários.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsuarios();
+  }, []);
+
+  const criarUsuario = async () => {
     if (!novoUsuario.nome || !novoUsuario.email || !novoUsuario.senha) {
       toast({
         title: "Erro",
-        description: "Todos os campos são obrigatórios.",
+        description: "Nome, e-mail e senha são obrigatórios.",
         variant: "destructive"
       });
       return;
     }
 
-    toast({
-      title: "Usuário criado!",
-      description: `Usuário ${novoUsuario.nome} criado com sucesso.`,
-    });
-    
-    setIsCreateModalOpen(false);
-    setNovoUsuario({ nome: '', email: '', tipo: 'inquilino', senha: '' });
+    try {
+      const { data, error } = await supabase
+        .from('usuarios')
+        .insert([
+          {
+            nome: novoUsuario.nome,
+            email: novoUsuario.email,
+            senha: novoUsuario.senha,
+            cargo: novoUsuario.tipo,
+            telefone: novoUsuario.telefone || null,
+            ativo: true
+          }
+        ])
+        .select();
+
+      if (error) {
+        console.error('Erro ao criar usuário:', error);
+        toast({
+          title: "Erro",
+          description: error.message.includes('duplicate') 
+            ? "Este e-mail já está em uso."
+            : "Erro ao criar usuário.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Usuário criado!",
+        description: `Usuário ${novoUsuario.nome} criado com sucesso.`,
+      });
+      
+      setIsCreateModalOpen(false);
+      setNovoUsuario({ nome: '', email: '', tipo: 'inquilino', senha: '', telefone: '' });
+      fetchUsuarios(); // Recarregar lista
+    } catch (err) {
+      console.error('Erro:', err);
+      toast({
+        title: "Erro",
+        description: "Erro ao criar usuário.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const alterarStatusUsuario = (usuarioId: string, novoStatus: 'ativo' | 'inativo') => {
-    toast({
-      title: "Status alterado!",
-      description: `Usuário ${novoStatus === 'ativo' ? 'ativado' : 'desativado'} com sucesso.`,
-    });
+  const alterarStatusUsuario = async (usuarioId: string, novoStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('usuarios')
+        .update({ ativo: novoStatus })
+        .eq('id', usuarioId);
+
+      if (error) {
+        console.error('Erro ao alterar status:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao alterar status do usuário.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Status alterado!",
+        description: `Usuário ${novoStatus ? 'ativado' : 'desativado'} com sucesso.`,
+      });
+      
+      fetchUsuarios(); // Recarregar lista
+    } catch (err) {
+      console.error('Erro:', err);
+      toast({
+        title: "Erro",
+        description: "Erro ao alterar status do usuário.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const getStatusColor = (status: string) => {
-    return status === 'ativo' ? 'bg-green-500' : 'bg-red-500';
+  const excluirUsuario = async (usuarioId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('usuarios')
+        .delete()
+        .eq('id', usuarioId);
+
+      if (error) {
+        console.error('Erro ao excluir usuário:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao excluir usuário.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Usuário excluído!",
+        description: "Usuário excluído com sucesso.",
+      });
+      
+      fetchUsuarios(); // Recarregar lista
+    } catch (err) {
+      console.error('Erro:', err);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir usuário.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getStatusColor = (ativo: boolean) => {
+    return ativo ? 'bg-green-500' : 'bg-red-500';
   };
 
   const getTipoLabel = (tipo: UserType) => {
@@ -174,25 +246,29 @@ const Admin = () => {
   const filteredUsuarios = usuarios.filter(u => {
     const matchesSearch = u.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          u.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTipo = filterTipo === 'todos' || u.tipo === filterTipo;
-    const matchesStatus = filterStatus === 'todos' || u.status === filterStatus;
+    const matchesTipo = filterTipo === 'todos' || u.cargo === filterTipo;
+    const matchesStatus = filterStatus === 'todos' || 
+                         (filterStatus === 'ativo' && u.ativo) ||
+                         (filterStatus === 'inativo' && !u.ativo);
     
     return matchesSearch && matchesTipo && matchesStatus;
   });
 
+  // Estatísticas calculadas dos dados reais
   const stats = {
     totalUsuarios: usuarios.length,
-    usuariosAtivos: usuarios.filter(u => u.status === 'ativo').length,
-    usuariosInativos: usuarios.filter(u => u.status === 'inativo').length,
+    usuariosAtivos: usuarios.filter(u => u.ativo).length,
+    usuariosInativos: usuarios.filter(u => !u.ativo).length,
     porTipo: {
-      analista: usuarios.filter(u => u.tipo === 'analista').length,
-      juridico: usuarios.filter(u => u.tipo === 'juridico').length,
-      sdr: usuarios.filter(u => u.tipo === 'sdr').length,
-      executivo: usuarios.filter(u => u.tipo === 'executivo').length,
-      imobiliaria: usuarios.filter(u => u.tipo === 'imobiliaria').length,
-      inquilino: usuarios.filter(u => u.tipo === 'inquilino').length,
-      financeiro: usuarios.filter(u => u.tipo === 'financeiro').length,
-      corretor: usuarios.filter(u => u.tipo === 'corretor').length,
+      analista: usuarios.filter(u => u.cargo === 'analista').length,
+      juridico: usuarios.filter(u => u.cargo === 'juridico').length,
+      sdr: usuarios.filter(u => u.cargo === 'sdr').length,
+      executivo: usuarios.filter(u => u.cargo === 'executivo').length,
+      imobiliaria: usuarios.filter(u => u.cargo === 'imobiliaria').length,
+      inquilino: usuarios.filter(u => u.cargo === 'inquilino').length,
+      financeiro: usuarios.filter(u => u.cargo === 'financeiro').length,
+      corretor: usuarios.filter(u => u.cargo === 'corretor').length,
+      admin: usuarios.filter(u => u.cargo === 'admin').length,
     }
   };
 
@@ -206,23 +282,26 @@ const Admin = () => {
     { name: 'Inquilinos', value: stats.porTipo.inquilino, color: '#6b7280' },
     { name: 'Financeiro', value: stats.porTipo.financeiro, color: '#14b8a6' },
     { name: 'Corretores', value: stats.porTipo.corretor, color: '#6366f1' },
-  ];
-
-  const crescimentoUsuarios = [
-    { mes: 'Jun', usuarios: 12 },
-    { mes: 'Jul', usuarios: 19 },
-    { mes: 'Ago', usuarios: 24 },
-    { mes: 'Set', usuarios: 31 },
-    { mes: 'Out', usuarios: 38 },
-    { mes: 'Nov', usuarios: 45 },
-    { mes: 'Dez', usuarios: 52 },
-    { mes: 'Jan', usuarios: 67 },
-  ];
+    { name: 'Admins', value: stats.porTipo.admin, color: '#ef4444' },
+  ].filter(item => item.value > 0);
 
   const statusData = [
     { name: 'Ativos', value: stats.usuariosAtivos, color: '#10b981' },
     { name: 'Inativos', value: stats.usuariosInativos, color: '#ef4444' },
   ];
+
+  if (loading) {
+    return (
+      <Layout title="Gestão de Usuários">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-gray-600">Carregando usuários...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="Gestão de Usuários">
@@ -279,7 +358,7 @@ const Admin = () => {
         </div>
 
         {/* Gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
           <Card className="min-w-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm lg:text-base">Distribuição por Tipo</CardTitle>
@@ -321,25 +400,6 @@ const Admin = () => {
                     <Tooltip />
                     <Bar dataKey="value" fill="#8884d8" />
                   </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="min-w-0">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm lg:text-base">Crescimento Mensal</CardTitle>
-            </CardHeader>
-            <CardContent className="p-2 lg:p-4">
-              <div className="w-full h-48 lg:h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={crescimentoUsuarios}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="usuarios" stroke="#8884d8" strokeWidth={2} />
-                  </LineChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
@@ -400,6 +460,17 @@ const Admin = () => {
                     </div>
                     
                     <div className="grid gap-2">
+                      <Label htmlFor="telefone" className="text-sm">Telefone (opcional)</Label>
+                      <Input
+                        id="telefone"
+                        value={novoUsuario.telefone}
+                        onChange={(e) => setNovoUsuario(prev => ({ ...prev, telefone: e.target.value }))}
+                        placeholder="Digite o telefone"
+                        className="text-sm"
+                      />
+                    </div>
+                    
+                    <div className="grid gap-2">
                       <Label htmlFor="tipo" className="text-sm">Tipo de Usuário</Label>
                       <Select 
                         value={novoUsuario.tipo} 
@@ -416,18 +487,20 @@ const Admin = () => {
                           <SelectItem value="imobiliaria">Imobiliária</SelectItem>
                           <SelectItem value="inquilino">Inquilino</SelectItem>
                           <SelectItem value="financeiro">Departamento Financeiro</SelectItem>
+                          <SelectItem value="corretor">Corretor</SelectItem>
+                          <SelectItem value="admin">Administrador</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     
                     <div className="grid gap-2">
-                      <Label htmlFor="senha" className="text-sm">Senha Temporária</Label>
+                      <Label htmlFor="senha" className="text-sm">Senha</Label>
                       <Input
                         id="senha"
                         type="password"
                         value={novoUsuario.senha}
                         onChange={(e) => setNovoUsuario(prev => ({ ...prev, senha: e.target.value }))}
-                        placeholder="Digite uma senha temporária"
+                        placeholder="Digite uma senha"
                         className="text-sm"
                       />
                     </div>
@@ -472,6 +545,8 @@ const Admin = () => {
                     <SelectItem value="imobiliaria">Imobiliária</SelectItem>
                     <SelectItem value="inquilino">Inquilino</SelectItem>
                     <SelectItem value="financeiro">Financeiro</SelectItem>
+                    <SelectItem value="corretor">Corretor</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
                 
@@ -501,29 +576,32 @@ const Admin = () => {
                       <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3 mb-2">
                         <h4 className="font-medium text-gray-900 text-sm lg:text-base truncate">{usuario.nome}</h4>
                         <div className="flex flex-wrap gap-2">
-                          <Badge className={`${getTipoColor(usuario.tipo)} text-white text-xs`}>
-                            {getTipoLabel(usuario.tipo)}
+                          <Badge className={`${getTipoColor(usuario.cargo)} text-white text-xs`}>
+                            {getTipoLabel(usuario.cargo)}
                           </Badge>
-                          <Badge className={`${getStatusColor(usuario.status)} text-white text-xs`}>
-                            {usuario.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                          <Badge className={`${getStatusColor(usuario.ativo)} text-white text-xs`}>
+                            {usuario.ativo ? 'Ativo' : 'Inativo'}
                           </Badge>
                         </div>
                       </div>
                       <p className="text-xs lg:text-sm text-gray-600 truncate">{usuario.email}</p>
+                      {usuario.telefone && (
+                        <p className="text-xs text-gray-500">{usuario.telefone}</p>
+                      )}
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 mb-3">
                     <div className="min-w-0">
-                      <p className="text-xs text-gray-500">Último Acesso</p>
-                      <p className="text-xs lg:text-sm font-medium truncate">
-                        {new Date(usuario.ultimoAcesso).toLocaleString()}
+                      <p className="text-xs text-gray-500">Data de Criação</p>
+                      <p className="text-xs lg:text-sm font-medium">
+                        {new Date(usuario.criado_em).toLocaleDateString('pt-BR')}
                       </p>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs text-gray-500">Data de Criação</p>
+                      <p className="text-xs text-gray-500">Última Atualização</p>
                       <p className="text-xs lg:text-sm font-medium">
-                        {new Date(usuario.dataCreacao).toLocaleDateString()}
+                        {new Date(usuario.atualizado_em).toLocaleDateString('pt-BR')}
                       </p>
                     </div>
                   </div>
@@ -540,15 +618,17 @@ const Admin = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => alterarStatusUsuario(
-                        usuario.id, 
-                        usuario.status === 'ativo' ? 'inativo' : 'ativo'
-                      )}
+                      onClick={() => alterarStatusUsuario(usuario.id, !usuario.ativo)}
                       className="text-xs"
                     >
-                      {usuario.status === 'ativo' ? 'Desativar' : 'Ativar'}
+                      {usuario.ativo ? 'Desativar' : 'Ativar'}
                     </Button>
-                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 text-xs">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => excluirUsuario(usuario.id)}
+                      className="text-red-600 hover:text-red-700 text-xs"
+                    >
                       <Trash2 className="mr-1 h-3 w-3" />
                       Excluir
                     </Button>
@@ -556,7 +636,7 @@ const Admin = () => {
                 </div>
               ))}
               
-              {filteredUsuarios.length === 0 && (
+              {filteredUsuarios.length === 0 && !loading && (
                 <div className="text-center py-8">
                   <Users className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum usuário encontrado</h3>
