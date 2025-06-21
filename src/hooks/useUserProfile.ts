@@ -59,26 +59,9 @@ export const useUserProfile = () => {
     try {
       setLoading(true);
 
-      // Filtrar apenas campos que não estão vazios
-      const filteredUpdates: any = {};
-      Object.keys(updates).forEach(key => {
-        const value = updates[key as keyof UserProfile];
-        if (value !== undefined && value !== null && value !== '') {
-          filteredUpdates[key] = value;
-        }
-      });
-
-      if (Object.keys(filteredUpdates).length === 0) {
-        toast({
-          title: "Nenhuma alteração",
-          description: "Não há dados para atualizar.",
-        });
-        return false;
-      }
-
       const { data, error } = await supabase
         .from('perfil_usuario')
-        .update(filteredUpdates)
+        .update(updates)
         .eq('usuario_id', user.id)
         .select()
         .single();
@@ -113,26 +96,9 @@ export const useUserProfile = () => {
     try {
       setLoading(true);
 
-      // Filtrar apenas campos que não estão vazios
-      const filteredUpdates: any = {};
-      Object.keys(updates).forEach(key => {
-        const value = updates[key as keyof typeof updates];
-        if (value !== undefined && value !== null && value !== '') {
-          filteredUpdates[key] = value;
-        }
-      });
-
-      if (Object.keys(filteredUpdates).length === 0) {
-        toast({
-          title: "Nenhuma alteração",
-          description: "Não há dados para atualizar.",
-        });
-        return false;
-      }
-
       const { error } = await supabase
         .from('usuarios')
-        .update(filteredUpdates)
+        .update(updates)
         .eq('id', user.id);
 
       if (error) {

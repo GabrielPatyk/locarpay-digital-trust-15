@@ -2,13 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import Layout from '@/components/Layout';
 import ImageUpload from '@/components/ImageUpload';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -27,25 +27,16 @@ const ConfiguracoesImobiliaria = () => {
   const { toast } = useToast();
   
   const [showPassword, setShowPassword] = useState(false);
-  
-  // Usar o hook de formatação de telefone
-  const phoneFormatter = usePhoneFormatter(user?.telefone || '');
-  
   const [formData, setFormData] = useState({
     // Dados da empresa (perfil_usuario)
     nome_empresa: '',
     cnpj: '',
-    endereco: '',
-    numero: '',
-    complemento: '',
-    bairro: '',
-    cidade: '',
-    estado: '',
-    pais: 'Brasil',
+    endereco_completo: '',
     
     // Dados pessoais (usuarios)
     nome: user?.name || '',
     email: user?.email || '',
+    telefone: user?.telefone || '',
     imagem_perfil: user?.imagem_perfil || '',
     
     // Segurança
@@ -66,13 +57,7 @@ const ConfiguracoesImobiliaria = () => {
         ...prev,
         nome_empresa: profile.nome_empresa || '',
         cnpj: profile.cnpj || '',
-        endereco: profile.endereco || '',
-        numero: profile.numero || '',
-        complemento: profile.complemento || '',
-        bairro: profile.bairro || '',
-        cidade: profile.cidade || '',
-        estado: profile.estado || '',
-        pais: profile.pais || 'Brasil'
+        endereco_completo: profile.endereco_completo || ''
       }));
     }
   }, [profile]);
@@ -83,12 +68,9 @@ const ConfiguracoesImobiliaria = () => {
         ...prev,
         nome: user.name || '',
         email: user.email || '',
+        telefone: user.telefone || '',
         imagem_perfil: user.imagem_perfil || ''
       }));
-      
-      if (user.telefone) {
-        phoneFormatter.setFormattedValue(phoneFormatter.formatPhone(user.telefone));
-      }
     }
   }, [user]);
 
@@ -100,29 +82,10 @@ const ConfiguracoesImobiliaria = () => {
   };
 
   const handleSaveCompanyData = async () => {
-    // Validar campos obrigatórios
-    const requiredFields = ['nome_empresa', 'cnpj', 'endereco', 'numero', 'bairro', 'cidade', 'estado'];
-    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
-    
-    if (missingFields.length > 0) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Todos os campos da empresa são obrigatórios para imobiliárias.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const success = await updateProfile({
       nome_empresa: formData.nome_empresa,
       cnpj: formData.cnpj,
-      endereco: formData.endereco,
-      numero: formData.numero,
-      complemento: formData.complemento,
-      bairro: formData.bairro,
-      cidade: formData.cidade,
-      estado: formData.estado,
-      pais: formData.pais
+      endereco_completo: formData.endereco_completo
     });
 
     if (success) {
@@ -134,28 +97,19 @@ const ConfiguracoesImobiliaria = () => {
   };
 
   const handleSavePersonalData = async () => {
-    // Validar telefone
-    if (!phoneFormatter.isValid()) {
-      toast({
-        title: "Telefone inválido",
-        description: "O telefone deve ter 13 dígitos e começar com 55.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const success = await updateUserData({
       nome: formData.nome,
       email: formData.email,
-      telefone: phoneFormatter.getUnformattedValue()
+      telefone: formData.telefone
     });
 
     if (success && user) {
+      // Atualizar o contexto do usuário
       updateUser({
         ...user,
         name: formData.nome,
         email: formData.email,
-        telefone: phoneFormatter.getUnformattedValue()
+        telefone: formData.telefone
       });
     }
   };
@@ -192,7 +146,16 @@ const ConfiguracoesImobiliaria = () => {
   };
 
   const handleImageChange = async (imageUrl: string) => {
+    // Aqui você atualizaria a imagem no banco de dados
+    // Por enquanto, apenas atualiza o estado local
     setFormData(prev => ({ ...prev, imagem_perfil: imageUrl }));
+    
+    if (user) {
+      updateUser({
+        ...user,
+        imagem_perfil: imageUrl
+      });
+    }
   };
 
   const handleSaveNotifications = () => {
@@ -233,108 +196,40 @@ const ConfiguracoesImobiliaria = () => {
               Dados da Empresa
             </CardTitle>
             <CardDescription>
-              Informações básicas da sua imobiliária (Todos os campos são obrigatórios)
+              Informações básicas da sua imobiliária
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="nome_empresa">Nome da Empresa/Imobiliária *</Label>
+                <Label htmlFor="nome_empresa">Nome da Empresa/Imobiliária</Label>
                 <Input
                   id="nome_empresa"
                   value={formData.nome_empresa}
                   onChange={(e) => handleInputChange('nome_empresa', e.target.value)}
                   placeholder="Nome da sua imobiliária"
-                  required
                 />
               </div>
               <div>
-                <Label htmlFor="cnpj">CNPJ *</Label>
+                <Label htmlFor="cnpj">CNPJ</Label>
                 <Input
                   id="cnpj"
                   value={formData.cnpj}
                   onChange={(e) => handleInputChange('cnpj', e.target.value)}
                   placeholder="00.000.000/0000-00"
-                  required
                 />
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2">
-                <Label htmlFor="endereco">Endereço *</Label>
-                <Input
-                  id="endereco"
-                  value={formData.endereco}
-                  onChange={(e) => handleInputChange('endereco', e.target.value)}
-                  placeholder="Rua, Avenida, etc."
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="numero">Número *</Label>
-                <Input
-                  id="numero"
-                  value={formData.numero}
-                  onChange={(e) => handleInputChange('numero', e.target.value)}
-                  placeholder="123"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="complemento">Complemento</Label>
-                <Input
-                  id="complemento"
-                  value={formData.complemento}
-                  onChange={(e) => handleInputChange('complemento', e.target.value)}
-                  placeholder="Sala, Andar, etc."
-                />
-              </div>
-              <div>
-                <Label htmlFor="bairro">Bairro *</Label>
-                <Input
-                  id="bairro"
-                  value={formData.bairro}
-                  onChange={(e) => handleInputChange('bairro', e.target.value)}
-                  placeholder="Nome do bairro"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="cidade">Cidade *</Label>
-                <Input
-                  id="cidade"
-                  value={formData.cidade}
-                  onChange={(e) => handleInputChange('cidade', e.target.value)}
-                  placeholder="Nome da cidade"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="estado">Estado *</Label>
-                <Input
-                  id="estado"
-                  value={formData.estado}
-                  onChange={(e) => handleInputChange('estado', e.target.value)}
-                  placeholder="Ex: São Paulo"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="pais">País</Label>
-                <Input
-                  id="pais"
-                  value={formData.pais}
-                  disabled
-                  className="bg-gray-100"
-                />
-              </div>
+            <div>
+              <Label htmlFor="endereco_completo">Endereço Completo</Label>
+              <Textarea
+                id="endereco_completo"
+                value={formData.endereco_completo}
+                onChange={(e) => handleInputChange('endereco_completo', e.target.value)}
+                placeholder="Endereço completo da empresa"
+                rows={3}
+              />
             </div>
             
             <Button 
@@ -383,19 +278,13 @@ const ConfiguracoesImobiliaria = () => {
             </div>
             
             <div>
-              <Label htmlFor="telefone">Telefone (13 dígitos, iniciando com 55)</Label>
+              <Label htmlFor="telefone">Telefone</Label>
               <Input
                 id="telefone"
-                value={phoneFormatter.formattedValue}
-                onChange={(e) => phoneFormatter.handleChange(e.target.value)}
-                placeholder="+55 (11) 9 9999-9999"
-                className={!phoneFormatter.isValid() && phoneFormatter.formattedValue !== '+' ? 'border-red-500' : ''}
+                value={formData.telefone}
+                onChange={(e) => handleInputChange('telefone', e.target.value)}
+                placeholder="(11) 99999-9999"
               />
-              {!phoneFormatter.isValid() && phoneFormatter.formattedValue !== '+' && (
-                <p className="text-red-500 text-sm mt-1">
-                  Telefone deve ter 13 dígitos e começar com 55
-                </p>
-              )}
             </div>
             
             <Button 
