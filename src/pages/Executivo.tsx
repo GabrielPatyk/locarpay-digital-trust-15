@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
@@ -188,72 +189,71 @@ const Executivo = () => {
 
   return (
     <Layout title="Executivo de Contas">
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
         {/* Golden Banner */}
-        <div className="bg-gradient-to-r from-[#F4D573] via-[#E6C46E] to-[#BC942C] rounded-lg p-6 shadow-lg relative overflow-hidden">
+        <div className="bg-gradient-to-r from-[#F4D573] via-[#E6C46E] to-[#BC942C] rounded-lg p-4 sm:p-6 shadow-lg relative overflow-hidden">
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#FFD700]/20 via-transparent to-[#B8860B]/20"></div>
             <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-tl from-[#DAA520]/20 via-transparent to-[#CD853F]/20"></div>
           </div>
           <div className="relative">
-            <h1 className="text-2xl md:text-3xl font-bold text-[#0C1C2E] mb-2">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#0C1C2E] mb-2">
               Olá, {user?.name}! 👋
             </h1>
-            <p className="text-[#0C1C2E]/80 text-lg">
+            <p className="text-[#0C1C2E]/80 text-sm sm:text-lg">
               Bem-vindo ao seu painel executivo. Gerencie suas imobiliárias e negociações.
             </p>
           </div>
         </div>
 
         {/* Header Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Header Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Imobiliárias</p>
-                  <p className="text-2xl font-bold text-primary">{totalImobiliarias}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Imobiliárias</p>
+                  <p className="text-lg sm:text-2xl font-bold text-primary">{totalImobiliarias}</p>
                 </div>
-                <Building className="h-8 w-8 text-primary" />
+                <Building className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Ativas</p>
-                  <p className="text-2xl font-bold text-success">{imobiliariasAtivas}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Ativas</p>
+                  <p className="text-lg sm:text-2xl font-bold text-success">{imobiliariasAtivas}</p>
                 </div>
-                <Users className="h-8 w-8 text-success" />
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Fianças</p>
-                  <p className="text-2xl font-bold text-warning">{totalFiancas}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Fianças</p>
+                  <p className="text-lg sm:text-2xl font-bold text-warning">{totalFiancas}</p>
                 </div>
-                <FileText className="h-8 w-8 text-warning" />
+                <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-warning" />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Valor Total</p>
-                  <p className="text-2xl font-bold text-success">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Valor Total</p>
+                  <p className="text-lg sm:text-2xl font-bold text-success">
                     R$ {(valorTotalFiancas / 1000).toFixed(0)}K
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-success" />
+                <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
               </div>
             </CardContent>
           </Card>
@@ -261,74 +261,77 @@ const Executivo = () => {
 
         {/* Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="imobiliarias">Imobiliárias</TabsTrigger>
-            <TabsTrigger value="negociacoes">CRM</TabsTrigger>
-            <TabsTrigger value="fiancas">Fianças</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsTrigger value="imobiliarias" className="text-xs sm:text-sm">Imobiliárias</TabsTrigger>
+            <TabsTrigger value="negociacoes" className="text-xs sm:text-sm">CRM</TabsTrigger>
+            <TabsTrigger value="fiancas" className="text-xs sm:text-sm">Fianças</TabsTrigger>
           </TabsList>
 
           <TabsContent value="imobiliarias" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Building className="mr-2 h-5 w-5" />
+                <CardTitle className="flex items-center text-lg sm:text-xl">
+                  <Building className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                   Minhas Imobiliárias
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Imobiliárias associadas ao seu portfólio
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {imobiliarias.map((imobiliaria) => (
                     <div
                       key={imobiliaria.id}
-                      className="p-4 rounded-lg border hover:shadow-md transition-shadow"
+                      className="p-3 sm:p-4 rounded-lg border hover:shadow-md transition-shadow"
                     >
-                      <div className="flex justify-between items-start mb-3">
+                      <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2 sm:gap-0">
                         <div>
-                          <h4 className="font-medium text-gray-900">{imobiliaria.nome}</h4>
-                          <p className="text-sm text-gray-600">Contato: {imobiliaria.contato}</p>
-                          <p className="text-sm text-gray-600">{imobiliaria.endereco}</p>
+                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">{imobiliaria.nome}</h4>
+                          <p className="text-xs sm:text-sm text-gray-600">Contato: {imobiliaria.contato}</p>
+                          <p className="text-xs sm:text-sm text-gray-600">{imobiliaria.endereco}</p>
                         </div>
-                        <Badge className={`${getStatusColor(imobiliaria.status)} text-white`}>
+                        <Badge className={`${getStatusColor(imobiliaria.status)} text-white text-xs`}>
                           {getStatusText(imobiliaria.status, 'imobiliaria')}
                         </Badge>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-3">
                         <div>
-                          <p className="text-sm text-gray-500">E-mail</p>
-                          <p className="text-sm font-medium">{imobiliaria.email}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">E-mail</p>
+                          <p className="text-xs sm:text-sm font-medium truncate">{imobiliaria.email}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500">Telefone</p>
-                          <p className="text-sm font-medium">{imobiliaria.telefone}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">Telefone</p>
+                          <p className="text-xs sm:text-sm font-medium">{imobiliaria.telefone}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500">Total Fianças</p>
-                          <p className="text-sm font-medium">{imobiliaria.totalFiancas}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">Total Fianças</p>
+                          <p className="text-xs sm:text-sm font-medium">{imobiliaria.totalFiancas}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500">Valor Total</p>
-                          <p className="text-sm font-medium text-success">
+                          <p className="text-xs sm:text-sm text-gray-500">Valor Total</p>
+                          <p className="text-xs sm:text-sm font-medium text-success">
                             R$ {imobiliaria.valorTotal.toLocaleString()}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="mr-2 h-4 w-4" />
-                          Ver Detalhes
+                      <div className="flex flex-wrap gap-2">
+                        <Button variant="outline" size="sm" className="text-xs">
+                          <Eye className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">Ver Detalhes</span>
+                          <span className="sm:hidden">Detalhes</span>
                         </Button>
-                        <Button variant="outline" size="sm">
-                          <Phone className="mr-2 h-4 w-4" />
-                          Ligar
+                        <Button variant="outline" size="sm" className="text-xs">
+                          <Phone className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">Ligar</span>
+                          <span className="sm:hidden">Ligar</span>
                         </Button>
-                        <Button variant="outline" size="sm">
-                          <Mail className="mr-2 h-4 w-4" />
-                          E-mail
+                        <Button variant="outline" size="sm" className="text-xs">
+                          <Mail className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">E-mail</span>
+                          <span className="sm:hidden">Email</span>
                         </Button>
                       </div>
                     </div>
@@ -341,65 +344,67 @@ const Executivo = () => {
           <TabsContent value="negociacoes" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <TrendingUp className="mr-2 h-5 w-5" />
+                <CardTitle className="flex items-center text-lg sm:text-xl">
+                  <TrendingUp className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                   CRM - Negociações
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Acompanhe suas negociações em andamento
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {negociacoes.map((negociacao) => (
                     <div
                       key={negociacao.id}
-                      className="p-4 rounded-lg border hover:shadow-md transition-shadow"
+                      className="p-3 sm:p-4 rounded-lg border hover:shadow-md transition-shadow"
                     >
-                      <div className="flex justify-between items-start mb-3">
+                      <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2 sm:gap-0">
                         <div>
-                          <h4 className="font-medium text-gray-900">{negociacao.imobiliaria}</h4>
-                          <p className="text-sm text-gray-600">Cliente: {negociacao.cliente}</p>
+                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">{negociacao.imobiliaria}</h4>
+                          <p className="text-xs sm:text-sm text-gray-600">Cliente: {negociacao.cliente}</p>
                         </div>
-                        <Badge className={`${getStatusColor(negociacao.status)} text-white`}>
+                        <Badge className={`${getStatusColor(negociacao.status)} text-white text-xs`}>
                           {getStatusText(negociacao.status, 'negociacao')}
                         </Badge>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-3">
                         <div>
-                          <p className="text-sm text-gray-500">Valor da Negociação</p>
-                          <p className="text-lg font-bold text-primary">
+                          <p className="text-xs sm:text-sm text-gray-500">Valor da Negociação</p>
+                          <p className="text-base sm:text-lg font-bold text-primary">
                             R$ {negociacao.valor.toLocaleString()}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500">Data de Início</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-xs sm:text-sm text-gray-500">Data de Início</p>
+                          <p className="text-xs sm:text-sm font-medium">
                             {new Date(negociacao.dataInicio).toLocaleDateString()}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500">Próxima Atividade</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-xs sm:text-sm text-gray-500">Próxima Atividade</p>
+                          <p className="text-xs sm:text-sm font-medium">
                             {new Date(negociacao.proximaAtividade).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
 
                       <div className="mb-3">
-                        <p className="text-sm text-gray-500">Observações</p>
-                        <p className="text-sm text-gray-900">{negociacao.observacoes}</p>
+                        <p className="text-xs sm:text-sm text-gray-500">Observações</p>
+                        <p className="text-xs sm:text-sm text-gray-900">{negociacao.observacoes}</p>
                       </div>
 
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="mr-2 h-4 w-4" />
-                          Ver Detalhes
+                      <div className="flex flex-wrap gap-2">
+                        <Button variant="outline" size="sm" className="text-xs">
+                          <Eye className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">Ver Detalhes</span>
+                          <span className="sm:hidden">Detalhes</span>
                         </Button>
-                        <Button variant="outline" size="sm">
-                          <Calendar className="mr-2 h-4 w-4" />
-                          Agendar
+                        <Button variant="outline" size="sm" className="text-xs">
+                          <Calendar className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">Agendar</span>
+                          <span className="sm:hidden">Agendar</span>
                         </Button>
                       </div>
                     </div>
@@ -412,53 +417,54 @@ const Executivo = () => {
           <TabsContent value="fiancas" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileText className="mr-2 h-5 w-5" />
+                <CardTitle className="flex items-center text-lg sm:text-xl">
+                  <FileText className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                   Histórico de Fianças
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Fianças processadas pelas suas imobiliárias
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {fiancas.map((fianca) => (
                     <div
                       key={fianca.id}
-                      className="p-4 rounded-lg border hover:shadow-md transition-shadow"
+                      className="p-3 sm:p-4 rounded-lg border hover:shadow-md transition-shadow"
                     >
-                      <div className="flex justify-between items-start mb-3">
+                      <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2 sm:gap-0">
                         <div>
-                          <h4 className="font-medium text-gray-900">{fianca.inquilino}</h4>
-                          <p className="text-sm text-gray-600">{fianca.imobiliaria}</p>
+                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">{fianca.inquilino}</h4>
+                          <p className="text-xs sm:text-sm text-gray-600">{fianca.imobiliaria}</p>
                         </div>
-                        <Badge className={`${getStatusColor(fianca.status)} text-white`}>
+                        <Badge className={`${getStatusColor(fianca.status)} text-white text-xs`}>
                           {getStatusText(fianca.status, 'fianca')}
                         </Badge>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-3">
                         <div>
-                          <p className="text-sm text-gray-500">Valor do Aluguel</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-xs sm:text-sm text-gray-500">Valor do Aluguel</p>
+                          <p className="text-xs sm:text-sm font-medium">
                             R$ {fianca.valor.toLocaleString()}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500">Taxa</p>
-                          <p className="text-sm font-medium">{fianca.taxa}%</p>
+                          <p className="text-xs sm:text-sm text-gray-500">Taxa</p>
+                          <p className="text-xs sm:text-sm font-medium">{fianca.taxa}%</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500">Data de Início</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-xs sm:text-sm text-gray-500">Data de Início</p>
+                          <p className="text-xs sm:text-sm font-medium">
                             {new Date(fianca.dataInicio).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
 
-                      <Button variant="outline" size="sm">
-                        <Eye className="mr-2 h-4 w-4" />
-                        Ver Contrato
+                      <Button variant="outline" size="sm" className="text-xs">
+                        <Eye className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">Ver Contrato</span>
+                        <span className="sm:hidden">Contrato</span>
                       </Button>
                     </div>
                   ))}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -175,35 +174,35 @@ const PropostasExecutivo = () => {
 
   return (
     <Layout title="Propostas Comerciais">
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
         {/* Golden Banner */}
-        <div className="bg-gradient-to-r from-[#F4D573] via-[#E6C46E] to-[#BC942C] rounded-lg p-6 shadow-lg">
-          <div className="flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#F4D573] via-[#E6C46E] to-[#BC942C] rounded-lg p-4 sm:p-6 shadow-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
             <div className="flex items-center space-x-3">
-              <FileText className="h-8 w-8 text-[#0C1C2E]" />
+              <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-[#0C1C2E]" />
               <div>
-                <h1 className="text-2xl font-bold text-[#0C1C2E]">Propostas Comerciais</h1>
-                <p className="text-[#0C1C2E]/80">Gerencie todas as suas propostas e negociações</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-[#0C1C2E]">Propostas Comerciais</h1>
+                <p className="text-[#0C1C2E]/80 text-sm">Gerencie todas as suas propostas e negociações</p>
               </div>
             </div>
             <Dialog open={showNewForm} onOpenChange={setShowNewForm}>
               <DialogTrigger asChild>
-                <Button className="bg-[#0C1C2E] hover:bg-[#1A2F45] text-white">
+                <Button className="bg-[#0C1C2E] hover:bg-[#1A2F45] text-white text-sm w-full sm:w-auto">
                   <Plus className="mr-2 h-4 w-4" />
                   Nova Proposta
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
                 <DialogHeader>
-                  <DialogTitle>Criar Nova Proposta</DialogTitle>
-                  <DialogDescription>
+                  <DialogTitle className="text-lg sm:text-xl">Criar Nova Proposta</DialogTitle>
+                  <DialogDescription className="text-sm">
                     Preencha os dados da nova proposta comercial
                   </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <Label htmlFor="imobiliaria">Imobiliária*</Label>
+                      <Label htmlFor="imobiliaria" className="text-sm">Imobiliária*</Label>
                       <Select value={formData.imobiliaria} onValueChange={(value) => handleInputChange('imobiliaria', value)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione a imobiliária" />
@@ -216,18 +215,19 @@ const PropostasExecutivo = () => {
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="cliente">Cliente*</Label>
+                      <Label htmlFor="cliente" className="text-sm">Cliente*</Label>
                       <Input
                         id="cliente"
                         value={formData.cliente}
                         onChange={(e) => handleInputChange('cliente', e.target.value)}
                         placeholder="Nome do cliente"
+                        className="text-sm"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <Label htmlFor="tipo">Tipo de Proposta*</Label>
                       <Select value={formData.tipo} onValueChange={(value) => handleInputChange('tipo', value)}>
@@ -254,7 +254,7 @@ const PropostasExecutivo = () => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <Label htmlFor="valor">Valor Total da Proposta (R$)*</Label>
                       <Input
@@ -299,18 +299,18 @@ const PropostasExecutivo = () => {
                     />
                   </div>
 
-                  <div className="flex space-x-3 pt-4">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => setShowNewForm(false)}
-                      className="flex-1"
+                      className="flex-1 text-sm"
                     >
                       Cancelar
                     </Button>
                     <Button
                       type="submit"
-                      className="flex-1 bg-gradient-to-r from-[#F4D573] to-[#BC942C] hover:from-[#E6C46E] hover:to-[#B48534] text-[#0C1C2E]"
+                      className="flex-1 bg-gradient-to-r from-[#F4D573] to-[#BC942C] hover:from-[#E6C46E] hover:to-[#B48534] text-[#0C1C2E] text-sm"
                     >
                       Criar Proposta
                     </Button>
@@ -322,53 +322,53 @@ const PropostasExecutivo = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total</p>
-                  <p className="text-2xl font-bold text-primary">{totalPropostas}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total</p>
+                  <p className="text-lg sm:text-2xl font-bold text-primary">{totalPropostas}</p>
                 </div>
-                <FileText className="h-8 w-8 text-primary" />
+                <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Aceitas</p>
-                  <p className="text-2xl font-bold text-success">{propostasAceitas}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Aceitas</p>
+                  <p className="text-lg sm:text-2xl font-bold text-success">{propostasAceitas}</p>
                 </div>
-                <CheckCircle className="h-8 w-8 text-success" />
+                <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Em Andamento</p>
-                  <p className="text-2xl font-bold text-warning">{propostasEmAndamento}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Em Andamento</p>
+                  <p className="text-lg sm:text-2xl font-bold text-warning">{propostasEmAndamento}</p>
                 </div>
-                <Clock className="h-8 w-8 text-warning" />
+                <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-warning" />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Valor Total</p>
-                  <p className="text-2xl font-bold text-success">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Valor Total</p>
+                  <p className="text-lg sm:text-2xl font-bold text-success">
                     R$ {(valorTotalPropostas / 1000).toFixed(0)}K
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-success" />
+                <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
               </div>
             </CardContent>
           </Card>
@@ -377,80 +377,83 @@ const PropostasExecutivo = () => {
         {/* Lista de Propostas */}
         <Card>
           <CardHeader>
-            <CardTitle>Todas as Propostas</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Todas as Propostas</CardTitle>
+            <CardDescription className="text-sm">
               Histórico completo de propostas comerciais
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {propostas.map((proposta) => (
                 <div
                   key={proposta.id}
-                  className="p-4 rounded-lg border hover:shadow-md transition-shadow"
+                  className="p-3 sm:p-4 rounded-lg border hover:shadow-md transition-shadow"
                 >
-                  <div className="flex justify-between items-start mb-3">
+                  <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2 sm:gap-0">
                     <div>
-                      <h4 className="font-medium text-gray-900 flex items-center">
+                      <h4 className="font-medium text-gray-900 flex items-center text-sm sm:text-base">
                         {getStatusIcon(proposta.status)}
                         <span className="ml-2">{proposta.cliente}</span>
                       </h4>
-                      <p className="text-sm text-gray-600">{proposta.imobiliaria}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">{proposta.imobiliaria}</p>
                     </div>
-                    <Badge className={`${getStatusColor(proposta.status)} text-white`}>
+                    <Badge className={`${getStatusColor(proposta.status)} text-white text-xs`}>
                       {getStatusText(proposta.status)}
                     </Badge>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-3">
                     <div>
-                      <p className="text-sm text-gray-500">Valor</p>
-                      <p className="text-sm font-medium">
+                      <p className="text-xs sm:text-sm text-gray-500">Valor</p>
+                      <p className="text-xs sm:text-sm font-medium">
                         R$ {proposta.valor.toLocaleString()}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Comissão</p>
-                      <p className="text-sm font-medium">{proposta.comissao}%</p>
+                      <p className="text-xs sm:text-sm text-gray-500">Comissão</p>
+                      <p className="text-xs sm:text-sm font-medium">{proposta.comissao}%</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Tipo</p>
-                      <p className="text-sm font-medium">
+                      <p className="text-xs sm:text-sm text-gray-500">Tipo</p>
+                      <p className="text-xs sm:text-sm font-medium">
                         {proposta.tipo === 'pacote' ? `Pacote (${proposta.quantidadeUnidades} un.)` : 'Individual'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Data Envio</p>
-                      <p className="text-sm font-medium">
+                      <p className="text-xs sm:text-sm text-gray-500">Data Envio</p>
+                      <p className="text-xs sm:text-sm font-medium">
                         {new Date(proposta.dataEnvio).toLocaleDateString()}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Vencimento</p>
-                      <p className="text-sm font-medium">
+                      <p className="text-xs sm:text-sm text-gray-500">Vencimento</p>
+                      <p className="text-xs sm:text-sm font-medium">
                         {new Date(proposta.dataVencimento).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <p className="text-sm text-gray-500">Observações</p>
-                    <p className="text-sm text-gray-900">{proposta.observacoes}</p>
+                    <p className="text-xs sm:text-sm text-gray-500">Observações</p>
+                    <p className="text-xs sm:text-sm text-gray-900">{proposta.observacoes}</p>
                   </div>
 
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="mr-2 h-4 w-4" />
-                      Ver Detalhes
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" className="text-xs">
+                      <Eye className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Ver Detalhes</span>
+                      <span className="sm:hidden">Detalhes</span>
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Edit className="mr-2 h-4 w-4" />
-                      Editar
+                    <Button variant="outline" size="sm" className="text-xs">
+                      <Edit className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Editar</span>
+                      <span className="sm:hidden">Editar</span>
                     </Button>
                     {proposta.status === 'rascunho' && (
-                      <Button size="sm" className="bg-primary">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        Enviar
+                      <Button size="sm" className="bg-primary text-xs">
+                        <Calendar className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">Enviar</span>
+                        <span className="sm:hidden">Enviar</span>
                       </Button>
                     )}
                   </div>

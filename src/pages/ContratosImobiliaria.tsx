@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -113,14 +112,14 @@ const ContratosImobiliaria = () => {
 
   return (
     <Layout title="Contratos">
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Contratos</h1>
-            <p className="text-gray-600">Gerencie todos os contratos da sua imobiliária</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Contratos</h1>
+            <p className="text-gray-600 text-sm">Gerencie todos os contratos da sua imobiliária</p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90">
+          <Button className="bg-primary hover:bg-primary/90 text-sm w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Novo Contrato
           </Button>
@@ -128,90 +127,92 @@ const ContratosImobiliaria = () => {
 
         {/* Search */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Buscar contratos por inquilino, imóvel ou ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-sm"
               />
             </div>
           </CardContent>
         </Card>
 
         {/* Contratos List */}
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {filteredContratos.map((contrato) => (
             <Card key={contrato.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-0">
                   <div className="flex items-center space-x-3">
                     <div className="bg-primary/10 p-2 rounded-full">
-                      <FileText className="h-5 w-5 text-primary" />
+                      <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg">{contrato.id}</h3>
-                      <div className="flex items-center space-x-2">
+                      <h3 className="font-semibold text-base sm:text-lg">{contrato.id}</h3>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
                         <Badge className={getStatusColor(contrato.status)}>
                           {getStatusLabel(contrato.status)}
                         </Badge>
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="text-xs">
                           {getTipoLabel(contrato.tipo)}
                         </Badge>
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-600">Valor Mensal</p>
-                    <p className="text-xl font-bold text-primary">
+                    <p className="text-xs sm:text-sm text-gray-600">Valor Mensal</p>
+                    <p className="text-lg sm:text-xl font-bold text-primary">
                       R$ {contrato.valor.toLocaleString('pt-BR')}
                     </p>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                   <div className="flex items-center space-x-2">
-                    <User className="h-4 w-4 text-gray-400" />
+                    <User className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Inquilino</p>
-                      <p className="font-medium">{contrato.inquilino}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Inquilino</p>
+                      <p className="font-medium text-sm">{contrato.inquilino}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Building className="h-4 w-4 text-gray-400" />
+                    <Building className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Imóvel</p>
-                      <p className="font-medium">{contrato.imovel}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Imóvel</p>
+                      <p className="font-medium text-sm">{contrato.imovel}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Período</p>
-                      <p className="font-medium">
+                      <p className="text-xs sm:text-sm text-gray-600">Período</p>
+                      <p className="font-medium text-sm">
                         {new Date(contrato.dataInicio).toLocaleDateString('pt-BR')} - {new Date(contrato.dataFim).toLocaleDateString('pt-BR')}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <DollarSign className="h-4 w-4 text-gray-400" />
+                    <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                     <div>
-                      <p className="text-sm text-gray-600">Valor Total</p>
-                      <p className="font-medium">R$ {(contrato.valor * 12).toLocaleString('pt-BR')}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Valor Total</p>
+                      <p className="font-medium text-sm">R$ {(contrato.valor * 12).toLocaleString('pt-BR')}</p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="mr-2 h-4 w-4" />
-                    Visualizar
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <Eye className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Visualizar</span>
+                    <span className="sm:hidden">Ver</span>
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <Download className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Download</span>
+                    <span className="sm:hidden">Down</span>
                   </Button>
                 </div>
               </CardContent>
@@ -221,12 +222,12 @@ const ContratosImobiliaria = () => {
 
         {filteredContratos.length === 0 && (
           <Card>
-            <CardContent className="p-8 text-center">
-              <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <CardContent className="p-6 sm:p-8 text-center">
+              <FileText className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mb-4" />
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
                 Nenhum contrato encontrado
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm">
                 {searchTerm 
                   ? 'Tente ajustar sua busca ou adicione um novo contrato.'
                   : 'Adicione seu primeiro contrato para começar.'
