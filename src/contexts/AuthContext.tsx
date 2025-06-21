@@ -5,7 +5,7 @@ import { User, UserType } from '@/types/user';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<{ success: boolean; redirectPath?: string; needsVerification?: boolean; userName?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; redirectPath?: string; needsVerification?: boolean; userName?: string; isInactive?: boolean }>;
   logout: () => void;
   updateUser: (updatedUser: User) => void;
   isAuthenticated: boolean;
@@ -33,13 +33,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; redirectPath?: string; needsVerification?: boolean; userName?: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; redirectPath?: string; needsVerification?: boolean; userName?: string; isInactive?: boolean }> => {
     try {
       setIsLoading(true);
       
       console.log('Tentativa de login para:', email);
       
-      // Usar a função do Supabase para validar login (agora inclui verificado)
+      // Primeiro, verificar se o usuário existe e está ativo
+      const { data: userCheck, error: userCheckError } = await supabase
+        .from('usuarios')
+        .select('ativo, verificado, nome')
+        .eq('email', email)
+        .single();
+
+      if (userCheckError && userCheckError.code !== 'PGRST116') {
+        console.error('Erro ao verificar usuário:', userCheckError);
+        return { success: false };
+      }
+
+      if (!userCheck) {
+        console.log('Usuário não encontrado');
+        return { success: false };
+      }
+
+      // Verificar se a conta está ativa
+      if (!userCheck.ativo) {
+        console.log('Conta inativa para:', email);
+        return { 
+          success: false, 
+          isInactive: true
+        };
+      }
+
+      // Usar a função do Supabase para validar login
       const { data, error } = await supabase.rpc('validar_login', {
         email_input: email,
         senha_input: password
@@ -51,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (!data || data.length === 0) {
-        console.log('Nenhum usuário encontrado ou credenciais inválidas');
+        console.log('Credenciais inválidas');
         return { success: false };
       }
 

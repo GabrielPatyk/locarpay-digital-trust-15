@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EmailVerificationModal from '@/components/EmailVerificationModal';
 
@@ -37,6 +37,9 @@ const Login = () => {
           description: "Redirecionando...",
         });
         navigate(result.redirectPath || '/dashboard');
+      } else if (result.isInactive) {
+        // Conta desativada
+        setError('Sua conta está desativada. Entre em contato com o suporte da LocarPay para reativá-la.');
       } else if (result.needsVerification) {
         // Usuário existe mas e-mail não foi verificado
         setUnverifiedUserData({
@@ -157,8 +160,16 @@ const Login = () => {
                   </div>
 
                   {error && (
-                    <Alert variant="destructive">
-                      <AlertDescription>{error}</AlertDescription>
+                    <Alert variant={error.includes('desativada') ? "destructive" : "destructive"}>
+                      {error.includes('desativada') && <AlertTriangle className="h-4 w-4" />}
+                      <AlertDescription className="text-sm">
+                        {error}
+                        {error.includes('desativada') && (
+                          <div className="mt-2 text-xs">
+                            <strong>Suporte LocarPay:</strong> contato@locarpay.com.br
+                          </div>
+                        )}
+                      </AlertDescription>
                     </Alert>
                   )}
 
