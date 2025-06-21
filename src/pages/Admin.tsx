@@ -61,28 +61,13 @@ const Admin = () => {
       setLoading(true);
       console.log('Iniciando busca de usuários...');
       console.log('Usuário atual:', user);
-      
-      // Verificar autenticação
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        console.error('Erro de sessão ou usuário não autenticado');
-        toast({
-          title: "Erro de autenticação",
-          description: "Você precisa estar logado para acessar esta página.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('Usuário autenticado:', session.user.email);
       console.log('É admin?', isAdmin);
 
       let query = supabase.from('usuarios').select('*', { count: 'exact' });
 
       // Se não é admin, só busca seus próprios dados
-      if (!isAdmin) {
-        query = query.eq('email', session.user.email);
+      if (!isAdmin && user?.email) {
+        query = query.eq('email', user.email);
       }
 
       const { data, error, count } = await query.order('criado_em', { ascending: false });
@@ -343,7 +328,6 @@ const Admin = () => {
     }
   };
 
-  // Estatísticas calculadas dos dados reais
   const stats = {
     totalUsuarios: usuarios.length,
     usuariosAtivos: usuarios.filter(u => u.ativo).length,

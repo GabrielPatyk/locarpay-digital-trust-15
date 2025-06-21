@@ -7,8 +7,7 @@ export type UserType =
   | 'imobiliaria'
   | 'inquilino'
   | 'financeiro'
-  | 'admin'
-  | 'corretor';
+  | 'admin';
 
 export interface User {
   id: string;
