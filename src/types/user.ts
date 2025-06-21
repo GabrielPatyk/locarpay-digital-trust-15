@@ -25,6 +25,7 @@ export interface User {
   fullName?: string;
   telefone?: string;
   ativo?: boolean;
+  verificado?: boolean; // Novo campo para verificação de e-mail
 }
 
 export interface AuthState {

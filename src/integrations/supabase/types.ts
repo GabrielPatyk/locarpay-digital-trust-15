@@ -20,6 +20,9 @@ export type Database = {
           nome: string
           senha: string
           telefone: string | null
+          token_expira_em: string | null
+          token_verificacao: string | null
+          verificado: boolean | null
         }
         Insert: {
           ativo?: boolean | null
@@ -31,6 +34,9 @@ export type Database = {
           nome: string
           senha: string
           telefone?: string | null
+          token_expira_em?: string | null
+          token_verificacao?: string | null
+          verificado?: boolean | null
         }
         Update: {
           ativo?: boolean | null
@@ -42,6 +48,9 @@ export type Database = {
           nome?: string
           senha?: string
           telefone?: string | null
+          token_expira_em?: string | null
+          token_verificacao?: string | null
+          verificado?: boolean | null
         }
         Relationships: []
       }
@@ -50,6 +59,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      gerar_token_verificacao: {
+        Args: { usuario_id: string }
+        Returns: string
+      }
       hash_password: {
         Args: { password: string }
         Returns: string
@@ -63,7 +76,12 @@ export type Database = {
           telefone: string
           cargo: string
           ativo: boolean
+          verificado: boolean
         }[]
+      }
+      verificar_email: {
+        Args: { token_input: string }
+        Returns: Json
       }
       verify_password: {
         Args: { password: string; hash: string }

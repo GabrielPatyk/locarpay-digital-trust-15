@@ -5,7 +5,7 @@ import { User, UserType } from '@/types/user';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<{ success: boolean; redirectPath?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; redirectPath?: string; needsVerification?: boolean; userName?: string }>;
   logout: () => void;
   updateUser: (updatedUser: User) => void;
   isAuthenticated: boolean;
@@ -33,13 +33,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; redirectPath?: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; redirectPath?: string; needsVerification?: boolean; userName?: string }> => {
     try {
       setIsLoading(true);
       
       console.log('Tentativa de login para:', email);
       
-      // Usar a função do Supabase para validar login
+      // Usar a função do Supabase para validar login (agora inclui verificado)
       const { data, error } = await supabase.rpc('validar_login', {
         email_input: email,
         senha_input: password
@@ -58,13 +58,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userData = data[0];
       console.log('Dados do usuário retornados:', userData);
 
+      // Verificar se o e-mail foi verificado
+      if (!userData.verificado) {
+        console.log('E-mail não verificado para:', email);
+        return { 
+          success: false, 
+          needsVerification: true,
+          userName: userData.nome
+        };
+      }
+
       const user: User = {
         id: userData.id,
         email: userData.email,
         name: userData.nome,
         type: userData.cargo as UserType,
         telefone: userData.telefone,
-        ativo: userData.ativo
+        ativo: userData.ativo,
+        verificado: userData.verificado
       };
 
       setUser(user);
