@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,13 +41,7 @@ const Admin = () => {
     nome: '',
     email: '',
     tipo: 'inquilino' as UserType,
-    senha: '',
-    whatsapp: '',
-    cpf: '',
-    empresa: '',
-    cnpj: '',
-    endereco: '',
-    telefone: ''
+    senha: ''
   });
 
   // Mock data expandido
@@ -119,20 +112,10 @@ const Admin = () => {
   ];
 
   const criarUsuario = () => {
-    const camposObrigatorios = ['nome', 'email', 'senha'];
-    
-    if (novoUsuario.tipo === 'inquilino') {
-      camposObrigatorios.push('whatsapp', 'cpf');
-    } else if (novoUsuario.tipo === 'imobiliaria') {
-      camposObrigatorios.push('empresa', 'cnpj', 'endereco', 'telefone');
-    }
-
-    const camposFaltando = camposObrigatorios.filter(campo => !novoUsuario[campo as keyof typeof novoUsuario]);
-    
-    if (camposFaltando.length > 0) {
+    if (!novoUsuario.nome || !novoUsuario.email || !novoUsuario.senha) {
       toast({
         title: "Erro",
-        description: "Todos os campos obrigatórios devem ser preenchidos.",
+        description: "Todos os campos são obrigatórios.",
         variant: "destructive"
       });
       return;
@@ -144,18 +127,7 @@ const Admin = () => {
     });
     
     setIsCreateModalOpen(false);
-    setNovoUsuario({ 
-      nome: '', 
-      email: '', 
-      tipo: 'inquilino', 
-      senha: '', 
-      whatsapp: '', 
-      cpf: '', 
-      empresa: '', 
-      cnpj: '', 
-      endereco: '', 
-      telefone: '' 
-    });
+    setNovoUsuario({ nome: '', email: '', tipo: 'inquilino', senha: '' });
   };
 
   const alterarStatusUsuario = (usuarioId: string, novoStatus: 'ativo' | 'inativo') => {
@@ -248,87 +220,11 @@ const Admin = () => {
     { name: 'Inativos', value: stats.usuariosInativos, color: '#ef4444' },
   ];
 
-  const renderFormularioEspecifico = () => {
-    if (novoUsuario.tipo === 'inquilino') {
-      return (
-        <>
-          <div className="grid gap-2">
-            <Label htmlFor="whatsapp">WhatsApp *</Label>
-            <Input
-              id="whatsapp"
-              value={novoUsuario.whatsapp}
-              onChange={(e) => setNovoUsuario(prev => ({ ...prev, whatsapp: e.target.value }))}
-              placeholder="(11) 99999-9999"
-            />
-          </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="cpf">CPF *</Label>
-            <Input
-              id="cpf"
-              value={novoUsuario.cpf}
-              onChange={(e) => setNovoUsuario(prev => ({ ...prev, cpf: e.target.value }))}
-              placeholder="000.000.000-00"
-            />
-          </div>
-        </>
-      );
-    }
-
-    if (novoUsuario.tipo === 'imobiliaria') {
-      return (
-        <>
-          <div className="grid gap-2">
-            <Label htmlFor="empresa">Nome da Empresa *</Label>
-            <Input
-              id="empresa"
-              value={novoUsuario.empresa}
-              onChange={(e) => setNovoUsuario(prev => ({ ...prev, empresa: e.target.value }))}
-              placeholder="Nome da imobiliária"
-            />
-          </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="cnpj">CNPJ *</Label>
-            <Input
-              id="cnpj"
-              value={novoUsuario.cnpj}
-              onChange={(e) => setNovoUsuario(prev => ({ ...prev, cnpj: e.target.value }))}
-              placeholder="00.000.000/0001-00"
-            />
-          </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="endereco">Endereço *</Label>
-            <Input
-              id="endereco"
-              value={novoUsuario.endereco}
-              onChange={(e) => setNovoUsuario(prev => ({ ...prev, endereco: e.target.value }))}
-              placeholder="Endereço completo"
-            />
-          </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="telefone">Telefone *</Label>
-            <Input
-              id="telefone"
-              value={novoUsuario.telefone}
-              onChange={(e) => setNovoUsuario(prev => ({ ...prev, telefone: e.target.value }))}
-              placeholder="(11) 3333-4444"
-            />
-          </div>
-        </>
-      );
-    }
-
-    return null;
-  };
-
   return (
     <Layout title="Gestão de Usuários">
-      <div className="space-y-6 animate-fade-in p-4 sm:p-6">
+      <div className="space-y-6 animate-fade-in">
         {/* Dashboard Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -385,25 +281,23 @@ const Admin = () => {
               <CardTitle>Distribuição por Tipo</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-48 sm:h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={chartDataTipos}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={80}
-                      dataKey="value"
-                    >
-                      {chartDataTipos.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={chartDataTipos}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    dataKey="value"
+                  >
+                    {chartDataTipos.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
 
@@ -412,17 +306,15 @@ const Admin = () => {
               <CardTitle>Status dos Usuários</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-48 sm:h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={statusData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={statusData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
 
@@ -431,17 +323,15 @@ const Admin = () => {
               <CardTitle>Crescimento Mensal</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-48 sm:h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={crescimentoUsuarios}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="usuarios" stroke="#8884d8" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={crescimentoUsuarios}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="usuarios" stroke="#8884d8" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>
@@ -449,7 +339,7 @@ const Admin = () => {
         {/* Gestão de Usuários */}
         <Card>
           <CardHeader>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex justify-between items-center">
               <div>
                 <CardTitle className="flex items-center">
                   <Users className="mr-2 h-5 w-5" />
@@ -462,12 +352,12 @@ const Admin = () => {
               
               <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+                  <Button className="bg-primary hover:bg-primary/90">
                     <Plus className="mr-2 h-4 w-4" />
                     Novo Usuário
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Criar Novo Usuário</DialogTitle>
                     <DialogDescription>
@@ -477,7 +367,7 @@ const Admin = () => {
                   
                   <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="nome">Nome Completo *</Label>
+                      <Label htmlFor="nome">Nome Completo</Label>
                       <Input
                         id="nome"
                         value={novoUsuario.nome}
@@ -487,7 +377,7 @@ const Admin = () => {
                     </div>
                     
                     <div className="grid gap-2">
-                      <Label htmlFor="email">E-mail *</Label>
+                      <Label htmlFor="email">E-mail</Label>
                       <Input
                         id="email"
                         type="email"
@@ -498,7 +388,7 @@ const Admin = () => {
                     </div>
                     
                     <div className="grid gap-2">
-                      <Label htmlFor="tipo">Tipo de Usuário *</Label>
+                      <Label htmlFor="tipo">Tipo de Usuário</Label>
                       <Select 
                         value={novoUsuario.tipo} 
                         onValueChange={(value: UserType) => setNovoUsuario(prev => ({ ...prev, tipo: value }))}
@@ -507,21 +397,19 @@ const Admin = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="inquilino">Inquilino</SelectItem>
-                          <SelectItem value="imobiliaria">Imobiliária</SelectItem>
                           <SelectItem value="analista">Analista de Conta</SelectItem>
                           <SelectItem value="juridico">Departamento Jurídico</SelectItem>
                           <SelectItem value="sdr">SDR - Comercial</SelectItem>
                           <SelectItem value="executivo">Executivo de Conta</SelectItem>
+                          <SelectItem value="imobiliaria">Imobiliária</SelectItem>
+                          <SelectItem value="inquilino">Inquilino</SelectItem>
                           <SelectItem value="financeiro">Departamento Financeiro</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-
-                    {renderFormularioEspecifico()}
                     
                     <div className="grid gap-2">
-                      <Label htmlFor="senha">Senha Temporária *</Label>
+                      <Label htmlFor="senha">Senha Temporária</Label>
                       <Input
                         id="senha"
                         type="password"
@@ -545,7 +433,7 @@ const Admin = () => {
             </div>
             
             {/* Filtros */}
-            <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            <div className="flex flex-col md:flex-row gap-4 mt-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
@@ -556,9 +444,9 @@ const Admin = () => {
                 />
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex gap-2">
                 <Select value={filterTipo} onValueChange={setFilterTipo}>
-                  <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectTrigger className="w-[180px]">
                     <Filter className="mr-2 h-4 w-4" />
                     <SelectValue placeholder="Filtrar por tipo" />
                   </SelectTrigger>
@@ -575,7 +463,7 @@ const Admin = () => {
                 </Select>
                 
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-full sm:w-[150px]">
+                  <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -595,9 +483,9 @@ const Admin = () => {
                   key={usuario.id}
                   className="p-4 rounded-lg border hover:shadow-md transition-shadow"
                 >
-                  <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-3">
+                  <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-3 mb-2">
+                      <div className="flex items-center gap-3 mb-2">
                         <h4 className="font-medium text-gray-900">{usuario.nome}</h4>
                         <Badge className={`${getTipoColor(usuario.tipo)} text-white`}>
                           {getTipoLabel(usuario.tipo)}
@@ -610,7 +498,7 @@ const Admin = () => {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                     <div>
                       <p className="text-sm text-gray-500">Último Acesso</p>
                       <p className="text-sm font-medium">
@@ -625,7 +513,7 @@ const Admin = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex space-x-2">
                     <Button variant="outline" size="sm">
                       <Eye className="mr-2 h-4 w-4" />
                       Ver Detalhes

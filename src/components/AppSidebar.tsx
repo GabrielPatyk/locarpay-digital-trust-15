@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -284,11 +283,6 @@ const AppSidebar = () => {
         icon: DollarSign,
       },
       {
-        title: 'Relatórios',
-        url: '/relatorios-admin',
-        icon: BarChart3,
-      },
-      {
         title: 'Configurações',
         url: '/configuracoes-admin',
         icon: Settings,
@@ -392,7 +386,8 @@ const AppSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
-                const isActive = location.pathname === item.url;
+                const isActive = location.pathname === item.url || 
+                  (item.title === 'Dashboard' && location.pathname === `/${user?.type}`);
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
