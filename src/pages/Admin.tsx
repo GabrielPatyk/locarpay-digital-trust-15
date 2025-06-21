@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,7 +68,13 @@ const Admin = () => {
         return;
       }
 
-      setUsuarios(data || []);
+      // Fazer o cast do campo cargo para UserType
+      const usuariosFormatados = data?.map(usuario => ({
+        ...usuario,
+        cargo: usuario.cargo as UserType
+      })) || [];
+
+      setUsuarios(usuariosFormatados);
     } catch (err) {
       console.error('Erro:', err);
       toast({
