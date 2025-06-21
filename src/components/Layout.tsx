@@ -16,7 +16,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import ProfileCompletionCheck from '@/components/ProfileCompletionCheck';
-import { AppSidebar } from '@/components/AppSidebar';
+import AppSidebar from '@/components/AppSidebar';
 
 import { Bell } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
