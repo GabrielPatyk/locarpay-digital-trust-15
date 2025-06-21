@@ -9,36 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          criado_em: string
-          data_nascimento: string | null
-          documento: string | null
-          id: string
-          nome_completo: string | null
-          telefone: string | null
-          tipo_usuario: Database["public"]["Enums"]["tipo_usuario"] | null
-        }
-        Insert: {
-          criado_em?: string
-          data_nascimento?: string | null
-          documento?: string | null
-          id: string
-          nome_completo?: string | null
-          telefone?: string | null
-          tipo_usuario?: Database["public"]["Enums"]["tipo_usuario"] | null
-        }
-        Update: {
-          criado_em?: string
-          data_nascimento?: string | null
-          documento?: string | null
-          id?: string
-          nome_completo?: string | null
-          telefone?: string | null
-          tipo_usuario?: Database["public"]["Enums"]["tipo_usuario"] | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
@@ -47,15 +18,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      tipo_usuario:
-        | "inquilino"
-        | "analista"
-        | "juridico"
-        | "admin"
-        | "sdr"
-        | "executivo"
-        | "imobiliaria"
-        | "financeiro"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -170,17 +133,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      tipo_usuario: [
-        "inquilino",
-        "analista",
-        "juridico",
-        "admin",
-        "sdr",
-        "executivo",
-        "imobiliaria",
-        "financeiro",
-      ],
-    },
+    Enums: {},
   },
 } as const
