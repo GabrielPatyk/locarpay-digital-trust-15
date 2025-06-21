@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Upload, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ImageUploadProps {
   currentImage?: string;
@@ -18,6 +20,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 }) => {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
+  const { user, updateUser } = useAuth();
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -33,11 +36,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       return;
     }
 
-    // Validar tamanho (máximo 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validar tamanho (máximo 3MB)
+    if (file.size > 3 * 1024 * 1024) {
       toast({
         title: "Arquivo muito grande",
-        description: "A imagem deve ter no máximo 5MB.",
+        description: "A imagem deve ter no máximo 3MB.",
         variant: "destructive",
       });
       return;
@@ -46,16 +49,42 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     try {
       setUploading(true);
       
-      // Converter para base64 para demonstração
-      // Em produção, você faria upload para Supabase Storage
+      // Converter para base64
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const base64 = e.target?.result as string;
-        onImageChange(base64);
-        toast({
-          title: "Imagem carregada!",
-          description: "Sua foto de perfil foi atualizada.",
-        });
+        
+        if (user?.id) {
+          // Salvar no banco de dados
+          const { data, error } = await supabase.rpc('atualizar_imagem_perfil', {
+            p_usuario_id: user.id,
+            p_imagem_url: base64
+          });
+
+          if (error) {
+            console.error('Erro ao salvar imagem:', error);
+            toast({
+              title: "Erro ao salvar",
+              description: "Não foi possível salvar a imagem no banco de dados.",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          // Atualizar o contexto do usuário
+          if (user) {
+            updateUser({
+              ...user,
+              imagem_perfil: base64
+            });
+          }
+
+          onImageChange(base64);
+          toast({
+            title: "Imagem salva!",
+            description: "Sua foto de perfil foi atualizada e salva.",
+          });
+        }
       };
       reader.readAsDataURL(file);
     } catch (error) {
@@ -103,7 +132,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           />
         </Button>
         <p className="text-xs text-gray-500 mt-1">
-          PNG, JPG até 5MB
+          PNG, JPG até 3MB
         </p>
       </div>
     </div>

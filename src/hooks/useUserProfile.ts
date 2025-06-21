@@ -59,9 +59,17 @@ export const useUserProfile = () => {
     try {
       setLoading(true);
 
+      // Filtrar apenas campos que não estão vazios
+      const filteredUpdates: any = {};
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          filteredUpdates[key] = value;
+        }
+      });
+
       const { data, error } = await supabase
         .from('perfil_usuario')
-        .update(updates)
+        .update(filteredUpdates)
         .eq('usuario_id', user.id)
         .select()
         .single();
@@ -96,9 +104,17 @@ export const useUserProfile = () => {
     try {
       setLoading(true);
 
+      // Filtrar apenas campos que não estão vazios
+      const filteredUpdates: any = {};
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          filteredUpdates[key] = value;
+        }
+      });
+
       const { error } = await supabase
         .from('usuarios')
-        .update(updates)
+        .update(filteredUpdates)
         .eq('id', user.id);
 
       if (error) {

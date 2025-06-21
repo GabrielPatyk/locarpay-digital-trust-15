@@ -2,11 +2,12 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, LogOut, Settings, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import ProfileCompletionCheck from '@/components/ProfileCompletionCheck';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -23,6 +24,13 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
     navigate('/login');
   };
 
+  const handleSettings = () => {
+    if (user?.type === 'imobiliaria') {
+      navigate('/configuracoes-imobiliaria');
+    }
+    // Para outros tipos de usuário, não faz nada ainda
+  };
+
   const getUserTypeLabel = (type: string) => {
     const labels = {
       analista: 'Analista de Conta',
@@ -37,10 +45,15 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
     return labels[type as keyof typeof labels] || type;
   };
 
+  const getInitials = (name: string) => {
+    return name?.split(' ').map(n => n[0]).join('').toUpperCase() || '';
+  };
+
   // Header específico para mobile
   if (isMobile) {
     return (
       <SidebarInset>
+        <ProfileCompletionCheck />
         {/* Header Mobile */}
         <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
           <div className="px-4 py-3">
@@ -81,6 +94,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   // Header padrão para desktop
   return (
     <SidebarInset>
+      <ProfileCompletionCheck />
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="px-6 py-4">
@@ -102,9 +116,13 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
 
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E] font-semibold">
-                    {user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                  </AvatarFallback>
+                  {user?.imagem_perfil ? (
+                    <AvatarImage src={user.imagem_perfil} alt="Foto de perfil" />
+                  ) : (
+                    <AvatarFallback className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E] font-semibold">
+                      {getInitials(user?.name || '')}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
                 <div className="hidden md:block text-sm">
                   <p className="font-medium text-gray-900">{user?.name}</p>
@@ -112,7 +130,12 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
                 </div>
               </div>
 
-              <Button variant="ghost" size="sm">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleSettings}
+                disabled={user?.type !== 'imobiliaria'}
+              >
                 <Settings className="h-5 w-5" />
               </Button>
 

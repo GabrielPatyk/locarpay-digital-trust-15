@@ -12,29 +12,47 @@ export type Database = {
       perfil_usuario: {
         Row: {
           atualizado_em: string
+          bairro: string | null
+          cidade: string | null
           cnpj: string | null
+          complemento: string | null
           criado_em: string
-          endereco_completo: string | null
+          endereco: string | null
+          estado: string | null
           id: string
           nome_empresa: string | null
+          numero: string | null
+          pais: string | null
           usuario_id: string
         }
         Insert: {
           atualizado_em?: string
+          bairro?: string | null
+          cidade?: string | null
           cnpj?: string | null
+          complemento?: string | null
           criado_em?: string
-          endereco_completo?: string | null
+          endereco?: string | null
+          estado?: string | null
           id?: string
           nome_empresa?: string | null
+          numero?: string | null
+          pais?: string | null
           usuario_id: string
         }
         Update: {
           atualizado_em?: string
+          bairro?: string | null
+          cidade?: string | null
           cnpj?: string | null
+          complemento?: string | null
           criado_em?: string
-          endereco_completo?: string | null
+          endereco?: string | null
+          estado?: string | null
           id?: string
           nome_empresa?: string | null
+          numero?: string | null
+          pais?: string | null
           usuario_id?: string
         }
         Relationships: [
@@ -111,6 +129,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      atualizar_imagem_perfil: {
+        Args: { p_usuario_id: string; p_imagem_url: string }
+        Returns: boolean
+      }
       criar_perfil_usuario_se_necessario: {
         Args: { p_usuario_id: string }
         Returns: string
