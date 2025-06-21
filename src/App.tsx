@@ -1,12 +1,16 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import AppSidebar from '@/components/AppSidebar';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ProfileCompletionCheck from '@/components/ProfileCompletionCheck';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import Unauthorized from '@/pages/Unauthorized';
 import Dashboard from '@/pages/Dashboard';
 import Admin from '@/pages/Admin';
 import Inquilino from '@/pages/Inquilino';
@@ -55,265 +59,387 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
-          <div className="min-h-screen bg-gray-50">
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+          <SidebarProvider>
+            <div className="min-h-screen flex w-full bg-gray-50">
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/unauthorized" element={<Unauthorized />} />
 
-              <Route path="/" element={
-                <ProtectedRoute requiredUserType="admin">
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
+                <Route path="/" element={
+                  <ProtectedRoute requiredUserType="admin">
+                    <>
+                      <AppSidebar />
+                      <Dashboard />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/dashboard" element={
-                <ProtectedRoute requiredUserType="admin">
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute requiredUserType="admin">
+                    <>
+                      <AppSidebar />
+                      <Dashboard />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/admin" element={
-                <ProtectedRoute requiredUserType="admin">
-                  <Admin />
-                </ProtectedRoute>
-              } />
+                <Route path="/admin" element={
+                  <ProtectedRoute requiredUserType="admin">
+                    <>
+                      <AppSidebar />
+                      <Admin />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/inquilino" element={
-                <ProtectedRoute requiredUserType="inquilino">
-                  <Inquilino />
-                </ProtectedRoute>
-              } />
+                <Route path="/inquilino" element={
+                  <ProtectedRoute requiredUserType="inquilino">
+                    <>
+                      <AppSidebar />
+                      <Inquilino />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/analista" element={
-                <ProtectedRoute requiredUserType="analista">
-                  <Analista />
-                </ProtectedRoute>
-              } />
+                <Route path="/analista" element={
+                  <ProtectedRoute requiredUserType="analista">
+                    <>
+                      <AppSidebar />
+                      <Analista />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/juridico" element={
-                <ProtectedRoute requiredUserType="juridico">
-                  <Juridico />
-                </ProtectedRoute>
-              } />
+                <Route path="/juridico" element={
+                  <ProtectedRoute requiredUserType="juridico">
+                    <>
+                      <AppSidebar />
+                      <Juridico />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/sdr" element={
-                <ProtectedRoute requiredUserType="sdr">
-                  <SDR />
-                </ProtectedRoute>
-              } />
+                <Route path="/sdr" element={
+                  <ProtectedRoute requiredUserType="sdr">
+                    <>
+                      <AppSidebar />
+                      <SDR />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/executivo" element={
-                <ProtectedRoute requiredUserType="executivo">
-                  <Executivo />
-                </ProtectedRoute>
-              } />
+                <Route path="/executivo" element={
+                  <ProtectedRoute requiredUserType="executivo">
+                    <>
+                      <AppSidebar />
+                      <Executivo />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/imobiliaria" element={
-                <ProtectedRoute requiredUserType="imobiliaria">
-                  <>
-                    <ProfileCompletionCheck />
-                    <Imobiliaria />
-                  </>
-                </ProtectedRoute>
-              } />
+                <Route path="/imobiliaria" element={
+                  <ProtectedRoute requiredUserType="imobiliaria">
+                    <>
+                      <AppSidebar />
+                      <ProfileCompletionCheck />
+                      <Imobiliaria />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/financeiro" element={
-                <ProtectedRoute requiredUserType="financeiro">
-                  <Financeiro />
-                </ProtectedRoute>
-              } />
+                <Route path="/financeiro" element={
+                  <ProtectedRoute requiredUserType="financeiro">
+                    <>
+                      <AppSidebar />
+                      <Financeiro />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/contratos" element={
-                <ProtectedRoute>
-                  <Contratos />
-                </ProtectedRoute>
-              } />
+                <Route path="/contratos" element={
+                  <ProtectedRoute>
+                    <>
+                      <AppSidebar />
+                      <Contratos />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/contratos-juridico" element={
-                <ProtectedRoute requiredUserType="juridico">
-                  <ContratosJuridico />
-                </ProtectedRoute>
-              } />
+                <Route path="/contratos-juridico" element={
+                  <ProtectedRoute requiredUserType="juridico">
+                    <>
+                      <AppSidebar />
+                      <ContratosJuridico />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/processos" element={
-                <ProtectedRoute requiredUserType="juridico">
-                  <Processos />
-                </ProtectedRoute>
-              } />
+                <Route path="/processos" element={
+                  <ProtectedRoute requiredUserType="juridico">
+                    <>
+                      <AppSidebar />
+                      <Processos />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/documentos" element={
-                <ProtectedRoute requiredUserType="juridico">
-                  <Documentos />
-                </ProtectedRoute>
-              } />
+                <Route path="/documentos" element={
+                  <ProtectedRoute requiredUserType="juridico">
+                    <>
+                      <AppSidebar />
+                      <Documentos />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/leads" element={
-                <ProtectedRoute requiredUserType="sdr">
-                  <Leads />
-                </ProtectedRoute>
-              } />
+                <Route path="/leads" element={
+                  <ProtectedRoute requiredUserType="sdr">
+                    <>
+                      <AppSidebar />
+                      <Leads />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/campanhas" element={
-                <ProtectedRoute requiredUserType="sdr">
-                  <Campanhas />
-                </ProtectedRoute>
-              } />
+                <Route path="/campanhas" element={
+                  <ProtectedRoute requiredUserType="sdr">
+                    <>
+                      <AppSidebar />
+                      <Campanhas />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/relatorios-sdr" element={
-                <ProtectedRoute requiredUserType="sdr">
-                  <RelatoriosSDR />
-                </ProtectedRoute>
-              } />
+                <Route path="/relatorios-sdr" element={
+                  <ProtectedRoute requiredUserType="sdr">
+                    <>
+                      <AppSidebar />
+                      <RelatoriosSDR />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/imobiliarias-executivo" element={
-                <ProtectedRoute requiredUserType="executivo">
-                  <ImobiliariasExecutivo />
-                </ProtectedRoute>
-              } />
+                <Route path="/imobiliarias-executivo" element={
+                  <ProtectedRoute requiredUserType="executivo">
+                    <>
+                      <AppSidebar />
+                      <ImobiliariasExecutivo />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/propostas-executivo" element={
-                <ProtectedRoute requiredUserType="executivo">
-                  <PropostasExecutivo />
-                </ProtectedRoute>
-              } />
+                <Route path="/propostas-executivo" element={
+                  <ProtectedRoute requiredUserType="executivo">
+                    <>
+                      <AppSidebar />
+                      <PropostasExecutivo />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/performance-executivo" element={
-                <ProtectedRoute requiredUserType="executivo">
-                  <PerformanceExecutivo />
-                </ProtectedRoute>
-              } />
+                <Route path="/performance-executivo" element={
+                  <ProtectedRoute requiredUserType="executivo">
+                    <>
+                      <AppSidebar />
+                      <PerformanceExecutivo />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/inquilinos-imobiliaria" element={
-                <ProtectedRoute requiredUserType="imobiliaria">
-                  <InquilinosImobiliaria />
-                </ProtectedRoute>
-              } />
+                <Route path="/inquilinos-imobiliaria" element={
+                  <ProtectedRoute requiredUserType="imobiliaria">
+                    <>
+                      <AppSidebar />
+                      <InquilinosImobiliaria />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/contratos-imobiliaria" element={
-                <ProtectedRoute requiredUserType="imobiliaria">
-                  <ContratosImobiliaria />
-                </ProtectedRoute>
-              } />
+                <Route path="/contratos-imobiliaria" element={
+                  <ProtectedRoute requiredUserType="imobiliaria">
+                    <>
+                      <AppSidebar />
+                      <ContratosImobiliaria />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/pagamentos-financeiro" element={
-                <ProtectedRoute requiredUserType="financeiro">
-                  <PagamentosFinanceiro />
-                </ProtectedRoute>
-              } />
+                <Route path="/pagamentos-financeiro" element={
+                  <ProtectedRoute requiredUserType="financeiro">
+                    <>
+                      <AppSidebar />
+                      <PagamentosFinanceiro />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/inadimplencia-financeiro" element={
-                <ProtectedRoute requiredUserType="financeiro">
-                  <InadimplenciaFinanceiro />
-                </ProtectedRoute>
-              } />
+                <Route path="/inadimplencia-financeiro" element={
+                  <ProtectedRoute requiredUserType="financeiro">
+                    <>
+                      <AppSidebar />
+                      <InadimplenciaFinanceiro />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/relatorios-financeiro" element={
-                <ProtectedRoute requiredUserType="financeiro">
-                  <RelatoriosFinanceiro />
-                </ProtectedRoute>
-              } />
+                <Route path="/relatorios-financeiro" element={
+                  <ProtectedRoute requiredUserType="financeiro">
+                    <>
+                      <AppSidebar />
+                      <RelatoriosFinanceiro />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/configuracoes-admin" element={
-                <ProtectedRoute requiredUserType="admin">
-                  <ConfiguracoesAdmin />
-                </ProtectedRoute>
-              } />
+                <Route path="/configuracoes-admin" element={
+                  <ProtectedRoute requiredUserType="admin">
+                    <>
+                      <AppSidebar />
+                      <ConfiguracoesAdmin />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/configuracoes-analista" element={
-                <ProtectedRoute requiredUserType="analista">
-                  <ConfiguracoesAnalista />
-                </ProtectedRoute>
-              } />
+                <Route path="/configuracoes-analista" element={
+                  <ProtectedRoute requiredUserType="analista">
+                    <>
+                      <AppSidebar />
+                      <ConfiguracoesAnalista />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/configuracoes-juridico" element={
-                <ProtectedRoute requiredUserType="juridico">
-                  <ConfiguracoesJuridico />
-                </ProtectedRoute>
-              } />
+                <Route path="/configuracoes-juridico" element={
+                  <ProtectedRoute requiredUserType="juridico">
+                    <>
+                      <AppSidebar />
+                      <ConfiguracoesJuridico />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/configuracoes-executivo" element={
-                <ProtectedRoute requiredUserType="executivo">
-                  <ConfiguracoesExecutivo />
-                </ProtectedRoute>
-              } />
+                <Route path="/configuracoes-executivo" element={
+                  <ProtectedRoute requiredUserType="executivo">
+                    <>
+                      <AppSidebar />
+                      <ConfiguracoesExecutivo />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/configuracoes-imobiliaria" element={
-                <ProtectedRoute requiredUserType="imobiliaria">
-                  <ConfiguracoesImobiliaria />
-                </ProtectedRoute>
-              } />
+                <Route path="/configuracoes-imobiliaria" element={
+                  <ProtectedRoute requiredUserType="imobiliaria">
+                    <>
+                      <AppSidebar />
+                      <ConfiguracoesImobiliaria />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/configuracoes-financeiro" element={
-                <ProtectedRoute requiredUserType="financeiro">
-                  <ConfiguracoesFinanceiro />
-                </ProtectedRoute>
-              } />
+                <Route path="/configuracoes-financeiro" element={
+                  <ProtectedRoute requiredUserType="financeiro">
+                    <>
+                      <AppSidebar />
+                      <ConfiguracoesFinanceiro />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/relatorios-admin" element={
-                <ProtectedRoute requiredUserType="admin">
-                  <RelatoriosAdmin />
-                </ProtectedRoute>
-              } />
+                <Route path="/relatorios-admin" element={
+                  <ProtectedRoute requiredUserType="admin">
+                    <>
+                      <AppSidebar />
+                      <RelatoriosAdmin />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/leads-admin" element={
-                <ProtectedRoute requiredUserType="admin">
-                  <LeadsAdmin />
-                </ProtectedRoute>
-              } />
+                <Route path="/leads-admin" element={
+                  <ProtectedRoute requiredUserType="admin">
+                    <>
+                      <AppSidebar />
+                      <LeadsAdmin />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/fiancas-admin" element={
-                <ProtectedRoute requiredUserType="admin">
-                  <FiancasAdmin />
-                </ProtectedRoute>
-              } />
+                <Route path="/fiancas-admin" element={
+                  <ProtectedRoute requiredUserType="admin">
+                    <>
+                      <AppSidebar />
+                      <FiancasAdmin />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/executivos-admin" element={
-                <ProtectedRoute requiredUserType="admin">
-                  <ExecutivosAdmin />
-                </ProtectedRoute>
-              } />
+                <Route path="/executivos-admin" element={
+                  <ProtectedRoute requiredUserType="admin">
+                    <>
+                      <AppSidebar />
+                      <ExecutivosAdmin />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/imobiliarias-admin" element={
-                <ProtectedRoute requiredUserType="admin">
-                  <ImobiliariasAdmin />
-                </ProtectedRoute>
-              } />
+                <Route path="/imobiliarias-admin" element={
+                  <ProtectedRoute requiredUserType="admin">
+                    <>
+                      <AppSidebar />
+                      <ImobiliariasAdmin />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/sinistros-admin" element={
-                <ProtectedRoute requiredUserType="admin">
-                  <SinistrosAdmin />
-                </ProtectedRoute>
-              } />
+                <Route path="/sinistros-admin" element={
+                  <ProtectedRoute requiredUserType="admin">
+                    <>
+                      <AppSidebar />
+                      <SinistrosAdmin />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/relatorios-analista" element={
-                <ProtectedRoute requiredUserType="analista">
-                  <RelatoriosAnalista />
-                </ProtectedRoute>
-              } />
+                <Route path="/relatorios-analista" element={
+                  <ProtectedRoute requiredUserType="analista">
+                    <>
+                      <AppSidebar />
+                      <RelatoriosAnalista />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/pagamentos" element={
-                <ProtectedRoute requiredUserType="inquilino">
-                  <Pagamentos />
-                </ProtectedRoute>
-              } />
+                <Route path="/pagamentos" element={
+                  <ProtectedRoute requiredUserType="inquilino">
+                    <>
+                      <AppSidebar />
+                      <Pagamentos />
+                    </>
+                  </ProtectedRoute>
+                } />
 
-              <Route path="/fiancas" element={
-                <ProtectedRoute requiredUserType="inquilino">
-                  <Fiancas />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/fiancas-imobiliaria" element={
-                <ProtectedRoute requiredUserType="imobiliaria">
-                  <>
-                    <ProfileCompletionCheck />
-                    <FiancasImobiliaria />
-                  </>
-                </ProtectedRoute>
-              } />
-            </Routes>
-          </div>
-          <Toaster />
+                <Route path="/fiancas" element={
+                  <ProtectedRoute requiredUserType="inquilino">
+                    <>
+                      <AppSidebar />
+                      <Fiancas />
+                    </>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/fiancas-imobiliaria" element={
+                  <ProtectedRoute requiredUserType="imobiliaria">
+                    <>
+                      <AppSidebar />
+                      <ProfileCompletionCheck />
+                      <FiancasImobiliaria />
+                    </>
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </div>
+            <Toaster />
+          </SidebarProvider>
         </Router>
       </AuthProvider>
     </QueryClientProvider>
