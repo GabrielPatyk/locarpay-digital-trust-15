@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -194,11 +193,6 @@ const AppSidebar = () => {
           icon: Home,
         },
         {
-          title: 'Fianças',
-          url: '/fiancas-imobiliaria',
-          icon: FileText,
-        },
-        {
           title: 'Inquilinos',
           url: '/inquilinos-imobiliaria',
           icon: Users,
@@ -206,7 +200,7 @@ const AppSidebar = () => {
         {
           title: 'Contratos',
           url: '/contratos-imobiliaria',
-          icon: ClipboardList,
+          icon: FileText,
         },
         {
           title: 'Configurações',
