@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import Layout from '@/components/Layout';
+import ImageUpload from '@/components/ImageUpload';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,24 +23,56 @@ import {
 
 const ConfiguracoesImobiliaria = () => {
   const { user, updateUser } = useAuth();
+  const { profile, updateProfile, updateUserData, updatePassword, loading } = useUserProfile();
   const { toast } = useToast();
   
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    companyName: '',
+    // Dados da empresa (perfil_usuario)
+    nome_empresa: '',
     cnpj: '',
-    address: '',
-    fullName: '',
+    endereco_completo: '',
+    
+    // Dados pessoais (usuarios)
+    nome: user?.name || '',
     email: user?.email || '',
-    phone: user?.telefone || '',
+    telefone: user?.telefone || '',
+    imagem_perfil: user?.imagem_perfil || '',
+    
+    // Segurança
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
+    
+    // Notificações
     emailNotifications: true,
     smsNotifications: false,
     weeklyReports: true,
     monthlyReports: true
   });
+
+  useEffect(() => {
+    if (profile) {
+      setFormData(prev => ({
+        ...prev,
+        nome_empresa: profile.nome_empresa || '',
+        cnpj: profile.cnpj || '',
+        endereco_completo: profile.endereco_completo || ''
+      }));
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        nome: user.name || '',
+        email: user.email || '',
+        telefone: user.telefone || '',
+        imagem_perfil: user.imagem_perfil || ''
+      }));
+    }
+  }, [user]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
@@ -46,22 +81,40 @@ const ConfiguracoesImobiliaria = () => {
     }));
   };
 
-  const handleSaveProfile = () => {
-    if (user) {
-      const updatedUser = {
-        ...user,
-        email: formData.email
-      };
-      updateUser(updatedUser);
-      
+  const handleSaveCompanyData = async () => {
+    const success = await updateProfile({
+      nome_empresa: formData.nome_empresa,
+      cnpj: formData.cnpj,
+      endereco_completo: formData.endereco_completo
+    });
+
+    if (success) {
       toast({
-        title: "Perfil atualizado!",
-        description: "Suas informações foram salvas com sucesso.",
+        title: "Dados da empresa atualizados!",
+        description: "As informações da empresa foram salvas com sucesso.",
       });
     }
   };
 
-  const handleChangePassword = () => {
+  const handleSavePersonalData = async () => {
+    const success = await updateUserData({
+      nome: formData.nome,
+      email: formData.email,
+      telefone: formData.telefone
+    });
+
+    if (success && user) {
+      // Atualizar o contexto do usuário
+      updateUser({
+        ...user,
+        name: formData.nome,
+        email: formData.email,
+        telefone: formData.telefone
+      });
+    }
+  };
+
+  const handleChangePassword = async () => {
     if (formData.newPassword !== formData.confirmPassword) {
       toast({
         title: "Erro ao alterar senha",
@@ -71,17 +124,38 @@ const ConfiguracoesImobiliaria = () => {
       return;
     }
 
-    toast({
-      title: "Senha alterada!",
-      description: "Sua senha foi alterada com sucesso.",
-    });
+    if (formData.newPassword.length < 6) {
+      toast({
+        title: "Senha muito curta",
+        description: "A senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setFormData(prev => ({
-      ...prev,
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    }));
+    const success = await updatePassword(formData.currentPassword, formData.newPassword);
+    
+    if (success) {
+      setFormData(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }));
+    }
+  };
+
+  const handleImageChange = async (imageUrl: string) => {
+    // Aqui você atualizaria a imagem no banco de dados
+    // Por enquanto, apenas atualiza o estado local
+    setFormData(prev => ({ ...prev, imagem_perfil: imageUrl }));
+    
+    if (user) {
+      updateUser({
+        ...user,
+        imagem_perfil: imageUrl
+      });
+    }
   };
 
   const handleSaveNotifications = () => {
@@ -94,6 +168,26 @@ const ConfiguracoesImobiliaria = () => {
   return (
     <Layout title="Configurações">
       <div className="space-y-6 animate-fade-in">
+        {/* Profile Image */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <User className="mr-2 h-5 w-5 text-primary" />
+              Foto de Perfil
+            </CardTitle>
+            <CardDescription>
+              Atualize sua foto de perfil
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ImageUpload
+              currentImage={formData.imagem_perfil}
+              onImageChange={handleImageChange}
+              userName={formData.nome}
+            />
+          </CardContent>
+        </Card>
+
         {/* Company Profile */}
         <Card>
           <CardHeader>
@@ -108,11 +202,11 @@ const ConfiguracoesImobiliaria = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="companyName">Nome da Empresa</Label>
+                <Label htmlFor="nome_empresa">Nome da Empresa/Imobiliária</Label>
                 <Input
-                  id="companyName"
-                  value={formData.companyName}
-                  onChange={(e) => handleInputChange('companyName', e.target.value)}
+                  id="nome_empresa"
+                  value={formData.nome_empresa}
+                  onChange={(e) => handleInputChange('nome_empresa', e.target.value)}
                   placeholder="Nome da sua imobiliária"
                 />
               </div>
@@ -128,19 +222,23 @@ const ConfiguracoesImobiliaria = () => {
             </div>
             
             <div>
-              <Label htmlFor="address">Endereço Completo</Label>
+              <Label htmlFor="endereco_completo">Endereço Completo</Label>
               <Textarea
-                id="address"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
+                id="endereco_completo"
+                value={formData.endereco_completo}
+                onChange={(e) => handleInputChange('endereco_completo', e.target.value)}
                 placeholder="Endereço completo da empresa"
                 rows={3}
               />
             </div>
             
-            <Button onClick={handleSaveProfile} className="bg-primary hover:bg-primary/90">
+            <Button 
+              onClick={handleSaveCompanyData} 
+              disabled={loading}
+              className="bg-primary hover:bg-primary/90"
+            >
               <Save className="mr-2 h-4 w-4" />
-              Salvar Dados da Empresa
+              {loading ? 'Salvando...' : 'Salvar Dados da Empresa'}
             </Button>
           </CardContent>
         </Card>
@@ -159,11 +257,11 @@ const ConfiguracoesImobiliaria = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="fullName">Nome Completo</Label>
+                <Label htmlFor="nome">Nome Completo</Label>
                 <Input
-                  id="fullName"
-                  value={formData.fullName}
-                  onChange={(e) => handleInputChange('fullName', e.target.value)}
+                  id="nome"
+                  value={formData.nome}
+                  onChange={(e) => handleInputChange('nome', e.target.value)}
                   placeholder="Seu nome completo"
                 />
               </div>
@@ -180,18 +278,22 @@ const ConfiguracoesImobiliaria = () => {
             </div>
             
             <div>
-              <Label htmlFor="phone">Telefone</Label>
+              <Label htmlFor="telefone">Telefone</Label>
               <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
+                id="telefone"
+                value={formData.telefone}
+                onChange={(e) => handleInputChange('telefone', e.target.value)}
                 placeholder="(11) 99999-9999"
               />
             </div>
             
-            <Button onClick={handleSaveProfile} className="bg-success hover:bg-success/90">
+            <Button 
+              onClick={handleSavePersonalData} 
+              disabled={loading}
+              className="bg-success hover:bg-success/90"
+            >
               <Save className="mr-2 h-4 w-4" />
-              Salvar Dados Pessoais
+              {loading ? 'Salvando...' : 'Salvar Dados Pessoais'}
             </Button>
           </CardContent>
         </Card>
@@ -257,9 +359,13 @@ const ConfiguracoesImobiliaria = () => {
               </div>
             </div>
             
-            <Button onClick={handleChangePassword} className="bg-warning hover:bg-warning/90 text-white">
+            <Button 
+              onClick={handleChangePassword} 
+              disabled={loading}
+              className="bg-warning hover:bg-warning/90 text-white"
+            >
               <Save className="mr-2 h-4 w-4" />
-              Alterar Senha
+              {loading ? 'Alterando...' : 'Alterar Senha'}
             </Button>
           </CardContent>
         </Card>

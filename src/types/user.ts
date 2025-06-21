@@ -25,7 +25,19 @@ export interface User {
   fullName?: string;
   telefone?: string;
   ativo?: boolean;
-  verificado?: boolean; // Novo campo para verificação de e-mail
+  verificado?: boolean;
+  imagem_perfil?: string;
+  criado_por?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  usuario_id: string;
+  nome_empresa?: string;
+  cnpj?: string;
+  endereco_completo?: string;
+  criado_em: string;
+  atualizado_em: string;
 }
 
 export interface AuthState {

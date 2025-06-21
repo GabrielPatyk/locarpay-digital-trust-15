@@ -9,14 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      perfil_usuario: {
+        Row: {
+          atualizado_em: string
+          cnpj: string | null
+          criado_em: string
+          endereco_completo: string | null
+          id: string
+          nome_empresa: string | null
+          usuario_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          cnpj?: string | null
+          criado_em?: string
+          endereco_completo?: string | null
+          id?: string
+          nome_empresa?: string | null
+          usuario_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          cnpj?: string | null
+          criado_em?: string
+          endereco_completo?: string | null
+          id?: string
+          nome_empresa?: string | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfil_usuario_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: true
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usuarios: {
         Row: {
           ativo: boolean | null
           atualizado_em: string | null
           cargo: string
           criado_em: string | null
+          criado_por: string | null
           email: string
           id: string
+          imagem_perfil: string | null
           nome: string
           senha: string
           telefone: string | null
@@ -29,8 +69,10 @@ export type Database = {
           atualizado_em?: string | null
           cargo: string
           criado_em?: string | null
+          criado_por?: string | null
           email: string
           id?: string
+          imagem_perfil?: string | null
           nome: string
           senha: string
           telefone?: string | null
@@ -43,8 +85,10 @@ export type Database = {
           atualizado_em?: string | null
           cargo?: string
           criado_em?: string | null
+          criado_por?: string | null
           email?: string
           id?: string
+          imagem_perfil?: string | null
           nome?: string
           senha?: string
           telefone?: string | null
@@ -52,13 +96,25 @@ export type Database = {
           token_verificacao?: string | null
           verificado?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      criar_perfil_usuario_se_necessario: {
+        Args: { p_usuario_id: string }
+        Returns: string
+      }
       gerar_token_verificacao: {
         Args: { usuario_id: string }
         Returns: string

@@ -94,14 +94,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
+      // Buscar dados adicionais do usuário incluindo imagem_perfil
+      const { data: fullUserData, error: fullUserError } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', userData.id)
+        .single();
+
+      if (fullUserError) {
+        console.error('Erro ao buscar dados completos do usuário:', fullUserError);
+        return { success: false };
+      }
+
       const user: User = {
-        id: userData.id,
-        email: userData.email,
-        name: userData.nome,
-        type: userData.cargo as UserType,
-        telefone: userData.telefone,
-        ativo: userData.ativo,
-        verificado: userData.verificado
+        id: fullUserData.id,
+        email: fullUserData.email,
+        name: fullUserData.nome,
+        type: fullUserData.cargo as UserType,
+        telefone: fullUserData.telefone,
+        ativo: fullUserData.ativo,
+        verificado: fullUserData.verificado,
+        imagem_perfil: fullUserData.imagem_perfil,
+        criado_por: fullUserData.criado_por
       };
 
       setUser(user);
