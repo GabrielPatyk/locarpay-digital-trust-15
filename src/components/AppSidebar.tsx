@@ -240,7 +240,7 @@ const AppSidebar = () => {
       ];
     }
 
-    // Menu padrão para admin
+    // Menu atualizado para admin
     return [
       {
         title: 'Dashboard',

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { 
   Users, 
   Search,
@@ -193,6 +193,33 @@ const Admin = () => {
     }
   };
 
+  // Dados para os gráficos
+  const chartDataTipos = [
+    { name: 'Analistas', value: stats.porTipo.analista, color: '#3b82f6' },
+    { name: 'Jurídico', value: stats.porTipo.juridico, color: '#8b5cf6' },
+    { name: 'SDR', value: stats.porTipo.sdr, color: '#f97316' },
+    { name: 'Executivos', value: stats.porTipo.executivo, color: '#10b981' },
+    { name: 'Imobiliárias', value: stats.porTipo.imobiliaria, color: '#eab308' },
+    { name: 'Inquilinos', value: stats.porTipo.inquilino, color: '#6b7280' },
+    { name: 'Financeiro', value: stats.porTipo.financeiro, color: '#14b8a6' },
+  ];
+
+  const crescimentoUsuarios = [
+    { mes: 'Jun', usuarios: 12 },
+    { mes: 'Jul', usuarios: 19 },
+    { mes: 'Ago', usuarios: 24 },
+    { mes: 'Set', usuarios: 31 },
+    { mes: 'Out', usuarios: 38 },
+    { mes: 'Nov', usuarios: 45 },
+    { mes: 'Dez', usuarios: 52 },
+    { mes: 'Jan', usuarios: 67 },
+  ];
+
+  const statusData = [
+    { name: 'Ativos', value: stats.usuariosAtivos, color: '#10b981' },
+    { name: 'Inativos', value: stats.usuariosInativos, color: '#ef4444' },
+  ];
+
   return (
     <Layout title="Gestão de Usuários">
       <div className="space-y-6 animate-fade-in">
@@ -247,24 +274,67 @@ const Admin = () => {
           </Card>
         </div>
 
-        {/* Distribuição por Tipo */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Distribuição por Tipo de Usuário</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-              {Object.entries(stats.porTipo).map(([tipo, count]) => (
-                <div key={tipo} className="text-center">
-                  <div className={`w-12 h-12 rounded-full ${getTipoColor(tipo as UserType)} flex items-center justify-center mx-auto mb-2`}>
-                    <span className="text-white font-bold">{count}</span>
-                  </div>
-                  <p className="text-sm font-medium">{getTipoLabel(tipo as UserType)}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Gráficos */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Distribuição por Tipo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={chartDataTipos}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    dataKey="value"
+                  >
+                    {chartDataTipos.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Status dos Usuários</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={statusData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Crescimento Mensal</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={crescimentoUsuarios}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="usuarios" stroke="#8884d8" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Gestão de Usuários */}
         <Card>
