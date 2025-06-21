@@ -31,12 +31,12 @@ export const useEmailVerification = () => {
         throw new Error('Erro ao gerar token de verificação');
       }
 
-      // Enviar e-mail de verificação
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/send-verification-email`, {
+      // Enviar e-mail de verificação usando a URL direta
+      const response = await fetch('https://jefofujjcqwblavoybfx.supabase.co/functions/v1/send-verification-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZm9mdWpqY3F3Ymxhdm95YmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1MjE0MjgsImV4cCI6MjA2NjA5NzQyOH0._Wei4LC6wfXFcjrmoz7UfZf0l0Y_WjPjdWjHyC26QaA`,
         },
         body: JSON.stringify({
           email,
