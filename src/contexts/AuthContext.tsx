@@ -28,7 +28,7 @@ const mapSupabaseUserToUser = async (supabaseUser: SupabaseUser): Promise<User |
     if (profile) {
       return {
         id: profile.id,
-        email: profile.email || supabaseUser.email || '',
+        email: supabaseUser.email || '',
         name: profile.nome_completo || supabaseUser.email?.split('@')[0] || '',
         type: profile.tipo_usuario,
         fullName: profile.nome_completo || '',

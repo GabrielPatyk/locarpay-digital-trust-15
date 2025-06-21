@@ -31,17 +31,15 @@ export const useSupabaseAuth = () => {
       }
 
       if (authData.user) {
-        // Criar perfil na tabela profiles
+        // Criar perfil na tabela profiles usando apenas os campos que existem
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
             id: authData.user.id,
-            email: email,
             nome_completo: userData.nome_completo,
             tipo_usuario: userData.tipo_usuario,
             telefone: userData.telefone,
-            documento: userData.documento,
-            ativo: true
+            documento: userData.documento
           });
 
         if (profileError) {
