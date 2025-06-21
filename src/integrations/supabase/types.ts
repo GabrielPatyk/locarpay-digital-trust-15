@@ -9,6 +9,123 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      fiancas_locaticias: {
+        Row: {
+          data_atualizacao: string
+          data_criacao: string
+          data_vencimento: string | null
+          id: string
+          id_imobiliaria: string
+          imovel_area_metros: number | null
+          imovel_bairro: string
+          imovel_cidade: string
+          imovel_complemento: string | null
+          imovel_descricao: string | null
+          imovel_endereco: string
+          imovel_estado: string
+          imovel_numero: string
+          imovel_pais: string
+          imovel_tempo_locacao: number
+          imovel_tipo: string
+          imovel_tipo_locacao: string
+          imovel_valor_aluguel: number
+          inquilino_bairro: string
+          inquilino_cidade: string
+          inquilino_complemento: string | null
+          inquilino_cpf: string
+          inquilino_email: string
+          inquilino_endereco: string
+          inquilino_estado: string
+          inquilino_nome_completo: string
+          inquilino_numero: string
+          inquilino_pais: string
+          inquilino_renda_mensal: number
+          inquilino_whatsapp: string
+          status_fianca: Database["public"]["Enums"]["status_fianca"]
+        }
+        Insert: {
+          data_atualizacao?: string
+          data_criacao?: string
+          data_vencimento?: string | null
+          id?: string
+          id_imobiliaria: string
+          imovel_area_metros?: number | null
+          imovel_bairro: string
+          imovel_cidade: string
+          imovel_complemento?: string | null
+          imovel_descricao?: string | null
+          imovel_endereco: string
+          imovel_estado: string
+          imovel_numero: string
+          imovel_pais?: string
+          imovel_tempo_locacao: number
+          imovel_tipo: string
+          imovel_tipo_locacao: string
+          imovel_valor_aluguel: number
+          inquilino_bairro: string
+          inquilino_cidade: string
+          inquilino_complemento?: string | null
+          inquilino_cpf: string
+          inquilino_email: string
+          inquilino_endereco: string
+          inquilino_estado: string
+          inquilino_nome_completo: string
+          inquilino_numero: string
+          inquilino_pais?: string
+          inquilino_renda_mensal: number
+          inquilino_whatsapp: string
+          status_fianca?: Database["public"]["Enums"]["status_fianca"]
+        }
+        Update: {
+          data_atualizacao?: string
+          data_criacao?: string
+          data_vencimento?: string | null
+          id?: string
+          id_imobiliaria?: string
+          imovel_area_metros?: number | null
+          imovel_bairro?: string
+          imovel_cidade?: string
+          imovel_complemento?: string | null
+          imovel_descricao?: string | null
+          imovel_endereco?: string
+          imovel_estado?: string
+          imovel_numero?: string
+          imovel_pais?: string
+          imovel_tempo_locacao?: number
+          imovel_tipo?: string
+          imovel_tipo_locacao?: string
+          imovel_valor_aluguel?: number
+          inquilino_bairro?: string
+          inquilino_cidade?: string
+          inquilino_complemento?: string | null
+          inquilino_cpf?: string
+          inquilino_email?: string
+          inquilino_endereco?: string
+          inquilino_estado?: string
+          inquilino_nome_completo?: string
+          inquilino_numero?: string
+          inquilino_pais?: string
+          inquilino_renda_mensal?: number
+          inquilino_whatsapp?: string
+          status_fianca?: Database["public"]["Enums"]["status_fianca"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiancas_locaticias_id_imobiliaria_fkey"
+            columns: ["id_imobiliaria"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiancas_locaticias_id_imobiliaria_idx"
+            columns: ["id_imobiliaria"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perfil_usuario: {
         Row: {
           atualizado_em: string
@@ -167,6 +284,13 @@ export type Database = {
       }
     }
     Enums: {
+      status_fianca:
+        | "em_analise"
+        | "aprovada"
+        | "rejeitada"
+        | "ativa"
+        | "vencida"
+        | "cancelada"
       tipo_usuario:
         | "inquilino"
         | "analista"
@@ -291,6 +415,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      status_fianca: [
+        "em_analise",
+        "aprovada",
+        "rejeitada",
+        "ativa",
+        "vencida",
+        "cancelada",
+      ],
       tipo_usuario: [
         "inquilino",
         "analista",
