@@ -49,19 +49,69 @@ const Admin = () => {
     telefone: ''
   });
 
-  // Buscar usuários do banco de dados
+  // Buscar usuários do banco de dados com melhor tratamento de erro
   const fetchUsuarios = async () => {
     try {
       setLoading(true);
       console.log('Iniciando busca de usuários...');
       
-      const { data, error } = await supabase
+      // Primeiro, vamos verificar se o usuário está autenticado
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Erro de sessão:', sessionError);
+        toast({
+          title: "Erro de autenticação",
+          description: "Você precisa estar logado para acessar esta página.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!session) {
+        console.log('Usuário não autenticado');
+        toast({
+          title: "Acesso negado",
+          description: "Você precisa fazer login para acessar esta página.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Usuário autenticado:', session.user.email);
+
+      // Tentar buscar os usuários
+      const { data, error, count } = await supabase
         .from('usuarios')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('criado_em', { ascending: false });
+
+      console.log('Resposta da consulta:', { data, error, count });
 
       if (error) {
         console.error('Erro ao buscar usuários:', error);
+        
+        // Se for erro de política RLS, vamos tentar uma abordagem diferente
+        if (error.code === '42501' || error.message.includes('policy')) {
+          console.log('Tentando busca sem RLS para debug...');
+          
+          // Vamos verificar se existem dados na tabela
+          const { data: userData, error: userError } = await supabase
+            .rpc('validar_login', { 
+              email_input: session.user.email || '', 
+              senha_input: '' 
+            });
+
+          console.log('Resultado da validação:', { userData, userError });
+          
+          toast({
+            title: "Erro de permissão",
+            description: "Você não tem permissão para visualizar os usuários. Verifique se você é um administrador.",
+            variant: "destructive"
+          });
+          return;
+        }
+        
         toast({
           title: "Erro",
           description: `Erro ao carregar usuários: ${error.message}`,
@@ -71,6 +121,16 @@ const Admin = () => {
       }
 
       console.log('Dados recebidos:', data);
+      console.log('Total de registros:', count);
+
+      if (!data || data.length === 0) {
+        console.log('Nenhum usuário encontrado na base de dados');
+        toast({
+          title: "Aviso",
+          description: "Nenhum usuário encontrado na base de dados. Você pode criar o primeiro usuário.",
+          variant: "default"
+        });
+      }
 
       // Fazer o cast do campo cargo para UserType
       const usuariosFormatados = data?.map(usuario => ({
@@ -658,7 +718,10 @@ const Admin = () => {
                   <Users className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum usuário encontrado</h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Tente ajustar os filtros ou termos de busca.
+                    {usuarios.length === 0 
+                      ? "Não há usuários cadastrados na plataforma. Crie o primeiro usuário usando o botão 'Novo Usuário'."
+                      : "Tente ajustar os filtros ou termos de busca."
+                    }
                   </p>
                 </div>
               )}
