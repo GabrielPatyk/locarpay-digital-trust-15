@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -222,178 +223,186 @@ const Admin = () => {
 
   return (
     <Layout title="Gestão de Usuários">
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 lg:space-y-6 animate-fade-in max-w-full overflow-hidden">
         {/* Dashboard Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+          <Card className="min-w-0">
+            <CardContent className="p-3 lg:p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Usuários</p>
-                  <p className="text-2xl font-bold text-primary">{stats.totalUsuarios}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs lg:text-sm font-medium text-gray-600 truncate">Total Usuários</p>
+                  <p className="text-lg lg:text-2xl font-bold text-primary">{stats.totalUsuarios}</p>
                 </div>
-                <Users className="h-8 w-8 text-primary" />
+                <Users className="h-6 w-6 lg:h-8 lg:w-8 text-primary flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="p-4">
+          <Card className="min-w-0">
+            <CardContent className="p-3 lg:p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Usuários Ativos</p>
-                  <p className="text-2xl font-bold text-green-500">{stats.usuariosAtivos}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs lg:text-sm font-medium text-gray-600 truncate">Usuários Ativos</p>
+                  <p className="text-lg lg:text-2xl font-bold text-green-500">{stats.usuariosAtivos}</p>
                 </div>
-                <UserPlus className="h-8 w-8 text-green-500" />
+                <UserPlus className="h-6 w-6 lg:h-8 lg:w-8 text-green-500 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="p-4">
+          <Card className="min-w-0">
+            <CardContent className="p-3 lg:p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Usuários Inativos</p>
-                  <p className="text-2xl font-bold text-red-500">{stats.usuariosInativos}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs lg:text-sm font-medium text-gray-600 truncate">Usuários Inativos</p>
+                  <p className="text-lg lg:text-2xl font-bold text-red-500">{stats.usuariosInativos}</p>
                 </div>
-                <Users className="h-8 w-8 text-red-500" />
+                <Users className="h-6 w-6 lg:h-8 lg:w-8 text-red-500 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="p-4">
+          <Card className="min-w-0">
+            <CardContent className="p-3 lg:p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Imobiliárias</p>
-                  <p className="text-2xl font-bold text-yellow-500">{stats.porTipo.imobiliaria}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs lg:text-sm font-medium text-gray-600 truncate">Imobiliárias</p>
+                  <p className="text-lg lg:text-2xl font-bold text-yellow-500">{stats.porTipo.imobiliaria}</p>
                 </div>
-                <Users className="h-8 w-8 text-yellow-500" />
+                <Users className="h-6 w-6 lg:h-8 lg:w-8 text-yellow-500 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Distribuição por Tipo</CardTitle>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          <Card className="min-w-0">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm lg:text-base">Distribuição por Tipo</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={chartDataTipos}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    dataKey="value"
-                  >
-                    {chartDataTipos.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+            <CardContent className="p-2 lg:p-4">
+              <div className="w-full h-48 lg:h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={chartDataTipos}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={30}
+                      outerRadius={60}
+                      dataKey="value"
+                    >
+                      {chartDataTipos.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Status dos Usuários</CardTitle>
+          <Card className="min-w-0">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm lg:text-base">Status dos Usuários</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={statusData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
+            <CardContent className="p-2 lg:p-4">
+              <div className="w-full h-48 lg:h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={statusData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Crescimento Mensal</CardTitle>
+          <Card className="min-w-0">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm lg:text-base">Crescimento Mensal</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={crescimentoUsuarios}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="usuarios" stroke="#8884d8" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
+            <CardContent className="p-2 lg:p-4">
+              <div className="w-full h-48 lg:h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={crescimentoUsuarios}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="usuarios" stroke="#8884d8" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Gestão de Usuários */}
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="flex items-center">
-                  <Users className="mr-2 h-5 w-5" />
-                  Gestão de Usuários
+            <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+              <div className="min-w-0">
+                <CardTitle className="flex items-center text-base lg:text-lg">
+                  <Users className="mr-2 h-4 w-4 lg:h-5 lg:w-5 flex-shrink-0" />
+                  <span className="truncate">Gestão de Usuários</span>
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs lg:text-sm">
                   Gerencie todos os usuários da plataforma
                 </CardDescription>
               </div>
               
               <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90">
+                  <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto text-sm">
                     <Plus className="mr-2 h-4 w-4" />
                     Novo Usuário
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="w-[95vw] max-w-md mx-auto">
                   <DialogHeader>
-                    <DialogTitle>Criar Novo Usuário</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle className="text-base">Criar Novo Usuário</DialogTitle>
+                    <DialogDescription className="text-sm">
                       Preencha os dados para criar um novo usuário na plataforma.
                     </DialogDescription>
                   </DialogHeader>
                   
-                  <div className="grid gap-4 py-4">
+                  <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
                     <div className="grid gap-2">
-                      <Label htmlFor="nome">Nome Completo</Label>
+                      <Label htmlFor="nome" className="text-sm">Nome Completo</Label>
                       <Input
                         id="nome"
                         value={novoUsuario.nome}
                         onChange={(e) => setNovoUsuario(prev => ({ ...prev, nome: e.target.value }))}
                         placeholder="Digite o nome completo"
+                        className="text-sm"
                       />
                     </div>
                     
                     <div className="grid gap-2">
-                      <Label htmlFor="email">E-mail</Label>
+                      <Label htmlFor="email" className="text-sm">E-mail</Label>
                       <Input
                         id="email"
                         type="email"
                         value={novoUsuario.email}
                         onChange={(e) => setNovoUsuario(prev => ({ ...prev, email: e.target.value }))}
                         placeholder="Digite o e-mail"
+                        className="text-sm"
                       />
                     </div>
                     
                     <div className="grid gap-2">
-                      <Label htmlFor="tipo">Tipo de Usuário</Label>
+                      <Label htmlFor="tipo" className="text-sm">Tipo de Usuário</Label>
                       <Select 
                         value={novoUsuario.tipo} 
                         onValueChange={(value: UserType) => setNovoUsuario(prev => ({ ...prev, tipo: value }))}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -409,22 +418,23 @@ const Admin = () => {
                     </div>
                     
                     <div className="grid gap-2">
-                      <Label htmlFor="senha">Senha Temporária</Label>
+                      <Label htmlFor="senha" className="text-sm">Senha Temporária</Label>
                       <Input
                         id="senha"
                         type="password"
                         value={novoUsuario.senha}
                         onChange={(e) => setNovoUsuario(prev => ({ ...prev, senha: e.target.value }))}
                         placeholder="Digite uma senha temporária"
+                        className="text-sm"
                       />
                     </div>
                   </div>
                   
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                  <DialogFooter className="flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+                    <Button variant="outline" onClick={() => setIsCreateModalOpen(false)} className="w-full sm:w-auto text-sm">
                       Cancelar
                     </Button>
-                    <Button onClick={criarUsuario}>
+                    <Button onClick={criarUsuario} className="w-full sm:w-auto text-sm">
                       Criar Usuário
                     </Button>
                   </DialogFooter>
@@ -433,20 +443,20 @@ const Admin = () => {
             </div>
             
             {/* Filtros */}
-            <div className="flex flex-col md:flex-row gap-4 mt-4">
-              <div className="relative flex-1">
+            <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:space-x-4 mt-4">
+              <div className="relative flex-1 min-w-0">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Buscar por nome ou e-mail..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 text-sm"
                 />
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2 lg:flex-shrink-0">
                 <Select value={filterTipo} onValueChange={setFilterTipo}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px] text-sm">
                     <Filter className="mr-2 h-4 w-4" />
                     <SelectValue placeholder="Filtrar por tipo" />
                   </SelectTrigger>
@@ -463,7 +473,7 @@ const Admin = () => {
                 </Select>
                 
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-full sm:w-[150px] text-sm">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -477,49 +487,51 @@ const Admin = () => {
           </CardHeader>
           
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 lg:space-y-4">
               {filteredUsuarios.map((usuario) => (
                 <div
                   key={usuario.id}
-                  className="p-4 rounded-lg border hover:shadow-md transition-shadow"
+                  className="p-3 lg:p-4 rounded-lg border hover:shadow-md transition-shadow min-w-0"
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-medium text-gray-900">{usuario.nome}</h4>
-                        <Badge className={`${getTipoColor(usuario.tipo)} text-white`}>
-                          {getTipoLabel(usuario.tipo)}
-                        </Badge>
-                        <Badge className={`${getStatusColor(usuario.status)} text-white`}>
-                          {usuario.status === 'ativo' ? 'Ativo' : 'Inativo'}
-                        </Badge>
+                  <div className="flex flex-col space-y-3 lg:flex-row lg:justify-between lg:items-start lg:space-y-0 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3 mb-2">
+                        <h4 className="font-medium text-gray-900 text-sm lg:text-base truncate">{usuario.nome}</h4>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge className={`${getTipoColor(usuario.tipo)} text-white text-xs`}>
+                            {getTipoLabel(usuario.tipo)}
+                          </Badge>
+                          <Badge className={`${getStatusColor(usuario.status)} text-white text-xs`}>
+                            {usuario.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600">{usuario.email}</p>
+                      <p className="text-xs lg:text-sm text-gray-600 truncate">{usuario.email}</p>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                    <div>
-                      <p className="text-sm text-gray-500">Último Acesso</p>
-                      <p className="text-sm font-medium">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 mb-3">
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500">Último Acesso</p>
+                      <p className="text-xs lg:text-sm font-medium truncate">
                         {new Date(usuario.ultimoAcesso).toLocaleString()}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Data de Criação</p>
-                      <p className="text-sm font-medium">
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500">Data de Criação</p>
+                      <p className="text-xs lg:text-sm font-medium">
                         {new Date(usuario.dataCreacao).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="mr-2 h-4 w-4" />
-                      Ver Detalhes
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" className="text-xs">
+                      <Eye className="mr-1 h-3 w-3" />
+                      Ver
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Edit className="mr-2 h-4 w-4" />
+                    <Button variant="outline" size="sm" className="text-xs">
+                      <Edit className="mr-1 h-3 w-3" />
                       Editar
                     </Button>
                     <Button
@@ -529,11 +541,12 @@ const Admin = () => {
                         usuario.id, 
                         usuario.status === 'ativo' ? 'inativo' : 'ativo'
                       )}
+                      className="text-xs"
                     >
                       {usuario.status === 'ativo' ? 'Desativar' : 'Ativar'}
                     </Button>
-                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                      <Trash2 className="mr-2 h-4 w-4" />
+                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 text-xs">
+                      <Trash2 className="mr-1 h-3 w-3" />
                       Excluir
                     </Button>
                   </div>
