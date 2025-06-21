@@ -1,10 +1,10 @@
+
 import React from 'react';
 import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
-  AppSidebar,
-} from "@/components/sidebar"
+} from "@/components/ui/sidebar"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,10 +12,11 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/breadcrumb"
+} from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import ProfileCompletionCheck from '@/components/ProfileCompletionCheck';
+import { AppSidebar } from '@/components/AppSidebar';
 
 import { Bell } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';

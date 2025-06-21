@@ -2,8 +2,6 @@
 import { useState } from 'react';
 
 export const usePhoneFormatter = (initialValue: string = '') => {
-  const [formattedValue, setFormattedValue] = useState(formatPhone(initialValue));
-
   const formatPhone = (value: string): string => {
     // Remove todos os caracteres não numéricos
     const numbers = value.replace(/\D/g, '');
@@ -25,6 +23,8 @@ export const usePhoneFormatter = (initialValue: string = '') => {
     }
   };
 
+  const [formattedValue, setFormattedValue] = useState(formatPhone(initialValue));
+
   const handleChange = (value: string) => {
     const formatted = formatPhone(value);
     setFormattedValue(formatted);
@@ -44,6 +44,7 @@ export const usePhoneFormatter = (initialValue: string = '') => {
     handleChange,
     getUnformattedValue,
     isValid,
-    setFormattedValue
+    setFormattedValue,
+    formatPhone
   };
 };
