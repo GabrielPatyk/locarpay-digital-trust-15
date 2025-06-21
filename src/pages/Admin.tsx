@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,17 +50,17 @@ const Admin = () => {
     telefone: ''
   });
 
-  // Buscar usuários do banco de dados com melhor tratamento de erro
+  // Buscar usuários do banco de dados
   const fetchUsuarios = async () => {
     try {
       setLoading(true);
       console.log('Iniciando busca de usuários...');
       
-      // Primeiro, vamos verificar se o usuário está autenticado
+      // Verificar autenticação
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (sessionError) {
-        console.error('Erro de sessão:', sessionError);
+      if (sessionError || !session) {
+        console.error('Erro de sessão ou usuário não autenticado');
         toast({
           title: "Erro de autenticação",
           description: "Você precisa estar logado para acessar esta página.",
@@ -68,19 +69,9 @@ const Admin = () => {
         return;
       }
 
-      if (!session) {
-        console.log('Usuário não autenticado');
-        toast({
-          title: "Acesso negado",
-          description: "Você precisa fazer login para acessar esta página.",
-          variant: "destructive"
-        });
-        return;
-      }
-
       console.log('Usuário autenticado:', session.user.email);
 
-      // Tentar buscar os usuários
+      // Buscar usuários
       const { data, error, count } = await supabase
         .from('usuarios')
         .select('*', { count: 'exact' })
@@ -91,32 +82,19 @@ const Admin = () => {
       if (error) {
         console.error('Erro ao buscar usuários:', error);
         
-        // Se for erro de política RLS, vamos tentar uma abordagem diferente
         if (error.code === '42501' || error.message.includes('policy')) {
-          console.log('Tentando busca sem RLS para debug...');
-          
-          // Vamos verificar se existem dados na tabela
-          const { data: userData, error: userError } = await supabase
-            .rpc('validar_login', { 
-              email_input: session.user.email || '', 
-              senha_input: '' 
-            });
-
-          console.log('Resultado da validação:', { userData, userError });
-          
           toast({
             title: "Erro de permissão",
             description: "Você não tem permissão para visualizar os usuários. Verifique se você é um administrador.",
             variant: "destructive"
           });
-          return;
+        } else {
+          toast({
+            title: "Erro",
+            description: `Erro ao carregar usuários: ${error.message}`,
+            variant: "destructive"
+          });
         }
-        
-        toast({
-          title: "Erro",
-          description: `Erro ao carregar usuários: ${error.message}`,
-          variant: "destructive"
-        });
         return;
       }
 
@@ -132,7 +110,7 @@ const Admin = () => {
         });
       }
 
-      // Fazer o cast do campo cargo para UserType
+      // Formatar usuários
       const usuariosFormatados = data?.map(usuario => ({
         ...usuario,
         cargo: usuario.cargo as UserType
@@ -141,7 +119,7 @@ const Admin = () => {
       console.log('Usuários formatados:', usuariosFormatados);
       setUsuarios(usuariosFormatados);
     } catch (err) {
-      console.error('Erro:', err);
+      console.error('Erro inesperado:', err);
       toast({
         title: "Erro",
         description: "Erro inesperado ao carregar usuários.",
@@ -169,13 +147,30 @@ const Admin = () => {
     try {
       console.log('Criando usuário:', novoUsuario);
       
+      // Primeiro, vamos gerar o hash da senha usando a função do Supabase
+      const { data: hashedPassword, error: hashError } = await supabase
+        .rpc('hash_password', { password: novoUsuario.senha });
+
+      if (hashError) {
+        console.error('Erro ao gerar hash da senha:', hashError);
+        toast({
+          title: "Erro",
+          description: "Erro ao processar a senha.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Hash da senha gerado com sucesso');
+      
+      // Criar o usuário com a senha hasheada
       const { data, error } = await supabase
         .from('usuarios')
         .insert([
           {
             nome: novoUsuario.nome,
             email: novoUsuario.email,
-            senha: novoUsuario.senha,
+            senha: hashedPassword,
             cargo: novoUsuario.tipo,
             telefone: novoUsuario.telefone || null,
             ativo: true
@@ -185,13 +180,26 @@ const Admin = () => {
 
       if (error) {
         console.error('Erro ao criar usuário:', error);
-        toast({
-          title: "Erro",
-          description: error.message.includes('duplicate') 
-            ? "Este e-mail já está em uso."
-            : `Erro ao criar usuário: ${error.message}`,
-          variant: "destructive"
-        });
+        
+        if (error.code === '23505' && error.message.includes('duplicate')) {
+          toast({
+            title: "Erro",
+            description: "Este e-mail já está em uso.",
+            variant: "destructive"
+          });
+        } else if (error.code === '42501') {
+          toast({
+            title: "Erro de permissão",
+            description: "Você não tem permissão para criar usuários. Verifique se você é um administrador.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: `Erro ao criar usuário: ${error.message}`,
+            variant: "destructive"
+          });
+        }
         return;
       }
 
@@ -205,7 +213,7 @@ const Admin = () => {
       setNovoUsuario({ nome: '', email: '', tipo: 'inquilino', senha: '', telefone: '' });
       fetchUsuarios(); // Recarregar lista
     } catch (err) {
-      console.error('Erro:', err);
+      console.error('Erro inesperado:', err);
       toast({
         title: "Erro",
         description: "Erro inesperado ao criar usuário.",
@@ -504,7 +512,7 @@ const Admin = () => {
                     Novo Usuário
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-[95vw] max-w-md mx-auto">
+                <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="text-base">Criar Novo Usuário</DialogTitle>
                     <DialogDescription className="text-sm">
@@ -512,8 +520,8 @@ const Admin = () => {
                     </DialogDescription>
                   </DialogHeader>
                   
-                  <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
-                    <div className="grid gap-2">
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
                       <Label htmlFor="nome" className="text-sm">Nome Completo</Label>
                       <Input
                         id="nome"
@@ -524,7 +532,7 @@ const Admin = () => {
                       />
                     </div>
                     
-                    <div className="grid gap-2">
+                    <div className="space-y-2">
                       <Label htmlFor="email" className="text-sm">E-mail</Label>
                       <Input
                         id="email"
@@ -536,7 +544,7 @@ const Admin = () => {
                       />
                     </div>
                     
-                    <div className="grid gap-2">
+                    <div className="space-y-2">
                       <Label htmlFor="telefone" className="text-sm">Telefone (opcional)</Label>
                       <Input
                         id="telefone"
@@ -547,7 +555,7 @@ const Admin = () => {
                       />
                     </div>
                     
-                    <div className="grid gap-2">
+                    <div className="space-y-2">
                       <Label htmlFor="tipo" className="text-sm">Tipo de Usuário</Label>
                       <Select 
                         value={novoUsuario.tipo} 
@@ -570,7 +578,7 @@ const Admin = () => {
                       </Select>
                     </div>
                     
-                    <div className="grid gap-2">
+                    <div className="space-y-2">
                       <Label htmlFor="senha" className="text-sm">Senha</Label>
                       <Input
                         id="senha"

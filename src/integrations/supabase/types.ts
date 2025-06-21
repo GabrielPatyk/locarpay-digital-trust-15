@@ -50,8 +50,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_current_user: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          user_email: string
+          user_cargo: string
+        }[]
+      }
       get_current_user_id: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      hash_password: {
+        Args: { password: string }
         Returns: string
       }
       is_admin: {
@@ -68,6 +80,10 @@ export type Database = {
           cargo: string
           ativo: boolean
         }[]
+      }
+      verify_password: {
+        Args: { password: string; hash: string }
+        Returns: boolean
       }
     }
     Enums: {
