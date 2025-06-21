@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -46,6 +45,10 @@ const Login = () => {
 
   const handleForgotPassword = () => {
     navigate('/forgot-password');
+  };
+
+  const handlePartnerRegistration = () => {
+    window.open('https://locarpay.com.br/seja-um-parceiro', '_blank');
   };
 
   const demoUsers = [
@@ -196,7 +199,10 @@ const Login = () => {
                   <p className="text-[#0C1C2E] font-semibold text-sm">
                     Quer se tornar parceiro? 
                     <br />
-                    <span className="underline cursor-pointer hover:text-[#0C1C2E]/80 transition-colors">
+                    <span 
+                      className="underline cursor-pointer hover:text-[#0C1C2E]/80 transition-colors"
+                      onClick={handlePartnerRegistration}
+                    >
                       Cadastre-se aqui!
                     </span>
                   </p>
