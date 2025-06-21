@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { AlertCircle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 const ProfileCompletionCheck: React.FC = () => {
   const { user } = useAuth();
@@ -20,7 +20,7 @@ const ProfileCompletionCheck: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const [showDialog, setShowDialog] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     if (user?.type === 'imobiliaria' && profile && location.pathname !== '/configuracoes-imobiliaria') {
@@ -38,39 +38,44 @@ const ProfileCompletionCheck: React.FC = () => {
       const hasEmptyFields = requiredFields.some(field => !field || field.trim() === '');
 
       if (hasEmptyFields) {
-        setShowDialog(true);
+        setShowModal(true);
       }
     }
   }, [user, profile, location.pathname]);
 
   const handleGoToSettings = () => {
-    setShowDialog(false);
+    setShowModal(false);
     navigate('/configuracoes-imobiliaria');
   };
 
-  if (!showDialog) return null;
+  const handleClose = () => {
+    setShowModal(false);
+    toast({
+      title: "Atenção",
+      description: "Você precisa completar o cadastro da empresa para usar todas as funcionalidades da plataforma.",
+      variant: "destructive",
+    });
+  };
 
   return (
-    <Dialog open={showDialog} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+    <Dialog open={showModal} onOpenChange={() => {}}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-yellow-100 rounded-full">
-            <AlertCircle className="w-6 h-6 text-yellow-600" />
-          </div>
-          <DialogTitle className="text-center">
-            Dados Cadastrais Pendentes
+          <DialogTitle className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-5 w-5" />
+            Cadastro Incompleto
           </DialogTitle>
-          <DialogDescription className="text-center">
-            Você precisa completar o cadastro da sua empresa para continuar usando a plataforma. 
-            Por favor, preencha todos os dados obrigatórios.
+          <DialogDescription className="text-center pt-4">
+            Para utilizar a plataforma, é necessário completar o cadastro da sua empresa.
+            Alguns dados obrigatórios ainda não foram preenchidos.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex justify-center mt-6">
-          <Button 
-            onClick={handleGoToSettings}
-            className="bg-primary hover:bg-primary/90 w-full"
-          >
+        <div className="flex flex-col gap-3 pt-4">
+          <Button onClick={handleGoToSettings} className="w-full">
             Completar Cadastro
+          </Button>
+          <Button variant="outline" onClick={handleClose} className="w-full">
+            Lembrar Depois
           </Button>
         </div>
       </DialogContent>
