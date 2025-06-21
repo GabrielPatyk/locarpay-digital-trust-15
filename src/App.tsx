@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -50,6 +49,12 @@ import ContratosJuridico from "./pages/ContratosJuridico";
 import Processos from "./pages/Processos";
 import Documentos from "./pages/Documentos";
 import ConfiguracoesJuridico from "./pages/ConfiguracoesJuridico";
+
+// Analista Pages
+import Analises from "./pages/Analises";
+import Clientes from "./pages/Clientes";
+import RelatoriosAnalista from "./pages/RelatoriosAnalista";
+import ConfiguracoesAnalista from "./pages/ConfiguracoesAnalista";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +112,31 @@ const AppContent = () => {
           <Route path="/analista" element={
             <ProtectedRoute allowedRoles={['analista', 'admin']}>
               <Analista />
+            </ProtectedRoute>
+          } />
+
+          {/* Analista specific routes */}
+          <Route path="/analises" element={
+            <ProtectedRoute allowedRoles={['analista', 'admin']}>
+              <Analises />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/clientes" element={
+            <ProtectedRoute allowedRoles={['analista', 'admin']}>
+              <Clientes />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/relatorios-analista" element={
+            <ProtectedRoute allowedRoles={['analista', 'admin']}>
+              <RelatoriosAnalista />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/configuracoes-analista" element={
+            <ProtectedRoute allowedRoles={['analista', 'admin']}>
+              <ConfiguracoesAnalista />
             </ProtectedRoute>
           } />
           

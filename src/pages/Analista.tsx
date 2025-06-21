@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,7 @@ interface Proposal {
 }
 
 const Analista = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
   const [isConsultingScore, setIsConsultingScore] = useState(false);
@@ -151,9 +153,32 @@ const Analista = () => {
   const approvedCount = proposals.filter(p => p.status === 'aprovado').length;
   const rejectedCount = proposals.filter(p => p.status === 'reprovado').length;
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Bom dia';
+    if (hour < 18) return 'Boa tarde';
+    return 'Boa noite';
+  };
+
   return (
-    <Layout title="Analista de Conta">
+    <Layout title="Dashboard - Analista">
       <div className="space-y-6 animate-fade-in">
+        {/* Welcome Container */}
+        <div className="relative overflow-hidden rounded-xl p-6" style={{
+          background: 'linear-gradient(135deg, #F4D573, #BC942C)',
+        }}>
+          <div className="relative z-10">
+            <h1 className="text-2xl font-bold text-[#0C1C2E] mb-2">
+              {getGreeting()}, {user?.name}! 👋
+            </h1>
+            <p className="text-[#0C1C2E]/80">
+              Bem-vindo ao seu painel de análise de crédito. Você tem {pendingCount} {pendingCount === 1 ? 'proposta pendente' : 'propostas pendentes'} para análise.
+            </p>
+          </div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+        </div>
+
         {/* Header Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>

@@ -69,6 +69,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         redirectPath = '/executivo';
       } else if (foundUser.type === 'juridico') {
         redirectPath = '/juridico';
+      } else if (foundUser.type === 'analista') {
+        redirectPath = '/analista';
       }
       
       return { success: true, redirectPath };
