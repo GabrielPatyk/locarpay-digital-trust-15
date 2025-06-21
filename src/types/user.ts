@@ -7,7 +7,8 @@ export type UserType =
   | 'imobiliaria'
   | 'inquilino'
   | 'financeiro'
-  | 'admin';
+  | 'admin'
+  | 'corretor';
 
 export interface User {
   id: string;
@@ -23,6 +24,8 @@ export interface User {
   cnpj?: string;
   address?: string;
   fullName?: string;
+  telefone?: string;
+  ativo?: boolean;
 }
 
 export interface AuthState {
