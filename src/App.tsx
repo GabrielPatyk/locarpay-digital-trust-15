@@ -181,6 +181,25 @@ const AppContent = () => {
               <SDR />
             </ProtectedRoute>
           } />
+
+          {/* SDR specific routes */}
+          <Route path="/leads" element={
+            <ProtectedRoute allowedRoles={['sdr', 'admin']}>
+              <Leads />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/campanhas" element={
+            <ProtectedRoute allowedRoles={['sdr', 'admin']}>
+              <Campanhas />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/relatorios-sdr" element={
+            <ProtectedRoute allowedRoles={['sdr', 'admin']}>
+              <RelatoriosSDR />
+            </ProtectedRoute>
+          } />
           
           <Route path="/executivo" element={
             <ProtectedRoute allowedRoles={['executivo', 'admin']}>
