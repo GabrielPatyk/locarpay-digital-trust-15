@@ -1,49 +1,40 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, AuthState, UserType } from '@/types/user';
 
-interface AuthContextType extends AuthState {
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  type: 'inquilino' | 'imobiliaria' | 'analista' | 'juridico' | 'sdr' | 'executivo' | 'financeiro' | 'admin';
+}
+
+interface AuthContextType {
+  user: User | null;
   login: (email: string, password: string) => Promise<{ success: boolean; redirectPath?: string }>;
   logout: () => void;
-  updateUser: (user: User) => void;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for demonstration
 const mockUsers: User[] = [
-  { id: '1', email: 'analista@locarpay.com', name: 'Maria Silva', type: 'analista' },
-  { id: '2', email: 'juridico@locarpay.com', name: 'Dr. João Santos', type: 'juridico' },
-  { id: '3', email: 'sdr@locarpay.com', name: 'Carlos Oliveira', type: 'sdr' },
-  { id: '4', email: 'executivo@locarpay.com', name: 'Ana Costa', type: 'executivo' },
-  { 
-    id: '5', 
-    email: 'imobiliaria@exemplo.com', 
-    name: 'Imobiliária Prime', 
-    type: 'imobiliaria',
-    firstLogin: true,
-    contractAccepted: false,
-    companyName: 'Imobiliária Prime Ltda',
-    cnpj: '12.345.678/0001-90',
-    address: 'Rua das Palmeiras, 456 - Centro, São Paulo/SP',
-    fullName: 'Roberto Silva'
-  },
-  { id: '6', email: 'inquilino@exemplo.com', name: 'Pedro Almeida', type: 'inquilino' },
-  { id: '7', email: 'financeiro@locarpay.com', name: 'Lucas Ferreira', type: 'financeiro' },
-  { id: '8', email: 'admin@locarpay.com', name: 'Administrador', type: 'admin' },
+  { id: '1', name: 'João Silva', email: 'inquilino@exemplo.com', type: 'inquilino' },
+  { id: '2', name: 'Imobiliária Prime', email: 'imobiliaria@exemplo.com', type: 'imobiliaria' },
+  { id: '3', name: 'Ana Costa', email: 'analista@locarpay.com', type: 'analista' },
+  { id: '4', name: 'Carlos Mendes', email: 'juridico@locarpay.com', type: 'juridico' },
+  { id: '5', name: 'Maria Santos', email: 'sdr@locarpay.com', type: 'sdr' },
+  { id: '6', name: 'Pedro Lima', email: 'executivo@locarpay.com', type: 'executivo' },
+  { id: '7', name: 'Lucas Oliveira', email: 'financeiro@locarpay.com', type: 'financeiro' },
+  { id: '8', name: 'Admin Sistema', email: 'admin@locarpay.com', type: 'admin' },
 ];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Check for stored user session
-    const storedUser = localStorage.getItem('locarpay_user');
+    const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      setIsAuthenticated(true);
+      setUser(JSON.parse(storedUser));
     }
   }, []);
 
@@ -52,51 +43,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     const foundUser = mockUsers.find(u => u.email === email);
+    
     if (foundUser && password === '123456') {
       setUser(foundUser);
-      setIsAuthenticated(true);
-      localStorage.setItem('locarpay_user', JSON.stringify(foundUser));
+      localStorage.setItem('user', JSON.stringify(foundUser));
       
       // Define redirect path based on user type
-      let redirectPath = '/dashboard';
-      if (foundUser.type === 'inquilino') {
-        redirectPath = '/inquilino';
-      } else if (foundUser.type === 'financeiro') {
-        redirectPath = '/financeiro';
-      } else if (foundUser.type === 'imobiliaria') {
-        redirectPath = '/imobiliaria';
-      } else if (foundUser.type === 'executivo') {
-        redirectPath = '/executivo';
-      } else if (foundUser.type === 'juridico') {
-        redirectPath = '/juridico';
-      } else if (foundUser.type === 'analista') {
-        redirectPath = '/analista';
-      }
+      const redirectPaths = {
+        inquilino: '/inquilino',
+        imobiliaria: '/imobiliaria',
+        analista: '/analista',
+        juridico: '/juridico',
+        sdr: '/sdr',
+        executivo: '/executivo',
+        financeiro: '/financeiro',
+        admin: '/dashboard'
+      };
       
-      return { success: true, redirectPath };
+      return { 
+        success: true, 
+        redirectPath: redirectPaths[foundUser.type] 
+      };
     }
+    
     return { success: false };
   };
 
   const logout = () => {
     setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('locarpay_user');
+    localStorage.removeItem('user');
   };
 
-  const updateUser = (updatedUser: User) => {
-    setUser(updatedUser);
-    localStorage.setItem('locarpay_user', JSON.stringify(updatedUser));
-  };
+  const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      login,
-      logout,
-      updateUser
-    }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

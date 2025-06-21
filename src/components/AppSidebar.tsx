@@ -150,7 +150,7 @@ const AppSidebar = () => {
         {
           title: 'Relatórios',
           url: '/relatorios-sdr',
-          icon: ClipboardList,
+          icon: BarChart3,
         },
       ];
     }

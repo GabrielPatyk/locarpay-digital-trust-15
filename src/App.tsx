@@ -56,6 +56,11 @@ import Clientes from "./pages/Clientes";
 import RelatoriosAnalista from "./pages/RelatoriosAnalista";
 import ConfiguracoesAnalista from "./pages/ConfiguracoesAnalista";
 
+// SDR Pages
+import Leads from "./pages/Leads";
+import Campanhas from "./pages/Campanhas";
+import RelatoriosSDR from "./pages/RelatoriosSDR";
+
 const queryClient = new QueryClient();
 
 const AppContent = () => {
