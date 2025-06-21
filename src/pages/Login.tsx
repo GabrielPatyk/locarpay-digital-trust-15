@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,14 +52,15 @@ const Login = () => {
   };
 
   const demoUsers = [
-    { type: 'Analista', email: 'analista@locarpay.com' },
-    { type: 'Jurídico', email: 'juridico@locarpay.com' },
-    { type: 'SDR', email: 'sdr@locarpay.com' },
-    { type: 'Executivo', email: 'executivo@locarpay.com' },
-    { type: 'Imobiliária', email: 'imobiliaria@exemplo.com' },
-    { type: 'Inquilino', email: 'inquilino@exemplo.com' },
-    { type: 'Financeiro', email: 'financeiro@locarpay.com' },
-    { type: 'Admin', email: 'admin@locarpay.com' },
+    { type: 'Analista', email: 'analista@locarpay.com.br' },
+    { type: 'Jurídico', email: 'juridico@locarpay.com.br' },
+    { type: 'SDR', email: 'sdr@locarpay.com.br' },
+    { type: 'Executivo', email: 'executivo@locarpay.com.br' },
+    { type: 'Imobiliária', email: 'imobiliaria@locarpay.com.br' },
+    { type: 'Inquilino', email: 'inquilino@locarpay.com.br' },
+    { type: 'Financeiro', email: 'financeiro@locarpay.com.br' },
+    { type: 'Admin', email: 'admin@locarpay.com.br' },
+    { type: 'Corretor', email: 'corretor@locarpay.com.br' },
   ];
 
   return (
