@@ -193,11 +193,6 @@ const AppSidebar = () => {
           icon: Home,
         },
         {
-          title: 'Fianças',
-          url: '/fiancas-imobiliaria',
-          icon: FileText,
-        },
-        {
           title: 'Inquilinos',
           url: '/inquilinos-imobiliaria',
           icon: Users,
