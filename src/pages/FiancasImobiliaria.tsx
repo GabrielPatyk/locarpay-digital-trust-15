@@ -569,7 +569,7 @@ const FiancasImobiliaria = () => {
                 </DialogContent>
               </Dialog>
             </div>
-          </CardHeader>
+          </CardContent>
           
           <CardContent>
             <div className="flex flex-col md:flex-row gap-4 mb-4">
