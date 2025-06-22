@@ -29,7 +29,7 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={undefined}>
-      <DialogContent className="sm:max-w-md" hideClose>
+      <DialogContent className="sm:max-w-md [&>button]:hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center text-red-600">
             <AlertTriangle className="mr-2 h-5 w-5" />
