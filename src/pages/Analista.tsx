@@ -11,6 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import EditScoreModal from '@/components/EditScoreModal';
+import RejectReasonModal from '@/components/RejectReasonModal';
+import AnalysisTimer from '@/components/AnalysisTimer';
 import { 
   Search, 
   User, 
@@ -19,7 +21,8 @@ import {
   Clock,
   TrendingUp,
   Edit,
-  AlertTriangle
+  AlertTriangle,
+  Calendar
 } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -45,6 +48,7 @@ const Analista = () => {
   const [isConsultingScore, setIsConsultingScore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
   const [currentScore, setCurrentScore] = useState<number>(0);
   const [currentTaxa, setCurrentTaxa] = useState<number>(0);
 
@@ -119,7 +123,7 @@ const Analista = () => {
     });
   };
 
-  const handleReprovarProposta = (motivo: string = 'Score insuficiente') => {
+  const handleReprovarProposta = (motivo: string) => {
     if (!selectedFianca) return;
 
     reprovarFianca({
@@ -130,6 +134,7 @@ const Analista = () => {
     });
 
     setSelectedFianca(null);
+    setShowRejectModal(false);
     
     toast({
       title: "Proposta reprovada",
@@ -291,12 +296,24 @@ const Analista = () => {
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-medium text-gray-900">{fianca.inquilino_nome_completo}</h4>
-                      <Badge variant="secondary">Pendente</Badge>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge variant="secondary">Pendente</Badge>
+                        {fianca.data_criacao && (
+                          <AnalysisTimer createdAt={fianca.data_criacao} />
+                        )}
+                      </div>
                     </div>
                     <p className="text-sm text-gray-600 mb-1">CPF: {fianca.inquilino_cpf}</p>
                     <p className="text-sm text-gray-600 mb-1">Renda: {formatCurrency(fianca.inquilino_renda_mensal || 0)}</p>
                     <p className="text-sm text-gray-600 mb-1">Aluguel: {formatCurrency(fianca.imovel_valor_aluguel || 0)}</p>
-                    <p className="text-sm text-gray-500">{fianca.imobiliaria_nome || 'Imobiliária não informada'}</p>
+                    <p className="text-sm text-gray-500 mb-2">{fianca.imobiliaria_nome || 'Imobiliária não informada'}</p>
+                    
+                    {fianca.data_criacao && (
+                      <div className="flex items-center gap-1 text-xs text-gray-500 border-t pt-2">
+                        <Calendar className="h-3 w-3" />
+                        <span>Criado em: {formatDateTime(fianca.data_criacao)}</span>
+                      </div>
+                    )}
                   </div>
                 ))}
                 
@@ -468,7 +485,7 @@ const Analista = () => {
                           {isApprovingFianca ? 'Aprovando...' : 'Aprovar'}
                         </Button>
                         <Button
-                          onClick={() => handleReprovarProposta('Score insuficiente')}
+                          onClick={() => setShowRejectModal(true)}
                           disabled={isReprovingFianca}
                           variant="destructive"
                           className="flex-1"
@@ -498,6 +515,14 @@ const Analista = () => {
           currentTaxa={currentTaxa}
           onSave={handleEditScore}
           isLoading={isUpdatingScore}
+        />
+
+        {/* Reject Reason Modal */}
+        <RejectReasonModal
+          isOpen={showRejectModal}
+          onClose={() => setShowRejectModal(false)}
+          onConfirm={handleReprovarProposta}
+          isLoading={isReprovingFianca}
         />
       </div>
     </Layout>
