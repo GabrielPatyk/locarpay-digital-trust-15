@@ -258,6 +258,10 @@ export type Database = {
         Args: { usuario_id: string }
         Returns: string
       }
+      get_current_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       hash_password: {
         Args: { password: string }
         Returns: string
