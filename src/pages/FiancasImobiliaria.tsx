@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,6 +75,10 @@ const FiancasImobiliaria = () => {
     setSearch(e.target.value);
   };
 
+  const handleRefresh = () => {
+    refetch();
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'em_analise': return 'bg-gray-400';
@@ -128,7 +131,7 @@ const FiancasImobiliaria = () => {
           <div className="text-center">
             <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
             <p className="text-red-500">Erro ao carregar as fianças.</p>
-            <Button onClick={refetch} variant="outline">Tentar Novamente</Button>
+            <Button onClick={handleRefresh} variant="outline">Tentar Novamente</Button>
           </div>
         </div>
       </Layout>
@@ -275,7 +278,7 @@ const FiancasImobiliaria = () => {
         )}
       </div>
 
-      <CriarFiancaModal isOpen={showModal} onClose={() => setShowModal(false)} refetch={refetch} />
+      <CriarFiancaModal isOpen={showModal} onClose={() => setShowModal(false)} refetch={handleRefresh} />
       
       <AdicionarLinkPagamentoModal
         isOpen={showLinkModal}
