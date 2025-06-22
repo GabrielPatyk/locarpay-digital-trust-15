@@ -2,108 +2,84 @@
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAnalista } from '@/hooks/useAnalista';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import EditScoreModal from '@/components/EditScoreModal';
+import RejectReasonModal from '@/components/RejectReasonModal';
+import AnalysisTimer from '@/components/AnalysisTimer';
 import { 
   Search, 
-  FileText, 
   User, 
-  DollarSign, 
   CheckCircle, 
   XCircle, 
   Clock,
-  TrendingUp
+  TrendingUp,
+  Edit,
+  AlertTriangle,
+  Calendar
 } from 'lucide-react';
+import type { Tables } from '@/integrations/supabase/types';
 
-interface Proposal {
-  id: string;
-  inquilinoNome: string;
-  inquilinoCpf: string;
-  renda: number;
-  imovel: string;
-  valor: number;
-  status: 'pendente' | 'aprovado' | 'reprovado';
-  score?: number;
-  taxa?: number;
-  dataSubmissao: string;
-  imobiliaria: string;
-}
+type FiancaParaAnalise = Tables<'fiancas_para_analise'>;
 
 const Analista = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
+  const {
+    fiancasParaAnalise,
+    isLoadingFiancas,
+    estatisticas,
+    isLoadingStats,
+    updateScoreETaxa,
+    isUpdatingScore,
+    aprovarFianca,
+    isApprovingFianca,
+    reprovarFianca,
+    isReprovingFianca
+  } = useAnalista();
+
+  const [selectedFianca, setSelectedFianca] = useState<FiancaParaAnalise | null>(null);
   const [isConsultingScore, setIsConsultingScore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [currentScore, setCurrentScore] = useState<number>(0);
+  const [currentTaxa, setCurrentTaxa] = useState<number>(0);
 
-  // Mock data
-  const [proposals, setProposals] = useState<Proposal[]>([
-    {
-      id: '1',
-      inquilinoNome: 'João Silva Santos',
-      inquilinoCpf: '123.456.789-00',
-      renda: 5000,
-      imovel: 'Apartamento 2 quartos - Jardins',
-      valor: 2500,
-      status: 'pendente',
-      dataSubmissao: '2024-01-15',
-      imobiliaria: 'Imobiliária Prime'
-    },
-    {
-      id: '2',
-      inquilinoNome: 'Maria Oliveira',
-      inquilinoCpf: '987.654.321-00',
-      renda: 8000,
-      imovel: 'Casa 3 quartos - Vila Madalena',
-      valor: 4000,
-      status: 'pendente',
-      dataSubmissao: '2024-01-14',
-      imobiliaria: 'Imobiliária Central'
-    },
-    {
-      id: '3',
-      inquilinoNome: 'Carlos Ferreira',
-      inquilinoCpf: '456.789.123-00',
-      renda: 6500,
-      imovel: 'Apartamento 1 quarto - Pinheiros',
-      valor: 3200,
-      status: 'aprovado',
-      score: 720,
-      taxa: 10,
-      dataSubmissao: '2024-01-13',
-      imobiliaria: 'Imobiliária Top'
-    }
-  ]);
-
-  const consultarScore = async (proposal: Proposal) => {
+  const consultarScore = async () => {
+    if (!selectedFianca) return;
+    
     setIsConsultingScore(true);
     
-    // Simulate API call
+    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Mock score generation (300-900)
     const score = Math.floor(Math.random() * (900 - 300) + 300);
     
     // Calculate rate based on score
-    let taxa = 15; // Default highest rate
+    let taxa = 15;
     if (score >= 800) taxa = 8;
     else if (score >= 700) taxa = 10;
     else if (score >= 600) taxa = 12;
     else if (score >= 500) taxa = 15;
     
-    const updatedProposal = {
-      ...proposal,
+    setCurrentScore(score);
+    setCurrentTaxa(taxa);
+    
+    // Update in database
+    updateScoreETaxa({
+      id: selectedFianca.id!,
       score,
       taxa
-    };
+    });
     
-    setSelectedProposal(updatedProposal);
     setIsConsultingScore(false);
     
     toast({
@@ -112,14 +88,34 @@ const Analista = () => {
     });
   };
 
-  const aprovarProposta = (proposal: Proposal) => {
-    const updatedProposals = proposals.map(p => 
-      p.id === proposal.id 
-        ? { ...p, status: 'aprovado' as const, score: proposal.score, taxa: proposal.taxa }
-        : p
-    );
-    setProposals(updatedProposals);
-    setSelectedProposal(null);
+  const handleEditScore = (score: number, taxa: number) => {
+    if (!selectedFianca) return;
+    
+    setCurrentScore(score);
+    setCurrentTaxa(taxa);
+    
+    updateScoreETaxa({
+      id: selectedFianca.id!,
+      score,
+      taxa
+    });
+    
+    toast({
+      title: "Score e taxa atualizados!",
+      description: `Novo score: ${score} | Nova taxa: ${taxa}%`,
+    });
+  };
+
+  const handleAprovarProposta = () => {
+    if (!selectedFianca) return;
+
+    aprovarFianca({
+      id: selectedFianca.id!,
+      score: currentScore,
+      taxa: currentTaxa
+    });
+
+    setSelectedFianca(null);
     
     toast({
       title: "Proposta aprovada!",
@@ -127,14 +123,18 @@ const Analista = () => {
     });
   };
 
-  const reprovarProposta = (proposal: Proposal, motivo: string) => {
-    const updatedProposals = proposals.map(p => 
-      p.id === proposal.id 
-        ? { ...p, status: 'reprovado' as const }
-        : p
-    );
-    setProposals(updatedProposals);
-    setSelectedProposal(null);
+  const handleReprovarProposta = (motivo: string) => {
+    if (!selectedFianca) return;
+
+    reprovarFianca({
+      id: selectedFianca.id!,
+      motivo,
+      score: currentScore,
+      taxa: currentTaxa
+    });
+
+    setSelectedFianca(null);
+    setShowRejectModal(false);
     
     toast({
       title: "Proposta reprovada",
@@ -143,15 +143,13 @@ const Analista = () => {
     });
   };
 
-  const filteredProposals = proposals.filter(p => 
-    p.inquilinoNome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.inquilinoCpf.includes(searchTerm) ||
-    p.imobiliaria.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredFiancas = fiancasParaAnalise.filter(f => 
+    f.status_fianca === 'em_analise' && (
+      f.inquilino_nome_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      f.inquilino_cpf?.includes(searchTerm) ||
+      f.imobiliaria_nome?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
-
-  const pendingCount = proposals.filter(p => p.status === 'pendente').length;
-  const approvedCount = proposals.filter(p => p.status === 'aprovado').length;
-  const rejectedCount = proposals.filter(p => p.status === 'reprovado').length;
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -159,6 +157,44 @@ const Analista = () => {
     if (hour < 18) return 'Boa tarde';
     return 'Boa noite';
   };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Set current score and taxa when selecting a fianca
+  React.useEffect(() => {
+    if (selectedFianca) {
+      setCurrentScore(selectedFianca.score_credito || 0);
+      setCurrentTaxa(selectedFianca.taxa_aplicada || 0);
+    }
+  }, [selectedFianca]);
+
+  if (isLoadingFiancas || isLoadingStats) {
+    return (
+      <Layout title="Dashboard - Analista">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-2 text-gray-600">Carregando dados...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="Dashboard - Analista">
@@ -172,7 +208,7 @@ const Analista = () => {
               {getGreeting()}, {user?.name}! 👋
             </h1>
             <p className="text-[#0C1C2E]/80">
-              Bem-vindo ao seu painel de análise de crédito. Você tem {pendingCount} {pendingCount === 1 ? 'proposta pendente' : 'propostas pendentes'} para análise.
+              Bem-vindo ao seu painel de análise de crédito. Você tem {estatisticas?.pendentes || 0} {(estatisticas?.pendentes || 0) === 1 ? 'proposta pendente' : 'propostas pendentes'} para análise.
             </p>
           </div>
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
@@ -186,7 +222,7 @@ const Analista = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Pendentes</p>
-                  <p className="text-2xl font-bold text-warning">{pendingCount}</p>
+                  <p className="text-2xl font-bold text-warning">{estatisticas?.pendentes || 0}</p>
                 </div>
                 <Clock className="h-8 w-8 text-warning" />
               </div>
@@ -198,7 +234,7 @@ const Analista = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Aprovados</p>
-                  <p className="text-2xl font-bold text-success">{approvedCount}</p>
+                  <p className="text-2xl font-bold text-success">{estatisticas?.aprovadas || 0}</p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-success" />
               </div>
@@ -210,7 +246,7 @@ const Analista = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Reprovados</p>
-                  <p className="text-2xl font-bold text-red-500">{rejectedCount}</p>
+                  <p className="text-2xl font-bold text-red-500">{estatisticas?.reprovadas || 0}</p>
                 </div>
                 <XCircle className="h-8 w-8 text-red-500" />
               </div>
@@ -222,7 +258,7 @@ const Analista = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Taxa Média</p>
-                  <p className="text-2xl font-bold text-primary">11.5%</p>
+                  <p className="text-2xl font-bold text-primary">{estatisticas?.taxaMedia || 0}%</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-primary" />
               </div>
@@ -250,32 +286,43 @@ const Analista = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4 max-h-96 overflow-y-auto">
-                {filteredProposals.map((proposal) => (
+                {filteredFiancas.map((fianca) => (
                   <div
-                    key={proposal.id}
+                    key={fianca.id}
                     className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
-                      selectedProposal?.id === proposal.id ? 'border-primary bg-primary/5' : 'hover:border-gray-300'
+                      selectedFianca?.id === fianca.id ? 'border-primary bg-primary/5' : 'hover:border-gray-300'
                     }`}
-                    onClick={() => setSelectedProposal(proposal)}
+                    onClick={() => setSelectedFianca(fianca)}
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-medium text-gray-900">{proposal.inquilinoNome}</h4>
-                      <Badge variant={
-                        proposal.status === 'aprovado' ? 'default' :
-                        proposal.status === 'reprovado' ? 'destructive' :
-                        'secondary'
-                      }>
-                        {proposal.status === 'aprovado' ? 'Aprovado' :
-                         proposal.status === 'reprovado' ? 'Reprovado' :
-                         'Pendente'}
-                      </Badge>
+                      <h4 className="font-medium text-gray-900">{fianca.inquilino_nome_completo}</h4>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge variant="secondary">Pendente</Badge>
+                        {fianca.data_criacao && (
+                          <AnalysisTimer createdAt={fianca.data_criacao} />
+                        )}
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-1">CPF: {proposal.inquilinoCpf}</p>
-                    <p className="text-sm text-gray-600 mb-1">Renda: R$ {proposal.renda.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600 mb-1">Valor: R$ {proposal.valor.toLocaleString()}</p>
-                    <p className="text-sm text-gray-500">{proposal.imobiliaria}</p>
+                    <p className="text-sm text-gray-600 mb-1">CPF: {fianca.inquilino_cpf}</p>
+                    <p className="text-sm text-gray-600 mb-1">Renda: {formatCurrency(fianca.inquilino_renda_mensal || 0)}</p>
+                    <p className="text-sm text-gray-600 mb-1">Aluguel: {formatCurrency(fianca.imovel_valor_aluguel || 0)}</p>
+                    <p className="text-sm text-gray-500 mb-2">{fianca.imobiliaria_nome || 'Imobiliária não informada'}</p>
+                    
+                    {fianca.data_criacao && (
+                      <div className="flex items-center gap-1 text-xs text-gray-500 border-t pt-2">
+                        <Calendar className="h-3 w-3" />
+                        <span>Criado em: {formatDateTime(fianca.data_criacao)}</span>
+                      </div>
+                    )}
                   </div>
                 ))}
+                
+                {filteredFiancas.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <AlertTriangle className="mx-auto h-12 w-12 mb-4" />
+                    <p>Nenhuma proposta pendente encontrada</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -285,84 +332,170 @@ const Analista = () => {
             <CardHeader>
               <CardTitle>Análise de Proposta</CardTitle>
               <CardDescription>
-                {selectedProposal ? 'Dados detalhados da proposta selecionada' : 'Selecione uma proposta para analisar'}
+                {selectedFianca ? 'Dados detalhados da proposta selecionada' : 'Selecione uma proposta para analisar'}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {selectedProposal ? (
+              {selectedFianca ? (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-sm font-medium">Nome Completo</Label>
-                      <p className="text-sm text-gray-900">{selectedProposal.inquilinoNome}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">CPF</Label>
-                      <p className="text-sm text-gray-900">{selectedProposal.inquilinoCpf}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">Renda Mensal</Label>
-                      <p className="text-sm text-gray-900">R$ {selectedProposal.renda.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">Valor do Aluguel</Label>
-                      <p className="text-sm text-gray-900">R$ {selectedProposal.valor.toLocaleString()}</p>
-                    </div>
-                  </div>
-
+                  {/* Dados do Inquilino */}
                   <div>
-                    <Label className="text-sm font-medium">Imóvel</Label>
-                    <p className="text-sm text-gray-900">{selectedProposal.imovel}</p>
+                    <h4 className="font-semibold mb-3 text-primary">Dados do Inquilino</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium">Nome Completo</Label>
+                        <p className="text-sm text-gray-900">{selectedFianca.inquilino_nome_completo}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">CPF</Label>
+                        <p className="text-sm text-gray-900">{selectedFianca.inquilino_cpf}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">E-mail</Label>
+                        <p className="text-sm text-gray-900">{selectedFianca.inquilino_email}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">WhatsApp</Label>
+                        <p className="text-sm text-gray-900">{selectedFianca.inquilino_whatsapp}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Renda Mensal</Label>
+                        <p className="text-sm text-gray-900">{formatCurrency(selectedFianca.inquilino_renda_mensal || 0)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-3">
+                      <Label className="text-sm font-medium">Endereço do Inquilino</Label>
+                      <p className="text-sm text-gray-900">
+                        {selectedFianca.inquilino_endereco}, {selectedFianca.inquilino_numero}
+                        {selectedFianca.inquilino_complemento && `, ${selectedFianca.inquilino_complemento}`}
+                        <br />
+                        {selectedFianca.inquilino_bairro}, {selectedFianca.inquilino_cidade} - {selectedFianca.inquilino_estado}
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <Label className="text-sm font-medium">Imobiliária</Label>
-                    <p className="text-sm text-gray-900">{selectedProposal.imobiliaria}</p>
+                  {/* Dados do Imóvel */}
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold mb-3 text-primary">Dados do Imóvel</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium">Tipo de Imóvel</Label>
+                        <p className="text-sm text-gray-900">{selectedFianca.imovel_tipo}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Tipo de Locação</Label>
+                        <p className="text-sm text-gray-900">{selectedFianca.imovel_tipo_locacao}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Valor do Aluguel</Label>
+                        <p className="text-sm text-gray-900">{formatCurrency(selectedFianca.imovel_valor_aluguel || 0)}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Área (m²)</Label>
+                        <p className="text-sm text-gray-900">{selectedFianca.imovel_area_metros || 'Não informado'}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Tempo de Locação</Label>
+                        <p className="text-sm text-gray-900">{selectedFianca.imovel_tempo_locacao} meses</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3">
+                      <Label className="text-sm font-medium">Endereço do Imóvel</Label>
+                      <p className="text-sm text-gray-900">
+                        {selectedFianca.imovel_endereco}, {selectedFianca.imovel_numero}
+                        {selectedFianca.imovel_complemento && `, ${selectedFianca.imovel_complemento}`}
+                        <br />
+                        {selectedFianca.imovel_bairro}, {selectedFianca.imovel_cidade} - {selectedFianca.imovel_estado}
+                      </p>
+                    </div>
+
+                    {selectedFianca.imovel_descricao && (
+                      <div className="mt-3">
+                        <Label className="text-sm font-medium">Descrição</Label>
+                        <p className="text-sm text-gray-900">{selectedFianca.imovel_descricao}</p>
+                      </div>
+                    )}
                   </div>
 
-                  {selectedProposal.score && (
+                  {/* Dados da Imobiliária */}
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold mb-3 text-primary">Dados da Imobiliária</h4>
+                    <div>
+                      <Label className="text-sm font-medium">Imobiliária</Label>
+                      <p className="text-sm text-gray-900">{selectedFianca.imobiliaria_nome || 'Não informado'}</p>
+                    </div>
+                    <div className="mt-2">
+                      <Label className="text-sm font-medium">Responsável</Label>
+                      <p className="text-sm text-gray-900">{selectedFianca.imobiliaria_responsavel || 'Não informado'}</p>
+                    </div>
+                  </div>
+
+                  {/* Data de Criação */}
+                  <div className="border-t pt-4">
+                    <Label className="text-sm font-medium">Data de Criação</Label>
+                    <p className="text-sm text-gray-900">{formatDateTime(selectedFianca.data_criacao || '')}</p>
+                  </div>
+
+                  {/* Score e Taxa */}
+                  {(currentScore > 0 || currentTaxa > 0) && (
                     <Alert>
                       <TrendingUp className="h-4 w-4" />
                       <AlertDescription>
-                        <strong>Score de Crédito:</strong> {selectedProposal.score} pontos<br />
-                        <strong>Taxa Aplicada:</strong> {selectedProposal.taxa}%
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <strong>Score de Crédito:</strong> {currentScore} pontos<br />
+                            <strong>Taxa Aplicada:</strong> {currentTaxa}%
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowEditModal(true)}
+                            className="ml-2"
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Editar
+                          </Button>
+                        </div>
                       </AlertDescription>
                     </Alert>
                   )}
 
-                  {selectedProposal.status === 'pendente' && (
-                    <div className="space-y-3">
-                      {!selectedProposal.score && (
-                        <Button
-                          onClick={() => consultarScore(selectedProposal)}
-                          disabled={isConsultingScore}
-                          className="w-full bg-primary hover:bg-primary/90"
-                        >
-                          {isConsultingScore ? 'Consultando Score...' : 'Consultar Score de Crédito'}
-                        </Button>
-                      )}
+                  {/* Actions */}
+                  <div className="space-y-3 pt-4">
+                    {(!currentScore || currentScore === 0) && (
+                      <Button
+                        onClick={consultarScore}
+                        disabled={isConsultingScore}
+                        className="w-full bg-primary hover:bg-primary/90"
+                      >
+                        {isConsultingScore ? 'Consultando Score...' : 'Consultar Score de Crédito'}
+                      </Button>
+                    )}
 
-                      {selectedProposal.score && (
-                        <div className="flex space-x-2">
-                          <Button
-                            onClick={() => aprovarProposta(selectedProposal)}
-                            className="flex-1 bg-success hover:bg-success/90"
-                          >
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Aprovar
-                          </Button>
-                          <Button
-                            onClick={() => reprovarProposta(selectedProposal, 'Score insuficiente')}
-                            variant="destructive"
-                            className="flex-1"
-                          >
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Reprovar
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    {currentScore > 0 && (
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={handleAprovarProposta}
+                          disabled={isApprovingFianca}
+                          className="flex-1 bg-success hover:bg-success/90"
+                        >
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          {isApprovingFianca ? 'Aprovando...' : 'Aprovar'}
+                        </Button>
+                        <Button
+                          onClick={() => setShowRejectModal(true)}
+                          disabled={isReprovingFianca}
+                          variant="destructive"
+                          className="flex-1"
+                        >
+                          <XCircle className="mr-2 h-4 w-4" />
+                          {isReprovingFianca ? 'Reprovando...' : 'Reprovar'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
@@ -373,6 +506,24 @@ const Analista = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Edit Score Modal */}
+        <EditScoreModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          currentScore={currentScore}
+          currentTaxa={currentTaxa}
+          onSave={handleEditScore}
+          isLoading={isUpdatingScore}
+        />
+
+        {/* Reject Reason Modal */}
+        <RejectReasonModal
+          isOpen={showRejectModal}
+          onClose={() => setShowRejectModal(false)}
+          onConfirm={handleReprovarProposta}
+          isLoading={isReprovingFianca}
+        />
       </div>
     </Layout>
   );
