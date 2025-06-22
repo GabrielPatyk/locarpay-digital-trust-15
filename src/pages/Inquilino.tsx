@@ -8,6 +8,7 @@ import { useInquilinoData } from '@/hooks/useInquilinoData';
 import { useToast } from '@/hooks/use-toast';
 import ComprovanteUpload from '@/components/ComprovanteUpload';
 import EmailVerificationModal from '@/components/EmailVerificationModal';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Home, 
   DollarSign, 
@@ -22,18 +23,19 @@ import {
 
 const Inquilino = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const { fiancaAtiva, fiancaPagamento, emailVerificado, isLoading, enviarComprovante } = useInquilinoData();
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [uploadingComprovante, setUploadingComprovante] = useState(false);
 
-  const handleFileSelected = async (url: string) => {
+  const handleUploadSuccess = async (filePath: string) => {
     if (!fiancaPagamento) return;
     
     setUploadingComprovante(true);
     try {
       await enviarComprovante.mutateAsync({
         fiancaId: fiancaPagamento.id,
-        comprovantePath: url
+        comprovantePath: filePath
       });
     } finally {
       setUploadingComprovante(false);
@@ -206,8 +208,8 @@ const Inquilino = () => {
                     Após realizar o pagamento, anexe o comprovante para que possamos validar e ativar sua fiança.
                   </p>
                   <ComprovanteUpload 
-                    onFileSelected={handleFileSelected}
-                    isLoading={uploadingComprovante}
+                    onUploadSuccess={handleUploadSuccess}
+                    disabled={uploadingComprovante}
                   />
                 </div>
               </div>
@@ -237,6 +239,8 @@ const Inquilino = () => {
         <EmailVerificationModal 
           isOpen={showEmailModal}
           onClose={() => setShowEmailModal(false)}
+          userEmail={user?.email || ''}
+          userName={user?.user_metadata?.nome_completo || user?.email || ''}
         />
       </div>
     </Layout>
