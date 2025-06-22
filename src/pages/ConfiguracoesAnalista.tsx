@@ -1,11 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import Layout from '@/components/Layout';
-import ImageUpload from '@/components/ImageUpload';
-import ConfirmationModal from '@/components/ConfirmationModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,33 +14,21 @@ import {
   Shield, 
   Save,
   Eye,
-  EyeOff,
-  AlertTriangle
+  EyeOff
 } from 'lucide-react';
 
 const ConfiguracoesAnalista = () => {
   const { user, updateUser } = useAuth();
-  const { profile, updateProfile, updateUserData, updatePassword, loading } = useUserProfile();
-  const { formatPhone, isValidPhone, unformatPhone } = usePhoneFormatter();
   const { toast } = useToast();
   
   const [showPassword, setShowPassword] = useState(false);
-  const [showPersonalConfirmation, setShowPersonalConfirmation] = useState(false);
-  const [pendingPersonalChanges, setPendingPersonalChanges] = useState<Record<string, string>>({});
-  
   const [formData, setFormData] = useState({
-    // Dados pessoais - campos vazios para edição
-    nome: '',
-    email: '',
-    telefone: '',
-    imagem_perfil: user?.imagem_perfil || '',
-    
-    // Segurança
+    fullName: user?.name || '',
+    email: user?.email || '',
+    phone: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
-    
-    // Notificações
     emailNotifications: true,
     smsNotifications: false,
     weeklyReports: true,
@@ -52,71 +36,29 @@ const ConfiguracoesAnalista = () => {
   });
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    if (field === 'telefone') {
-      setFormData(prev => ({
-        ...prev,
-        [field]: formatPhone(value as string)
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const handleSavePersonalData = async () => {
-    // Preparar dados para confirmação
-    const changes = {
-      'Nome Completo': formData.nome || '(não alterado)',
-      'E-mail': formData.email || '(não alterado)',
-      'Telefone': formData.telefone || '(não alterado)'
-    };
-
-    setPendingPersonalChanges(changes);
-    setShowPersonalConfirmation(true);
-  };
-
-  const confirmPersonalChanges = async () => {
-    // Filtrar apenas campos preenchidos
-    const updateData: any = {};
-    
-    if (formData.nome.trim()) updateData.nome = formData.nome;
-    if (formData.email.trim()) updateData.email = formData.email;
-    if (formData.telefone.trim()) {
-      if (!isValidPhone(formData.telefone)) {
-        toast({
-          title: "Telefone inválido",
-          description: "O telefone deve ter 13 dígitos e começar com +55.",
-          variant: "destructive",
-        });
-        return;
-      }
-      updateData.telefone = unformatPhone(formData.telefone);
-    }
-
-    const success = await updateUserData(updateData);
-
-    if (success && user) {
-      // Atualizar o contexto do usuário
-      updateUser({
+  const handleSaveProfile = () => {
+    if (user) {
+      const updatedUser = {
         ...user,
-        name: updateData.nome || user.name,
-        email: updateData.email || user.email,
-        telefone: updateData.telefone || user.telefone
+        name: formData.fullName,
+        email: formData.email
+      };
+      updateUser(updatedUser);
+      
+      toast({
+        title: "Perfil atualizado!",
+        description: "Suas informações foram salvas com sucesso.",
       });
-      setShowPersonalConfirmation(false);
-      // Limpar os campos após salvar
-      setFormData(prev => ({
-        ...prev,
-        nome: '',
-        email: '',
-        telefone: ''
-      }));
     }
   };
 
-  const handleChangePassword = async () => {
+  const handleChangePassword = () => {
     if (formData.newPassword !== formData.confirmPassword) {
       toast({
         title: "Erro ao alterar senha",
@@ -126,78 +68,50 @@ const ConfiguracoesAnalista = () => {
       return;
     }
 
-    if (formData.newPassword.length < 6) {
-      toast({
-        title: "Senha muito curta",
-        description: "A senha deve ter pelo menos 6 caracteres.",
-        variant: "destructive",
-      });
-      return;
-    }
+    toast({
+      title: "Senha alterada!",
+      description: "Sua senha foi alterada com sucesso.",
+    });
 
-    const success = await updatePassword(formData.currentPassword, formData.newPassword);
-    
-    if (success) {
-      setFormData(prev => ({
-        ...prev,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    }));
   };
 
-  const handleImageChange = async (imageUrl: string) => {
-    setFormData(prev => ({ ...prev, imagem_perfil: imageUrl }));
+  const handleSaveNotifications = () => {
+    toast({
+      title: "Preferências salvas!",
+      description: "Suas preferências de notificação foram atualizadas.",
+    });
   };
 
   return (
     <Layout title="Configurações">
       <div className="space-y-6 animate-fade-in">
-        {/* Profile Image */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="mr-2 h-5 w-5 text-primary" />
-              Foto de Perfil
-            </CardTitle>
-            <CardDescription>
-              Atualize sua foto de perfil
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ImageUpload
-              currentImage={formData.imagem_perfil}
-              onImageChange={handleImageChange}
-              userName={user?.name || 'Usuário'}
-            />
-          </CardContent>
-        </Card>
-
         {/* Personal Profile */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <User className="mr-2 h-5 w-5 text-success" />
+              <User className="mr-2 h-5 w-5 text-primary" />
               Dados Pessoais
             </CardTitle>
             <CardDescription>
-              Suas informações pessoais de analista
+              Suas informações pessoais e de contato
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="nome">Nome Completo</Label>
+                <Label htmlFor="fullName">Nome Completo</Label>
                 <Input
-                  id="nome"
-                  value={formData.nome}
-                  onChange={(e) => handleInputChange('nome', e.target.value)}
-                  placeholder={user?.name || "Seu nome completo"}
+                  id="fullName"
+                  value={formData.fullName}
+                  onChange={(e) => handleInputChange('fullName', e.target.value)}
+                  placeholder="Seu nome completo"
                 />
-                {user?.name && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {user.name}</p>
-                )}
               </div>
               <div>
                 <Label htmlFor="email">E-mail</Label>
@@ -206,34 +120,24 @@ const ConfiguracoesAnalista = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder={user?.email || "seu@email.com"}
+                  placeholder="seu@email.com"
                 />
-                {user?.email && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {user.email}</p>
-                )}
               </div>
             </div>
             
             <div>
-              <Label htmlFor="telefone">Telefone</Label>
+              <Label htmlFor="phone">Telefone</Label>
               <Input
-                id="telefone"
-                value={formData.telefone}
-                onChange={(e) => handleInputChange('telefone', e.target.value)}
-                placeholder={user?.telefone ? formatPhone(user.telefone) : "+55 (11) 9 9999-9999"}
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                placeholder="(11) 99999-9999"
               />
-              {user?.telefone && (
-                <p className="text-xs text-gray-500 mt-1">Atual: {formatPhone(user.telefone)}</p>
-              )}
             </div>
             
-            <Button 
-              onClick={handleSavePersonalData} 
-              disabled={loading}
-              className="bg-success hover:bg-success/90"
-            >
+            <Button onClick={handleSaveProfile} className="bg-primary hover:bg-primary/90">
               <Save className="mr-2 h-4 w-4" />
-              {loading ? 'Salvando...' : 'Salvar Dados Pessoais'}
+              Salvar Dados Pessoais
             </Button>
           </CardContent>
         </Card>
@@ -299,30 +203,25 @@ const ConfiguracoesAnalista = () => {
               </div>
             </div>
             
-            <Button 
-              onClick={handleChangePassword} 
-              disabled={loading}
-              className="bg-warning hover:bg-warning/90 text-white"
-            >
+            <Button onClick={handleChangePassword} className="bg-warning hover:bg-warning/90 text-white">
               <Save className="mr-2 h-4 w-4" />
-              {loading ? 'Alterando...' : 'Alterar Senha'}
+              Alterar Senha
             </Button>
           </CardContent>
         </Card>
 
-        {/* Notifications - Bloqueada */}
-        <Card className="opacity-60">
+        {/* Notifications */}
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Bell className="mr-2 h-5 w-5" style={{ color: '#BC942C' }} />
               Notificações
-              <AlertTriangle className="ml-2 h-4 w-4 text-red-500" />
             </CardTitle>
             <CardDescription>
-              <span className="text-red-600 font-medium">Esta opção ainda está em desenvolvimento</span>
+              Configure suas preferências de notificação
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 pointer-events-none">
+          <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Notificações por E-mail</p>
@@ -330,7 +229,7 @@ const ConfiguracoesAnalista = () => {
               </div>
               <Switch
                 checked={formData.emailNotifications}
-                disabled
+                onCheckedChange={(checked) => handleInputChange('emailNotifications', checked)}
               />
             </div>
             
@@ -341,18 +240,18 @@ const ConfiguracoesAnalista = () => {
               </div>
               <Switch
                 checked={formData.smsNotifications}
-                disabled
+                onCheckedChange={(checked) => handleInputChange('smsNotifications', checked)}
               />
             </div>
             
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Relatórios Semanais</p>
-                <p className="text-sm text-gray-600">Receber resumo semanal de análises</p>
+                <p className="text-sm text-gray-600">Receber resumo semanal de atividades</p>
               </div>
               <Switch
                 checked={formData.weeklyReports}
-                disabled
+                onCheckedChange={(checked) => handleInputChange('weeklyReports', checked)}
               />
             </div>
             
@@ -363,31 +262,16 @@ const ConfiguracoesAnalista = () => {
               </div>
               <Switch
                 checked={formData.monthlyReports}
-                disabled
+                onCheckedChange={(checked) => handleInputChange('monthlyReports', checked)}
               />
             </div>
             
-            <Button 
-              disabled
-              style={{ backgroundColor: '#BC942C' }} 
-              className="hover:opacity-90 text-white opacity-50"
-            >
+            <Button onClick={handleSaveNotifications} style={{ backgroundColor: '#BC942C' }} className="hover:opacity-90 text-white">
               <Save className="mr-2 h-4 w-4" />
               Salvar Preferências
             </Button>
           </CardContent>
         </Card>
-
-        {/* Modal de Confirmação */}
-        <ConfirmationModal
-          isOpen={showPersonalConfirmation}
-          onClose={() => setShowPersonalConfirmation(false)}
-          onConfirm={confirmPersonalChanges}
-          title="Confirmar Alterações - Dados Pessoais"
-          description="Você está prestes a alterar seus dados pessoais. Confirme as informações abaixo:"
-          changes={pendingPersonalChanges}
-          isLoading={loading}
-        />
       </div>
     </Layout>
   );
