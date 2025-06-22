@@ -42,6 +42,7 @@ export type Database = {
           inquilino_numero: string
           inquilino_pais: string
           inquilino_renda_mensal: number
+          inquilino_usuario_id: string | null
           inquilino_whatsapp: string
           motivo_reprovacao: string | null
           observacoes_aprovacao: string | null
@@ -81,6 +82,7 @@ export type Database = {
           inquilino_numero: string
           inquilino_pais?: string
           inquilino_renda_mensal: number
+          inquilino_usuario_id?: string | null
           inquilino_whatsapp: string
           motivo_reprovacao?: string | null
           observacoes_aprovacao?: string | null
@@ -120,6 +122,7 @@ export type Database = {
           inquilino_numero?: string
           inquilino_pais?: string
           inquilino_renda_mensal?: number
+          inquilino_usuario_id?: string | null
           inquilino_whatsapp?: string
           motivo_reprovacao?: string | null
           observacoes_aprovacao?: string | null
@@ -145,6 +148,13 @@ export type Database = {
           {
             foreignKeyName: "fiancas_locaticias_id_imobiliaria_idx"
             columns: ["id_imobiliaria"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiancas_locaticias_inquilino_usuario_id_fkey"
+            columns: ["inquilino_usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
@@ -267,6 +277,7 @@ export type Database = {
           ativo: boolean | null
           atualizado_em: string | null
           cargo: string
+          cpf: string | null
           criado_em: string | null
           criado_por: string | null
           email: string
@@ -283,6 +294,7 @@ export type Database = {
           ativo?: boolean | null
           atualizado_em?: string | null
           cargo: string
+          cpf?: string | null
           criado_em?: string | null
           criado_por?: string | null
           email: string
@@ -299,6 +311,7 @@ export type Database = {
           ativo?: boolean | null
           atualizado_em?: string | null
           cargo?: string
+          cpf?: string | null
           criado_em?: string | null
           criado_por?: string | null
           email?: string
