@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -60,7 +61,8 @@ export const useFinanceiro = () => {
       const acoes: Record<string, string> = {
         'pagamento_disponivel': 'Link de pagamento anexado',
         'comprovante_enviado': 'Comprovante de pagamento enviado',
-        'ativa': 'Fiança ativada'
+        'ativa': 'Fiança ativada',
+        'assinatura_imobiliaria': 'Enviada para assinatura da imobiliária'
       };
 
       await registrarLog({

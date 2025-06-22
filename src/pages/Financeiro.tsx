@@ -22,7 +22,8 @@ import {
   Link as LinkIcon,
   Eye,
   Search,
-  Filter
+  Filter,
+  Receipt
 } from 'lucide-react';
 import AdicionarLinkPagamentoModal from '@/components/AdicionarLinkPagamentoModal';
 import AguardandoPagamentoTooltip from '@/components/AguardandoPagamentoTooltip';
@@ -44,12 +45,12 @@ const Financeiro = () => {
     try {
       await atualizarStatusFianca.mutateAsync({
         fiancaId: id,
-        novoStatus: 'ativa'
+        novoStatus: 'assinatura_imobiliaria'
       });
 
       toast({
         title: "Pagamento confirmado!",
-        description: "Fiança ativada com sucesso.",
+        description: "Fiança enviada para assinatura da imobiliária.",
       });
     } catch (error) {
       console.error('Erro ao confirmar pagamento:', error);
@@ -61,6 +62,12 @@ const Financeiro = () => {
     }
   };
 
+  const verComprovante = (comprovante: string) => {
+    if (comprovante) {
+      window.open(comprovante, '_blank');
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ativa': return 'bg-success';
@@ -68,6 +75,7 @@ const Financeiro = () => {
       case 'pagamento_disponivel': return 'bg-blue-500';
       case 'enviada_ao_financeiro': return 'bg-warning';
       case 'aprovada': return 'bg-orange-500';
+      case 'assinatura_imobiliaria': return 'bg-purple-600';
       default: return 'bg-gray-500';
     }
   };
@@ -79,6 +87,7 @@ const Financeiro = () => {
       case 'pagamento_disponivel': return 'Link Disponível';
       case 'enviada_ao_financeiro': return 'Aguardando Link';
       case 'aprovada': return 'Aprovada';
+      case 'assinatura_imobiliaria': return 'Aguardando Assinatura';
       default: return status;
     }
   };
@@ -241,6 +250,7 @@ const Financeiro = () => {
                 <SelectItem value="enviada_ao_financeiro">Aguardando Link</SelectItem>
                 <SelectItem value="pagamento_disponivel">Link Disponível</SelectItem>
                 <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
+                <SelectItem value="assinatura_imobiliaria">Aguardando Assinatura</SelectItem>
                 <SelectItem value="ativa">Ativa</SelectItem>
               </SelectContent>
             </Select>
@@ -357,15 +367,28 @@ const Financeiro = () => {
                         )}
 
                         {fianca.status_fianca === 'comprovante_enviado' && (
-                          <Button
-                            size="sm"
-                            onClick={() => confirmarPagamento(fianca.id)}
-                            className="bg-success hover:bg-success/90 flex items-center"
-                            disabled={isUpdating}
-                          >
-                            <CheckCircle className="mr-1 h-4 w-4" />
-                            Ativar Fiança
-                          </Button>
+                          <>
+                            {fianca.comprovante_pagamento && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => verComprovante(fianca.comprovante_pagamento)}
+                                className="flex items-center"
+                              >
+                                <Receipt className="mr-1 h-4 w-4" />
+                                Ver Comprovante
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              onClick={() => confirmarPagamento(fianca.id)}
+                              className="bg-success hover:bg-success/90 flex items-center"
+                              disabled={isUpdating}
+                            >
+                              <CheckCircle className="mr-1 h-4 w-4" />
+                              Confirmar Pagamento
+                            </Button>
+                          </>
                         )}
                       </div>
                     </CardContent>

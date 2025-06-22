@@ -472,6 +472,7 @@ export type Database = {
         | "aguardando_geracao_pagamento"
         | "pagamento_disponivel"
         | "comprovante_enviado"
+        | "assinatura_imobiliaria"
       tipo_usuario:
         | "inquilino"
         | "analista"
@@ -607,6 +608,7 @@ export const Constants = {
         "aguardando_geracao_pagamento",
         "pagamento_disponivel",
         "comprovante_enviado",
+        "assinatura_imobiliaria",
       ],
       tipo_usuario: [
         "inquilino",
