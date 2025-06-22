@@ -273,7 +273,9 @@ const DetalheFianca = () => {
                           })}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600">Por: {item.usuario_nome}</p>
+                      <p className="text-sm text-gray-600">
+                        Por: {item.analisado_por_usuario?.nome || item.usuario_nome}
+                      </p>
                       {item.detalhes && (
                         <p className="text-sm text-gray-500 mt-1">{item.detalhes}</p>
                       )}

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -112,6 +111,23 @@ export const useFiancas = () => {
     }
   });
 
+  const acceptFianca = useMutation({
+    mutationFn: async (fiancaId: string) => {
+      const { error } = await supabase
+        .from('fiancas_locaticias')
+        .update({ 
+          status_fianca: 'enviada_ao_financeiro',
+          data_atualizacao: new Date().toISOString()
+        })
+        .eq('id', fiancaId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fiancas'] });
+    }
+  });
+
   const getFiancasStats = () => {
     const totalFiancas = fiancas.length;
     const fiancasPendentes = fiancas.filter(f => f.status_fianca === 'em_analise').length;
@@ -129,10 +145,11 @@ export const useFiancas = () => {
   return {
     fiancas,
     isLoading,
-    error,
     createFianca: createFiancaMutation.mutate,
     isCreating: createFiancaMutation.isPending,
     createError: createFiancaMutation.error,
+    acceptFianca,
+    isAccepting: acceptFianca.isPending,
     getFiancasStats
   };
 };

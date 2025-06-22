@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +17,7 @@ import { useFiancas, type FiancaFormData } from '@/hooks/useFiancas';
 import { validateFiancaForm, formatCurrency } from '@/components/FiancaFormValidation';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import RejectedFiancaTooltip from '@/components/RejectedFiancaTooltip';
+import ApprovedFiancaTooltip from '@/components/ApprovedFiancaTooltip';
 import { 
   FileText, 
   Plus, 
@@ -39,7 +39,7 @@ const FiancasImobiliaria = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { formatPhone } = usePhoneFormatter();
-  const { fiancas, isLoading, createFianca, isCreating, getFiancasStats } = useFiancas();
+  const { fiancas, isLoading, createFianca, isCreating, acceptFianca, isAccepting, getFiancasStats } = useFiancas();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -172,6 +172,24 @@ const FiancasImobiliaria = () => {
     });
   };
 
+  const handleAcceptFianca = (fiancaId: string) => {
+    acceptFianca.mutate(fiancaId, {
+      onSuccess: () => {
+        toast({
+          title: "Fiança aceita com sucesso!",
+          description: "A fiança foi enviada ao financeiro.",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Erro ao aceitar fiança",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    });
+  };
+
   const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {
       'em_analise': 'bg-blue-500',
@@ -179,7 +197,9 @@ const FiancasImobiliaria = () => {
       'rejeitada': 'bg-red-500',
       'ativa': 'bg-green-500',
       'vencida': 'bg-red-500',
-      'cancelada': 'bg-gray-500'
+      'cancelada': 'bg-gray-500',
+      'enviada_ao_financeiro': 'bg-green-500',
+      'aguardando_geracao_pagamento': 'bg-yellow-500'
     };
     return colors[status] || 'bg-gray-500';
   };
@@ -191,7 +211,9 @@ const FiancasImobiliaria = () => {
       'rejeitada': 'Rejeitada', 
       'ativa': 'Ativa',
       'vencida': 'Vencida',
-      'cancelada': 'Cancelada'
+      'cancelada': 'Cancelada',
+      'enviada_ao_financeiro': 'Enviada ao Financeiro',
+      'aguardando_geracao_pagamento': 'Aguardando Pagamento'
     };
     return labels[status] || status;
   };
@@ -717,6 +739,8 @@ const FiancasImobiliaria = () => {
                   <SelectItem value="vencida">Vencidas</SelectItem>
                   <SelectItem value="rejeitada">Rejeitadas</SelectItem>
                   <SelectItem value="cancelada">Canceladas</SelectItem>
+                  <SelectItem value="enviada_ao_financeiro">Enviada ao Financeiro</SelectItem>
+                  <SelectItem value="aguardando_geracao_pagamento">Aguardando Pagamento</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -750,6 +774,18 @@ const FiancasImobiliaria = () => {
                             {getStatusLabel(fianca.status_fianca)}
                           </Badge>
                         </RejectedFiancaTooltip>
+                      ) : fianca.status_fianca === 'aprovada' ? (
+                        <ApprovedFiancaTooltip
+                          approvalDate={fianca.data_analise || fianca.data_atualizacao}
+                          score={fianca.score_credito}
+                          rate={fianca.taxa_aplicada}
+                          analystName="Analista Responsável"
+                          observations={fianca.observacoes_aprovacao}
+                        >
+                          <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
+                            {getStatusLabel(fianca.status_fianca)}
+                          </Badge>
+                        </ApprovedFiancaTooltip>
                       ) : (
                         <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
                           {getStatusLabel(fianca.status_fianca)}
@@ -766,11 +802,24 @@ const FiancasImobiliaria = () => {
                         >
                           <Eye className="h-3 w-3" />
                         </Button>
-                        {fianca.status_fianca !== 'rejeitada' && (
+                        {fianca.status_fianca === 'aprovada' ? (
+                          <Button 
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                            onClick={() => handleAcceptFianca(fianca.id)}
+                            disabled={isAccepting}
+                          >
+                            {isAccepting ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              'Aceitar'
+                            )}
+                          </Button>
+                        ) : fianca.status_fianca !== 'rejeitada' && fianca.status_fianca !== 'enviada_ao_financeiro' && fianca.status_fianca !== 'aguardando_geracao_pagamento' ? (
                           <Button variant="outline" size="sm">
                             <Edit className="h-3 w-3" />
                           </Button>
-                        )}
+                        ) : null}
                       </div>
                     </TableCell>
                   </TableRow>

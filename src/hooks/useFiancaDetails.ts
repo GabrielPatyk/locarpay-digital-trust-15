@@ -34,7 +34,10 @@ export const useFiancaDetails = (fiancaId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('historico_fiancas')
-        .select('*')
+        .select(`
+          *,
+          analisado_por_usuario:analisado_por(nome)
+        `)
         .eq('fianca_id', fiancaId)
         .order('data_criacao', { ascending: false });
 
