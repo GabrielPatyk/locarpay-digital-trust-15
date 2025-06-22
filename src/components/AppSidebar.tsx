@@ -31,8 +31,7 @@ import {
   CreditCard,
   TrendingDown,
   BarChart3,
-  TrendingUp,
-  Shield
+  TrendingUp
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -196,7 +195,7 @@ const AppSidebar = () => {
         {
           title: 'Fianças',
           url: '/fiancas-imobiliaria',
-          icon: Shield,
+          icon: FileText,
         },
         {
           title: 'Inquilinos',
