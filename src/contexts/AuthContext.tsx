@@ -146,8 +146,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    // Fazer logout no Supabase também
+    supabase.auth.signOut().catch(console.error);
+    
     setUser(null);
     localStorage.removeItem('user');
+    
+    // Redirecionar para a página de login
+    window.location.href = '/login';
   };
 
   const updateUser = (updatedUser: User) => {
