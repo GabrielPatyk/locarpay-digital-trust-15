@@ -8,6 +8,9 @@ export interface HistoricoItem {
   usuario_nome: string;
   detalhes: string | null;
   data_criacao: string;
+  analisado_por_usuario?: {
+    nome: string;
+  } | null;
 }
 
 export const useFiancaDetails = (fiancaId: string) => {
