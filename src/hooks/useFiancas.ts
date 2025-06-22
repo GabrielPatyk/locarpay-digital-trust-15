@@ -40,7 +40,7 @@ export interface FiancaFormData {
   imovelPais: string;
 }
 
-export const useFiancas = (imobiliariaId?: string, searchTerm?: string) => {
+export const useFiancas = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { registrarLog } = useHistoricoFiancas();
@@ -48,29 +48,22 @@ export const useFiancas = (imobiliariaId?: string, searchTerm?: string) => {
   const {
     data: fiancas = [],
     isLoading,
-    error,
-    refetch
+    error
   } = useQuery({
-    queryKey: ['fiancas', imobiliariaId || user?.id, searchTerm],
+    queryKey: ['fiancas', user?.id],
     queryFn: async () => {
-      const userId = imobiliariaId || user?.id;
-      if (!userId) return [];
+      if (!user?.id) return [];
       
-      let query = supabase
+      const { data, error } = await supabase
         .from('fiancas_locaticias')
         .select('*')
-        .eq('id_imobiliaria', userId);
-      
-      if (searchTerm) {
-        query = query.or(`inquilino_nome_completo.ilike.%${searchTerm}%,inquilino_email.ilike.%${searchTerm}%,imovel_endereco.ilike.%${searchTerm}%`);
-      }
-      
-      const { data, error } = await query.order('data_criacao', { ascending: false });
+        .eq('id_imobiliaria', user.id)
+        .order('data_criacao', { ascending: false });
 
       if (error) throw error;
       return data as Fianca[];
     },
-    enabled: !!(imobiliariaId || user?.id)
+    enabled: !!user?.id
   });
 
   const createFiancaMutation = useMutation({
@@ -126,7 +119,7 @@ export const useFiancas = (imobiliariaId?: string, searchTerm?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fiancas'] });
+      queryClient.invalidateQueries({ queryKey: ['fiancas', user?.id] });
     }
   });
 
@@ -208,8 +201,6 @@ export const useFiancas = (imobiliariaId?: string, searchTerm?: string) => {
   return {
     fiancas,
     isLoading,
-    error,
-    refetch,
     createFianca: createFiancaMutation.mutate,
     isCreating: createFiancaMutation.isPending,
     createError: createFiancaMutation.error,
