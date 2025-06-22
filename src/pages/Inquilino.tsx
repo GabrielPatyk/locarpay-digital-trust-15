@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -240,7 +239,7 @@ const Inquilino = () => {
           isOpen={showEmailModal}
           onClose={() => setShowEmailModal(false)}
           userEmail={user?.email || ''}
-          userName={user?.user_metadata?.nome_completo || user?.email || ''}
+          userName={user?.name || user?.email || ''}
         />
       </div>
     </Layout>
