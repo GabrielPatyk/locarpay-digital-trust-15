@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
@@ -74,7 +73,7 @@ const Analista = () => {
     setCurrentTaxa(taxa);
     
     // Update in database
-    updateScoreETaxa({
+    updateScoreETaxa.mutate({
       id: selectedFianca.id!,
       score,
       taxa
@@ -94,7 +93,7 @@ const Analista = () => {
     setCurrentScore(score);
     setCurrentTaxa(taxa);
     
-    updateScoreETaxa({
+    updateScoreETaxa.mutate({
       id: selectedFianca.id!,
       score,
       taxa
@@ -109,7 +108,7 @@ const Analista = () => {
   const handleAprovarProposta = () => {
     if (!selectedFianca) return;
 
-    aprovarFianca({
+    aprovarFianca.mutate({
       id: selectedFianca.id!,
       score: currentScore,
       taxa: currentTaxa
@@ -126,7 +125,7 @@ const Analista = () => {
   const handleReprovarProposta = (motivo: string) => {
     if (!selectedFianca) return;
 
-    reprovarFianca({
+    reprovarFianca.mutate({
       id: selectedFianca.id!,
       motivo,
       score: currentScore,
