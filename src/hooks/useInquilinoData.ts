@@ -77,6 +77,8 @@ export const useInquilinoData = () => {
         .update({
           comprovante_pagamento: comprovantePath,
           data_comprovante: new Date().toISOString(),
+          situacao_pagamento: 'comprovante_enviado',
+          data_atualizacao_pagamento: new Date().toISOString(),
           status_fianca: 'comprovante_enviado'
         })
         .eq('id', fiancaId);

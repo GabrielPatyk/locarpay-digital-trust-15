@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,10 +11,16 @@ import { useFiancas, FiancaFormData } from '@/hooks/useFiancas';
 interface CriarFiancaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  refetch?: () => void;
+  onSuccess?: () => void;
+  cnpjPlaceholder?: string;
 }
 
-const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, refetch }) => {
+const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  cnpjPlaceholder = ''
+}) => {
   const { createFianca, isCreating } = useFiancas();
   const { toast } = useToast();
   
@@ -44,7 +49,8 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
     imovelBairro: '',
     imovelCidade: '',
     imovelEstado: '',
-    imovelPais: 'Brasil'
+    imovelPais: 'Brasil',
+    cnpjImobiliaria: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,7 +62,7 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
         title: "Fiança criada com sucesso!",
         description: "A solicitação foi enviada para análise.",
       });
-      refetch?.();
+      onSuccess?.();
       onClose();
       setFormData({
         nomeCompleto: '',
@@ -83,7 +89,8 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
         imovelBairro: '',
         imovelCidade: '',
         imovelEstado: '',
-        imovelPais: 'Brasil'
+        imovelPais: 'Brasil',
+        cnpjImobiliaria: ''
       });
     } catch (error: any) {
       toast({
@@ -222,6 +229,19 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
                   required
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="cnpj">CNPJ da Imobiliária</Label>
+              <Input
+                id="cnpj"
+                value={formData.cnpjImobiliaria}
+                onChange={(e) => setFormData(prev => ({ ...prev, cnpjImobiliaria: e.target.value }))}
+                placeholder={cnpjPlaceholder || "00.000.000/0000-00"}
+                required
+              />
             </div>
           </div>
 
