@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 
 const Financeiro = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { fiancas, isLoading, atualizarStatusFianca, isUpdating, getStats } = useFinanceiro();
   const [searchTerm, setSearchTerm] = useState('');
@@ -325,7 +326,7 @@ const Financeiro = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setSelectedFianca(fianca)}
+                          onClick={() => navigate(`/detalhe-fianca/${fianca.id}`)}
                           className="flex items-center"
                         >
                           <Eye className="mr-1 h-4 w-4" />
