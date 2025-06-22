@@ -30,7 +30,7 @@ const ConfiguracoesImobiliaria = () => {
   
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    // Dados da empresa (perfil_usuario)
+    // Dados da empresa (perfil_usuario) - sempre vazios inicialmente
     nome_empresa: '',
     cnpj: '',
     endereco: '',
@@ -41,10 +41,10 @@ const ConfiguracoesImobiliaria = () => {
     estado: '',
     pais: 'Brasil',
     
-    // Dados pessoais (usuarios)
-    nome: user?.name || '',
-    email: user?.email || '',
-    telefone: user?.telefone || '',
+    // Dados pessoais (usuarios) - sempre vazios inicialmente
+    nome: '',
+    email: '',
+    telefone: '+55',
     imagem_perfil: user?.imagem_perfil || '',
     
     // Segurança
@@ -80,13 +80,10 @@ const ConfiguracoesImobiliaria = () => {
     if (user) {
       setFormData(prev => ({
         ...prev,
-        nome: user.name || '',
-        email: user.email || '',
-        telefone: formatPhone(user.telefone || '+55'),
         imagem_perfil: user.imagem_perfil || ''
       }));
     }
-  }, [user, formatPhone]);
+  }, [user]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     if (field === 'telefone') {
@@ -151,6 +148,25 @@ const ConfiguracoesImobiliaria = () => {
   };
 
   const handleSavePersonalData = async () => {
+    // Validar campos obrigatórios
+    if (!formData.nome.trim()) {
+      toast({
+        title: "Campo obrigatório",
+        description: "O nome é obrigatório.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      toast({
+        title: "Campo obrigatório",
+        description: "O e-mail é obrigatório.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validar telefone
     if (!isValidPhone(formData.telefone)) {
       toast({
@@ -376,33 +392,36 @@ const ConfiguracoesImobiliaria = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="nome">Nome Completo</Label>
+                <Label htmlFor="nome">Nome Completo *</Label>
                 <Input
                   id="nome"
                   value={formData.nome}
                   onChange={(e) => handleInputChange('nome', e.target.value)}
                   placeholder="Seu nome completo"
+                  required
                 />
               </div>
               <div>
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email">E-mail *</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   placeholder="seu@email.com"
+                  required
                 />
               </div>
             </div>
             
             <div>
-              <Label htmlFor="telefone">Telefone (obrigatório 13 dígitos começando com +55)</Label>
+              <Label htmlFor="telefone">Telefone (obrigatório 13 dígitos começando com +55) *</Label>
               <Input
                 id="telefone"
                 value={formData.telefone}
                 onChange={(e) => handleInputChange('telefone', e.target.value)}
                 placeholder="+55 (11) 9 9999-9999"
+                required
               />
             </div>
             

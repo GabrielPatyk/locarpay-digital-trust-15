@@ -1,27 +1,24 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { useLocation } from 'react-router-dom';
+import ProfileCompletionModal from './ProfileCompletionModal';
 
 const ProfileCompletionCheck: React.FC = () => {
   const { user } = useAuth();
   const { profile } = useUserProfile();
-  const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    if (user?.type === 'imobiliaria' && profile && location.pathname !== '/configuracoes-imobiliaria') {
-      // Verificar se os campos obrigatórios estão preenchidos
+    if (user?.type === 'imobiliaria' && location.pathname !== '/configuracoes-imobiliaria') {
+      // Verificar se existe perfil da empresa e se os campos obrigatórios estão preenchidos
+      if (!profile) {
+        setShowModal(true);
+        return;
+      }
+
       const requiredFields = [
         profile.nome_empresa,
         profile.cnpj,
@@ -35,18 +32,21 @@ const ProfileCompletionCheck: React.FC = () => {
       const hasEmptyFields = requiredFields.some(field => !field || field.trim() === '');
 
       if (hasEmptyFields) {
-        toast({
-          title: "Perfil Incompleto",
-          description: "Você precisa preencher todos os dados da empresa para continuar usando a plataforma.",
-          variant: "destructive",
-        });
-        
-        navigate('/configuracoes-imobiliaria');
+        setShowModal(true);
       }
     }
-  }, [user, profile, location.pathname, navigate, toast]);
+  }, [user, profile, location.pathname]);
 
-  return null;
+  if (!showModal) {
+    return null;
+  }
+
+  return (
+    <ProfileCompletionModal 
+      isOpen={showModal}
+      onClose={() => setShowModal(false)}
+    />
+  );
 };
 
 export default ProfileCompletionCheck;
