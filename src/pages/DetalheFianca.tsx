@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -72,6 +73,20 @@ const DetalheFianca = () => {
       default:
         return status;
     }
+  };
+
+  // Buscar o nome do analista correto do histórico
+  const getAnalistaNome = () => {
+    // Buscar a entrada mais recente de "Score e taxa atualizados" ou aprovação/rejeição
+    const analistaAction = historico.find(item => 
+      item.acao.includes('Score e taxa atualizados') || 
+      item.acao.includes('aprovada') || 
+      item.acao.includes('rejeitada')
+    );
+    
+    return analistaAction?.analisado_por_usuario?.nome || 
+           analistaAction?.usuario_nome || 
+           'Não atribuído';
   };
 
   if (isLoading) {
@@ -245,7 +260,7 @@ const DetalheFianca = () => {
                 <User className="h-8 w-8 mx-auto mb-2 text-blue-600" />
                 <p className="text-sm font-medium text-gray-500">Analista</p>
                 <p className="text-sm font-medium text-blue-600">
-                  {fianca.usuarios?.nome || 'Não atribuído'}
+                  {getAnalistaNome()}
                 </p>
               </div>
             </div>
