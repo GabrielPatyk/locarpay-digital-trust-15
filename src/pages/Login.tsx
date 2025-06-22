@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -77,25 +78,33 @@ const Login = () => {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#040433] to-[#0C1C2E]">
-        <div className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center p-4" 
+           style={{
+             backgroundImage: `url('/lovable-uploads/5bdbd93e-9136-4714-9c8d-216c143ab781.png')`,
+             backgroundSize: 'cover',
+             backgroundPosition: 'center',
+             backgroundRepeat: 'no-repeat'
+           }}>
+        
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-[#040433] opacity-65"></div>
+
+        <div className="relative w-full max-w-md">
           {/* Login Card */}
-          <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-            <CardHeader className="space-y-6 pb-6">
+          <Card className="shadow-2xl border-0 backdrop-blur-sm bg-white/95 overflow-hidden">
+            <CardHeader className="space-y-6 pb-4">
               {/* Logo Section */}
               <div className="text-center">
                 <div className="inline-flex items-center justify-center mb-4">
                   <img 
                     src="/lovable-uploads/1fc475c2-f7e6-4e6e-bf1b-b349783c2b93.png" 
                     alt="LocarPay Logo" 
-                    className="w-24 h-24 object-contain drop-shadow-lg"
+                    className="w-32 h-32 object-contain drop-shadow-lg"
                   />
                 </div>
-                <h1 className="text-2xl font-bold text-[#0C1C2E] mb-2">LocarPay</h1>
-                <p className="text-[#0C1C2E]/70 text-sm">Faça login em sua conta</p>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-[#0C1C2E] font-medium">E-mail</Label>
@@ -196,6 +205,7 @@ const Login = () => {
 
               {/* Golden section at the bottom */}
               <div className="mt-6 -mx-6 -mb-6 px-6 py-4 bg-gradient-to-r from-[#F4D573] via-[#E6C46E] to-[#BC942C] relative overflow-hidden">
+                {/* Golden texture overlay */}
                 <div className="absolute inset-0 opacity-30">
                   <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#FFD700]/20 via-transparent to-[#B8860B]/20"></div>
                   <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-tl from-[#DAA520]/20 via-transparent to-[#CD853F]/20"></div>
