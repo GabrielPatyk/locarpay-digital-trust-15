@@ -24,6 +24,8 @@ import {
   Search,
   Filter
 } from 'lucide-react';
+import AdicionarLinkPagamentoModal from '@/components/AdicionarLinkPagamentoModal';
+import AguardandoPagamentoTooltip from '@/components/AguardandoPagamentoTooltip';
 
 const Financeiro = () => {
   const navigate = useNavigate();
@@ -32,43 +34,11 @@ const Financeiro = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedFianca, setSelectedFianca] = useState<any>(null);
-  const [linkPagamento, setLinkPagamento] = useState('');
+  const [showLinkModal, setShowLinkModal] = useState(false);
 
   console.log('Dados do financeiro:', { fiancas, isLoading, error });
 
   const stats = getStats();
-
-  const anexarLink = async (id: string) => {
-    if (!linkPagamento.trim()) {
-      toast({
-        title: "Erro",
-        description: "Por favor, insira um link de pagamento válido.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      await atualizarStatusFianca.mutateAsync({
-        fiancaId: id,
-        novoStatus: 'pagamento_disponivel'
-      });
-
-      toast({
-        title: "Link anexado!",
-        description: "Link de pagamento anexado com sucesso.",
-      });
-      setLinkPagamento('');
-      setSelectedFianca(null);
-    } catch (error) {
-      console.error('Erro ao anexar link:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao anexar link de pagamento.",
-        variant: "destructive"
-      });
-    }
-  };
 
   const confirmarPagamento = async (id: string) => {
     try {
@@ -111,6 +81,11 @@ const Financeiro = () => {
       case 'aprovada': return 'Aprovada';
       default: return status;
     }
+  };
+
+  const formatImovelTipo = (tipo: string) => {
+    if (!tipo) return '';
+    return tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase();
   };
 
   const filteredFiancas = fiancas.filter(fianca => {
@@ -308,7 +283,7 @@ const Financeiro = () => {
                         
                         {/* Informações do Imóvel */}
                         <div className="space-y-2">
-                          <h5 className="font-medium text-gray-900">{fianca.imovel_tipo}</h5>
+                          <h5 className="font-medium text-gray-900">{formatImovelTipo(fianca.imovel_tipo)}</h5>
                           <p className="text-sm text-gray-600">
                             {fianca.imovel_endereco}, {fianca.imovel_numero} - {fianca.imovel_bairro}, {fianca.imovel_cidade}/{fianca.imovel_estado}
                           </p>
@@ -320,9 +295,21 @@ const Financeiro = () => {
                             <span className="text-2xl font-bold text-gray-900">
                               R$ {Number(fianca.imovel_valor_aluguel).toLocaleString()}
                             </span>
-                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
-                              {getStatusText(fianca.status_fianca)}
-                            </Badge>
+                            {fianca.status_fianca === 'pagamento_disponivel' ? (
+                              <AguardandoPagamentoTooltip
+                                valorFianca={Number(fianca.imovel_valor_aluguel)}
+                                nomeInquilino={fianca.inquilino_nome_completo}
+                                dataEnvio={fianca.data_envio_link}
+                              >
+                                <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-pointer`}>
+                                  {getStatusText(fianca.status_fianca)}
+                                </Badge>
+                              </AguardandoPagamentoTooltip>
+                            ) : (
+                              <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
+                                {getStatusText(fianca.status_fianca)}
+                              </Badge>
+                            )}
                           </div>
                           <p className="text-sm text-gray-600">
                             <strong>Criado em:</strong> {new Date(fianca.data_criacao).toLocaleDateString()}
@@ -345,7 +332,10 @@ const Financeiro = () => {
                         {fianca.status_fianca === 'enviada_ao_financeiro' && (
                           <Button
                             size="sm"
-                            onClick={() => setSelectedFianca(fianca)}
+                            onClick={() => {
+                              setSelectedFianca(fianca);
+                              setShowLinkModal(true);
+                            }}
                             className="bg-blue-500 hover:bg-blue-600 flex items-center"
                             disabled={isUpdating}
                           >
@@ -387,64 +377,17 @@ const Financeiro = () => {
         </Card>
 
         {/* Modal para anexar link */}
-        {selectedFianca && (
-          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-2xl bg-white max-h-[90vh] overflow-y-auto">
-              <CardHeader>
-                <CardTitle>Anexar Link de Pagamento</CardTitle>
-                <CardDescription>
-                  {selectedFianca.inquilino_nome_completo} - {selectedFianca.imovel_tipo} - R$ {Number(selectedFianca.imovel_valor_aluguel).toLocaleString()}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="text-sm text-gray-600"><strong>Inquilino:</strong> {selectedFianca.inquilino_nome_completo}</p>
-                    <p className="text-sm text-gray-600"><strong>E-mail:</strong> {selectedFianca.inquilino_email}</p>
-                    <p className="text-sm text-gray-600"><strong>CPF:</strong> {selectedFianca.inquilino_cpf}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600"><strong>Imóvel:</strong> {selectedFianca.imovel_tipo}</p>
-                    <p className="text-sm text-gray-600"><strong>Valor:</strong> R$ {Number(selectedFianca.imovel_valor_aluguel).toLocaleString()}</p>
-                    <p className="text-sm text-gray-600"><strong>Criado em:</strong> {new Date(selectedFianca.data_criacao).toLocaleDateString()}</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium block mb-2">Link de Pagamento do Banco</label>
-                  <Input
-                    placeholder="https://banco.com.br/pagamento/..."
-                    value={linkPagamento}
-                    onChange={(e) => setLinkPagamento(e.target.value)}
-                    className="w-full"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Cole aqui o link de pagamento gerado pelo sistema do banco
-                  </p>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => anexarLink(selectedFianca.id)}
-                    className="flex-1"
-                    disabled={isUpdating}
-                  >
-                    {isUpdating ? 'Processando...' : 'Anexar Link'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedFianca(null);
-                      setLinkPagamento('');
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        <AdicionarLinkPagamentoModal
+          isOpen={showLinkModal}
+          onClose={() => {
+            setShowLinkModal(false);
+            setSelectedFianca(null);
+          }}
+          fiancaId={selectedFianca?.id || ''}
+          onSuccess={() => {
+            // Refresh da lista será feito automaticamente pelo React Query
+          }}
+        />
       </div>
     </Layout>
   );
