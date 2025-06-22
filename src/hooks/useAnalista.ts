@@ -2,186 +2,156 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useHistoricoFiancas } from './useHistoricoFiancas';
 import type { Tables } from '@/integrations/supabase/types';
 
-type FiancaParaAnalise = Tables<'fiancas_para_analise'>;
-
-export interface EstatisticasAnalista {
-  totalAnalises: number;
-  pendentes: number;
-  aprovadas: number;
-  reprovadas: number;
-  taxaMedia: number;
-}
+type Fianca = Tables<'fiancas_locaticias'>;
 
 export const useAnalista = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { registrarLog } = useHistoricoFiancas();
 
-  // Buscar todas as fianças para análise
   const {
-    data: fiancasParaAnalise = [],
-    isLoading: isLoadingFiancas,
-    error: errorFiancas
+    data: fiancas = [],
+    isLoading,
+    error
   } = useQuery({
-    queryKey: ['fiancas-para-analise'],
+    queryKey: ['fiancas-analise'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('fiancas_para_analise')
-        .select('*')
+        .from('fiancas_locaticias')
+        .select(`
+          *,
+          usuarios!id_imobiliaria(nome)
+        `)
         .order('data_criacao', { ascending: false });
 
       if (error) throw error;
-      return data as FiancaParaAnalise[];
+      return data as Fianca[];
     },
-    enabled: !!user?.id && user?.type === 'analista'
+    enabled: !!user?.id
   });
 
-  // Buscar estatísticas do analista
-  const {
-    data: estatisticas,
-    isLoading: isLoadingStats
-  } = useQuery({
-    queryKey: ['estatisticas-analista'],
-    queryFn: async (): Promise<EstatisticasAnalista> => {
-      const { data, error } = await supabase
-        .from('fiancas_locaticias')
-        .select('status_fianca, taxa_aplicada');
-
-      if (error) throw error;
-
-      const totalAnalises = data.length;
-      const pendentes = data.filter(f => f.status_fianca === 'em_analise').length;
-      const aprovadas = data.filter(f => f.status_fianca === 'aprovada').length;
-      const reprovadas = data.filter(f => f.status_fianca === 'rejeitada').length;
-      
-      const taxasValidas = data
-        .filter(f => f.taxa_aplicada && f.status_fianca === 'aprovada')
-        .map(f => f.taxa_aplicada as number);
-      
-      const taxaMedia = taxasValidas.length > 0 
-        ? taxasValidas.reduce((acc, taxa) => acc + taxa, 0) / taxasValidas.length 
-        : 0;
-
-      return {
-        totalAnalises,
-        pendentes,
-        aprovadas,
-        reprovadas,
-        taxaMedia: Math.round(taxaMedia * 100) / 100
-      };
-    },
-    enabled: !!user?.id && user?.type === 'analista'
-  });
-
-  // Atualizar score e taxa
-  const updateScoreETaxa = useMutation({
+  const aprovarFianca = useMutation({
     mutationFn: async ({ 
-      id, 
+      fiancaId, 
       score, 
-      taxa 
+      taxa, 
+      observacoes 
     }: { 
-      id: string; 
+      fiancaId: string; 
       score: number; 
       taxa: number; 
+      observacoes?: string; 
     }) => {
-      const { data, error } = await supabase
-        .from('fiancas_locaticias')
-        .update({
-          score_credito: score,
-          taxa_aplicada: taxa
-        })
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fiancas-para-analise'] });
-      queryClient.invalidateQueries({ queryKey: ['estatisticas-analista'] });
-    }
-  });
-
-  // Aprovar fiança
-  const aprovarFianca = useMutation({
-    mutationFn: async ({
-      id,
-      score,
-      taxa
-    }: {
-      id: string;
-      score: number;
-      taxa: number;
-    }) => {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('fiancas_locaticias')
         .update({
           status_fianca: 'aprovada',
           score_credito: score,
           taxa_aplicada: taxa,
-          data_analise: new Date().toISOString()
+          observacoes_aprovacao: observacoes,
+          data_analise: new Date().toISOString(),
+          data_atualizacao: new Date().toISOString()
         })
-        .eq('id', id)
-        .select()
-        .single();
+        .eq('id', fiancaId);
 
       if (error) throw error;
-      return data;
+
+      // Registrar log da aprovação
+      await registrarLog({
+        fiancaId,
+        acao: 'Fiança aprovada',
+        detalhes: `Score: ${score}, Taxa: ${taxa}%${observacoes ? `, Observações: ${observacoes}` : ''}`
+      });
+
+      return fiancaId;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fiancas-para-analise'] });
-      queryClient.invalidateQueries({ queryKey: ['estatisticas-analista'] });
+      queryClient.invalidateQueries({ queryKey: ['fiancas-analise'] });
     }
   });
 
-  // Reprovar fiança
-  const reprovarFianca = useMutation({
-    mutationFn: async ({
-      id,
-      motivo,
-      score,
-      taxa
-    }: {
-      id: string;
-      motivo: string;
-      score?: number;
-      taxa?: number;
-    }) => {
-      const { data, error } = await supabase
+  const rejeitarFianca = useMutation({
+    mutationFn: async ({ fiancaId, motivo }: { fiancaId: string; motivo: string }) => {
+      const { error } = await supabase
         .from('fiancas_locaticias')
         .update({
           status_fianca: 'rejeitada',
           motivo_reprovacao: motivo,
-          score_credito: score,
-          taxa_aplicada: taxa,
-          data_analise: new Date().toISOString()
+          data_analise: new Date().toISOString(),
+          data_atualizacao: new Date().toISOString()
         })
-        .eq('id', id)
-        .select()
-        .single();
+        .eq('id', fiancaId);
 
       if (error) throw error;
-      return data;
+
+      // Registrar log da rejeição
+      await registrarLog({
+        fiancaId,
+        acao: 'Fiança rejeitada',
+        detalhes: motivo
+      });
+
+      return fiancaId;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fiancas-para-analise'] });
-      queryClient.invalidateQueries({ queryKey: ['estatisticas-analista'] });
+      queryClient.invalidateQueries({ queryKey: ['fiancas-analise'] });
     }
   });
 
+  const editarScore = useMutation({
+    mutationFn: async ({ fiancaId, novoScore }: { fiancaId: string; novoScore: number }) => {
+      const { error } = await supabase
+        .from('fiancas_locaticias')
+        .update({
+          score_credito: novoScore,
+          data_atualizacao: new Date().toISOString()
+        })
+        .eq('id', fiancaId);
+
+      if (error) throw error;
+
+      // Registrar log da edição de score
+      await registrarLog({
+        fiancaId,
+        acao: 'Score de crédito editado',
+        detalhes: `Novo score: ${novoScore}`
+      });
+
+      return fiancaId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fiancas-analise'] });
+    }
+  });
+
+  const getAnaliseStats = () => {
+    const totalFiancas = fiancas.length;
+    const pendentesAnalise = fiancas.filter(f => f.status_fianca === 'em_analise').length;
+    const aprovadas = fiancas.filter(f => f.status_fianca === 'aprovada').length;
+    const rejeitadas = fiancas.filter(f => f.status_fianca === 'rejeitada').length;
+
+    return {
+      totalFiancas,
+      pendentesAnalise,
+      aprovadas,
+      rejeitadas
+    };
+  };
+
   return {
-    fiancasParaAnalise,
-    isLoadingFiancas,
-    errorFiancas,
-    estatisticas,
-    isLoadingStats,
-    updateScoreETaxa: updateScoreETaxa.mutate,
-    isUpdatingScore: updateScoreETaxa.isPending,
-    aprovarFianca: aprovarFianca.mutate,
-    isApprovingFianca: aprovarFianca.isPending,
-    reprovarFianca: reprovarFianca.mutate,
-    isReprovingFianca: reprovarFianca.isPending
+    fiancas,
+    isLoading,
+    error,
+    aprovarFianca,
+    rejeitarFianca,
+    editarScore,
+    isApproving: aprovarFianca.isPending,
+    isRejecting: rejeitarFianca.isPending,
+    isEditingScore: editarScore.isPending,
+    getAnaliseStats,
+    registrarLog
   };
 };
