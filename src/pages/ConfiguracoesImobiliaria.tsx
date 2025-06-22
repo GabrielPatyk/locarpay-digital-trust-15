@@ -5,6 +5,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import Layout from '@/components/Layout';
 import ImageUpload from '@/components/ImageUpload';
+import ConfirmationModal from '@/components/ConfirmationModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,11 @@ const ConfiguracoesImobiliaria = () => {
   const { toast } = useToast();
   
   const [showPassword, setShowPassword] = useState(false);
+  const [showCompanyConfirmation, setShowCompanyConfirmation] = useState(false);
+  const [showPersonalConfirmation, setShowPersonalConfirmation] = useState(false);
+  const [pendingCompanyChanges, setPendingCompanyChanges] = useState<Record<string, string>>({});
+  const [pendingPersonalChanges, setPendingPersonalChanges] = useState<Record<string, string>>({});
+  
   const [formData, setFormData] = useState({
     // Dados da empresa (perfil_usuario)
     nome_empresa: '',
@@ -77,15 +83,18 @@ const ConfiguracoesImobiliaria = () => {
     }
   }, [profile, formatCNPJ]);
 
-  // Manter dados pessoais sempre vazios para o usuário preencher
+  // Carregar dados pessoais do usuário
   useEffect(() => {
     if (user) {
       setFormData(prev => ({
         ...prev,
+        nome: user.name || '',
+        email: user.email || '',
+        telefone: formatPhone(user.telefone || '+55'),
         imagem_perfil: user.imagem_perfil || ''
       }));
     }
-  }, [user]);
+  }, [user, formatPhone]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     if (field === 'telefone') {
@@ -129,6 +138,24 @@ const ConfiguracoesImobiliaria = () => {
       }
     }
 
+    // Preparar dados para confirmação
+    const changes = {
+      'Nome da Empresa': formData.nome_empresa,
+      'CNPJ': formData.cnpj,
+      'Endereço': formData.endereco,
+      'Número': formData.numero,
+      'Complemento': formData.complemento || '(não informado)',
+      'Bairro': formData.bairro,
+      'Cidade': formData.cidade,
+      'Estado': formData.estado,
+      'País': formData.pais
+    };
+
+    setPendingCompanyChanges(changes);
+    setShowCompanyConfirmation(true);
+  };
+
+  const confirmCompanyChanges = async () => {
     const success = await updateProfile({
       nome_empresa: formData.nome_empresa,
       cnpj: unformatCNPJ(formData.cnpj),
@@ -146,6 +173,7 @@ const ConfiguracoesImobiliaria = () => {
         title: "Dados da empresa atualizados!",
         description: "As informações da empresa foram salvas com sucesso.",
       });
+      setShowCompanyConfirmation(false);
     }
   };
 
@@ -179,6 +207,18 @@ const ConfiguracoesImobiliaria = () => {
       return;
     }
 
+    // Preparar dados para confirmação
+    const changes = {
+      'Nome Completo': formData.nome,
+      'E-mail': formData.email,
+      'Telefone': formData.telefone
+    };
+
+    setPendingPersonalChanges(changes);
+    setShowPersonalConfirmation(true);
+  };
+
+  const confirmPersonalChanges = async () => {
     const success = await updateUserData({
       nome: formData.nome,
       email: formData.email,
@@ -193,6 +233,7 @@ const ConfiguracoesImobiliaria = () => {
         email: formData.email,
         telefone: unformatPhone(formData.telefone)
       });
+      setShowPersonalConfirmation(false);
     }
   };
 
@@ -577,6 +618,27 @@ const ConfiguracoesImobiliaria = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Modais de Confirmação */}
+        <ConfirmationModal
+          isOpen={showCompanyConfirmation}
+          onClose={() => setShowCompanyConfirmation(false)}
+          onConfirm={confirmCompanyChanges}
+          title="Confirmar Alterações - Dados da Empresa"
+          description="Você está prestes a alterar os dados da empresa. Confirme as informações abaixo:"
+          changes={pendingCompanyChanges}
+          isLoading={loading}
+        />
+
+        <ConfirmationModal
+          isOpen={showPersonalConfirmation}
+          onClose={() => setShowPersonalConfirmation(false)}
+          onConfirm={confirmPersonalChanges}
+          title="Confirmar Alterações - Dados Pessoais"
+          description="Você está prestes a alterar seus dados pessoais. Confirme as informações abaixo:"
+          changes={pendingPersonalChanges}
+          isLoading={loading}
+        />
       </div>
     </Layout>
   );

@@ -29,7 +29,17 @@ const ProfileCompletionCheck: React.FC = () => {
         profile.estado
       ];
 
-      const hasEmptyFields = requiredFields.some(field => !field || field.trim() === '');
+      // Verificar se algum campo obrigatório está vazio, null ou undefined
+      const hasEmptyFields = requiredFields.some(field => 
+        !field || 
+        (typeof field === 'string' && field.trim() === '')
+      );
+
+      console.log('Verificação de campos obrigatórios:', {
+        profile,
+        requiredFields,
+        hasEmptyFields
+      });
 
       if (hasEmptyFields) {
         setShowModal(true);
