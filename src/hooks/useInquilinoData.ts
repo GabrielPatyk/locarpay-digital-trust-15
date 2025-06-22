@@ -2,67 +2,108 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useFileUpload } from './useFileUpload';
+import { useToast } from '@/hooks/use-toast';
 
 export const useInquilinoData = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { uploadFile } = useFileUpload();
 
-  const { data: fiancas = [], isLoading } = useQuery({
-    queryKey: ['inquilino-fiancas', user?.id],
+  // Buscar fiança ativa do inquilino
+  const { data: fiancaAtiva, isLoading: isLoadingFianca } = useQuery({
+    queryKey: ['fianca-ativa', user?.id],
     queryFn: async () => {
-      if (!user?.id) return [];
-      
+      if (!user?.id) return null;
+
       const { data, error } = await supabase
         .from('fiancas_locaticias')
         .select('*')
         .eq('inquilino_usuario_id', user.id)
-        .order('data_criacao', { ascending: false });
+        .eq('status_fianca', 'ativa')
+        .order('data_criacao', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (error) {
-        console.error('Erro ao buscar fianças do inquilino:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       return data;
     },
     enabled: !!user?.id
   });
 
+  // Buscar fiança com pagamento disponível
+  const { data: fiancaPagamento, isLoading: isLoadingPagamento } = useQuery({
+    queryKey: ['fianca-pagamento', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+
+      const { data, error } = await supabase
+        .from('fiancas_locaticias')
+        .select('*')
+        .eq('inquilino_usuario_id', user.id)
+        .eq('status_fianca', 'pagamento_disponivel')
+        .order('data_criacao', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id
+  });
+
+  // Verificar se o email do usuário está verificado
+  const { data: emailVerificado } = useQuery({
+    queryKey: ['email-verificado', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('verificado')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data.verificado || false;
+    },
+    enabled: !!user?.id
+  });
+
+  // Mutation para enviar comprovante
   const enviarComprovante = useMutation({
-    mutationFn: async ({ fiancaId, arquivo }: { fiancaId: string; arquivo: File }) => {
-      console.log('Enviando comprovante para fiança:', fiancaId);
-      
-      // Upload do arquivo
-      const { path, url } = await uploadFile(arquivo, `comprovantes/${fiancaId}`);
-      
-      // Atualizar fiança com comprovante
+    mutationFn: async ({ fiancaId, comprovantePath }: { fiancaId: string; comprovantePath: string }) => {
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({
-          status_fianca: 'comprovante_enviado',
-          comprovante_pagamento: url,
-          situacao_pagamento: 'comprovante_enviado',
+          comprovante_pagamento: comprovantePath,
           data_comprovante: new Date().toISOString(),
-          data_atualizacao_pagamento: new Date().toISOString(),
-          data_atualizacao: new Date().toISOString()
+          status_fianca: 'comprovante_enviado'
         })
         .eq('id', fiancaId);
 
       if (error) throw error;
-      
-      return { path, url };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['inquilino-fiancas'] });
+      toast({
+        title: "Comprovante enviado!",
+        description: "Seu comprovante foi enviado e está sendo analisado.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['fianca-pagamento'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao enviar comprovante: " + error.message,
+        variant: "destructive",
+      });
     }
   });
 
   return {
-    fiancas,
-    isLoading,
-    enviarComprovante,
-    isEnviandoComprovante: enviarComprovante.isPending
+    fiancaAtiva,
+    fiancaPagamento,
+    emailVerificado,
+    isLoading: isLoadingFianca || isLoadingPagamento,
+    enviarComprovante
   };
 };

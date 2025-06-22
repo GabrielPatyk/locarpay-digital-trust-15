@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +15,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { useFiancas, type FiancaFormData } from '@/hooks/useFiancas';
-import { useImobiliariaData } from '@/hooks/useImobiliariaData';
 import { validateFiancaForm, formatCurrency } from '@/components/FiancaFormValidation';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import RejectedFiancaTooltip from '@/components/RejectedFiancaTooltip';
@@ -32,8 +32,7 @@ import {
   Clock,
   AlertCircle,
   Eye,
-  Loader2,
-  Edit
+  Loader2
 } from 'lucide-react';
 
 const FiancasImobiliaria = () => {
@@ -42,15 +41,14 @@ const FiancasImobiliaria = () => {
   const navigate = useNavigate();
   const { formatPhone } = usePhoneFormatter();
   const { fiancas, isLoading, createFianca, isCreating, acceptFianca, isAccepting, getFiancasStats } = useFiancas();
-  const { imobiliaria } = useImobiliariaData();
   
-  // Estado do formulário
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  // Estado do formulário
   const [formData, setFormData] = useState<FiancaFormData>({
     // Dados do Inquilino
     nomeCompleto: '',
@@ -218,7 +216,8 @@ const FiancasImobiliaria = () => {
       'vencida': 'Vencida',
       'cancelada': 'Cancelada',
       'enviada_ao_financeiro': 'Enviada ao Financeiro',
-      'pagamento_disponivel': 'Pagamento Disponível',
+      'aguardando_geracao_pagamento': 'Aguardando Pagamento',
+      'pagamento_disponivel': 'Aguardando Pagamento',
       'comprovante_enviado': 'Comprovante Enviado'
     };
     return labels[status] || status;
@@ -282,7 +281,7 @@ const FiancasImobiliaria = () => {
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] rounded-lg p-6 text-[#0C1C2E]">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold mb-2">Gestão de Fianças</h1>
               <p className="opacity-90">Gerencie e acompanhe todas as suas fianças</p>
@@ -384,7 +383,7 @@ const FiancasImobiliaria = () => {
         {/* Ações e Lista de Fianças */}
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
               <CardTitle>Lista de Fianças</CardTitle>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
@@ -746,7 +745,7 @@ const FiancasImobiliaria = () => {
                   <SelectItem value="rejeitada">Rejeitadas</SelectItem>
                   <SelectItem value="cancelada">Canceladas</SelectItem>
                   <SelectItem value="enviada_ao_financeiro">Enviada ao Financeiro</SelectItem>
-                  <SelectItem value="pagamento_disponivel">Pagamento Disponível</SelectItem>
+                  <SelectItem value="pagamento_disponivel">Aguardando Pagamento</SelectItem>
                   <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
                 </SelectContent>
               </Select>
@@ -757,7 +756,7 @@ const FiancasImobiliaria = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Inquilino</TableHead>
-                    <TableHead>Imóvel</TableHead>
+                    <TableHead className="min-w-[200px]">Imóvel</TableHead>
                     <TableHead>Valor</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Data Criação</TableHead>
@@ -796,12 +795,9 @@ const FiancasImobiliaria = () => {
                           </ApprovedFiancaTooltip>
                         ) : fianca.status_fianca === 'pagamento_disponivel' ? (
                           <AguardandoPagamentoTooltip
-                            approvalDate={fianca.data_analise}
-                            paymentDetails={{
-                              metodo_pagamento: fianca.metodo_pagamento,
-                              prazo_pagamento: fianca.prazo_pagamento,
-                              situacao_pagamento: fianca.situacao_pagamento
-                            }}
+                            valorFianca={fianca.imovel_valor_aluguel}
+                            nomeInquilino={fianca.inquilino_nome_completo}
+                            dataEnvio={fianca.data_atualizacao}
                           >
                             <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
                               {getStatusLabel(fianca.status_fianca)}
@@ -821,7 +817,7 @@ const FiancasImobiliaria = () => {
                             size="sm"
                             onClick={() => handleViewFianca(fianca.id)}
                           >
-                            <Eye className="h-3 w-3" />
+                            <Eye className="h-4 w-4" />
                           </Button>
                           {fianca.status_fianca === 'aprovada' ? (
                             <Button 
@@ -831,7 +827,7 @@ const FiancasImobiliaria = () => {
                               disabled={isAccepting}
                             >
                               {isAccepting ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 'Aceitar'
                               )}
