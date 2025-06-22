@@ -147,7 +147,7 @@ export const useFiancas = () => {
     }
   });
 
-  const updateFiancaStatus = async (fiancaId: string, novoStatus: string, detalhes?: string) => {
+  const updateFiancaStatus = async (fiancaId: string, novoStatus: Tables<'fiancas_locaticias'>['status_fianca'], detalhes?: string) => {
     try {
       const { error } = await supabase
         .from('fiancas_locaticias')
