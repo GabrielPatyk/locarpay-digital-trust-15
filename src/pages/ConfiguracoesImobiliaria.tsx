@@ -36,7 +36,7 @@ const ConfiguracoesImobiliaria = () => {
   const [pendingPersonalChanges, setPendingPersonalChanges] = useState<Record<string, string>>({});
   
   const [formData, setFormData] = useState({
-    // Dados da empresa (perfil_usuario)
+    // Dados da empresa - campos vazios para edição
     nome_empresa: '',
     cnpj: '',
     endereco: '',
@@ -47,10 +47,10 @@ const ConfiguracoesImobiliaria = () => {
     estado: '',
     pais: 'Brasil',
     
-    // Dados pessoais (usuarios)
+    // Dados pessoais - campos vazios para edição
     nome: '',
     email: '',
-    telefone: '+55',
+    telefone: '',
     imagem_perfil: user?.imagem_perfil || '',
     
     // Segurança
@@ -64,37 +64,6 @@ const ConfiguracoesImobiliaria = () => {
     weeklyReports: true,
     monthlyReports: true
   });
-
-  // Carregar dados da empresa quando o perfil for carregado
-  useEffect(() => {
-    if (profile) {
-      setFormData(prev => ({
-        ...prev,
-        nome_empresa: profile.nome_empresa || '',
-        cnpj: formatCNPJ(profile.cnpj || ''),
-        endereco: profile.endereco || '',
-        numero: profile.numero || '',
-        complemento: profile.complemento || '',
-        bairro: profile.bairro || '',
-        cidade: profile.cidade || '',
-        estado: profile.estado || '',
-        pais: profile.pais || 'Brasil'
-      }));
-    }
-  }, [profile, formatCNPJ]);
-
-  // Carregar dados pessoais do usuário
-  useEffect(() => {
-    if (user) {
-      setFormData(prev => ({
-        ...prev,
-        nome: user.name || '',
-        email: user.email || '',
-        telefone: formatPhone(user.telefone || '+55'),
-        imagem_perfil: user.imagem_perfil || ''
-      }));
-    }
-  }, [user, formatPhone]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     if (field === 'telefone') {
@@ -116,39 +85,17 @@ const ConfiguracoesImobiliaria = () => {
   };
 
   const handleSaveCompanyData = async () => {
-    // Validar campos obrigatórios
-    const requiredFields = {
-      nome_empresa: 'Nome da Empresa',
-      cnpj: 'CNPJ',
-      endereco: 'Endereço',
-      numero: 'Número',
-      bairro: 'Bairro',
-      cidade: 'Cidade',
-      estado: 'Estado'
-    };
-
-    for (const [field, label] of Object.entries(requiredFields)) {
-      if (!formData[field as keyof typeof formData] || (formData[field as keyof typeof formData] as string).trim() === '') {
-        toast({
-          title: "Campo obrigatório",
-          description: `O campo ${label} é obrigatório.`,
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
     // Preparar dados para confirmação
     const changes = {
-      'Nome da Empresa': formData.nome_empresa,
-      'CNPJ': formData.cnpj,
-      'Endereço': formData.endereco,
-      'Número': formData.numero,
-      'Complemento': formData.complemento || '(não informado)',
-      'Bairro': formData.bairro,
-      'Cidade': formData.cidade,
-      'Estado': formData.estado,
-      'País': formData.pais
+      'Nome da Empresa': formData.nome_empresa || '(não alterado)',
+      'CNPJ': formData.cnpj || '(não alterado)',
+      'Endereço': formData.endereco || '(não alterado)',
+      'Número': formData.numero || '(não alterado)',
+      'Complemento': formData.complemento || '(não alterado)',
+      'Bairro': formData.bairro || '(não alterado)',
+      'Cidade': formData.cidade || '(não alterado)',
+      'Estado': formData.estado || '(não alterado)',
+      'País': formData.pais || 'Brasil'
     };
 
     setPendingCompanyChanges(changes);
@@ -156,17 +103,20 @@ const ConfiguracoesImobiliaria = () => {
   };
 
   const confirmCompanyChanges = async () => {
-    const success = await updateProfile({
-      nome_empresa: formData.nome_empresa,
-      cnpj: unformatCNPJ(formData.cnpj),
-      endereco: formData.endereco,
-      numero: formData.numero,
-      complemento: formData.complemento,
-      bairro: formData.bairro,
-      cidade: formData.cidade,
-      estado: formData.estado,
-      pais: formData.pais
-    });
+    // Filtrar apenas campos preenchidos
+    const updateData: any = {};
+    
+    if (formData.nome_empresa.trim()) updateData.nome_empresa = formData.nome_empresa;
+    if (formData.cnpj.trim()) updateData.cnpj = unformatCNPJ(formData.cnpj);
+    if (formData.endereco.trim()) updateData.endereco = formData.endereco;
+    if (formData.numero.trim()) updateData.numero = formData.numero;
+    if (formData.complemento.trim()) updateData.complemento = formData.complemento;
+    if (formData.bairro.trim()) updateData.bairro = formData.bairro;
+    if (formData.cidade.trim()) updateData.cidade = formData.cidade;
+    if (formData.estado.trim()) updateData.estado = formData.estado;
+    if (formData.pais.trim()) updateData.pais = formData.pais;
+
+    const success = await updateProfile(updateData);
 
     if (success) {
       toast({
@@ -174,44 +124,27 @@ const ConfiguracoesImobiliaria = () => {
         description: "As informações da empresa foram salvas com sucesso.",
       });
       setShowCompanyConfirmation(false);
+      // Limpar os campos após salvar
+      setFormData(prev => ({
+        ...prev,
+        nome_empresa: '',
+        cnpj: '',
+        endereco: '',
+        numero: '',
+        complemento: '',
+        bairro: '',
+        cidade: '',
+        estado: ''
+      }));
     }
   };
 
   const handleSavePersonalData = async () => {
-    // Validar campos obrigatórios
-    if (!formData.nome.trim()) {
-      toast({
-        title: "Campo obrigatório",
-        description: "O nome é obrigatório.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!formData.email.trim()) {
-      toast({
-        title: "Campo obrigatório",
-        description: "O e-mail é obrigatório.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validar telefone
-    if (!isValidPhone(formData.telefone)) {
-      toast({
-        title: "Telefone inválido",
-        description: "O telefone deve ter 13 dígitos e começar com +55.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     // Preparar dados para confirmação
     const changes = {
-      'Nome Completo': formData.nome,
-      'E-mail': formData.email,
-      'Telefone': formData.telefone
+      'Nome Completo': formData.nome || '(não alterado)',
+      'E-mail': formData.email || '(não alterado)',
+      'Telefone': formData.telefone || '(não alterado)'
     };
 
     setPendingPersonalChanges(changes);
@@ -219,21 +152,41 @@ const ConfiguracoesImobiliaria = () => {
   };
 
   const confirmPersonalChanges = async () => {
-    const success = await updateUserData({
-      nome: formData.nome,
-      email: formData.email,
-      telefone: unformatPhone(formData.telefone)
-    });
+    // Filtrar apenas campos preenchidos
+    const updateData: any = {};
+    
+    if (formData.nome.trim()) updateData.nome = formData.nome;
+    if (formData.email.trim()) updateData.email = formData.email;
+    if (formData.telefone.trim()) {
+      if (!isValidPhone(formData.telefone)) {
+        toast({
+          title: "Telefone inválido",
+          description: "O telefone deve ter 13 dígitos e começar com +55.",
+          variant: "destructive",
+        });
+        return;
+      }
+      updateData.telefone = unformatPhone(formData.telefone);
+    }
+
+    const success = await updateUserData(updateData);
 
     if (success && user) {
       // Atualizar o contexto do usuário
       updateUser({
         ...user,
-        name: formData.nome,
-        email: formData.email,
-        telefone: unformatPhone(formData.telefone)
+        name: updateData.nome || user.name,
+        email: updateData.email || user.email,
+        telefone: updateData.telefone || user.telefone
       });
       setShowPersonalConfirmation(false);
+      // Limpar os campos após salvar
+      setFormData(prev => ({
+        ...prev,
+        nome: '',
+        email: '',
+        telefone: ''
+      }));
     }
   };
 
@@ -272,10 +225,6 @@ const ConfiguracoesImobiliaria = () => {
     setFormData(prev => ({ ...prev, imagem_perfil: imageUrl }));
   };
 
-  const handleSaveNotifications = () => {
-    // Esta função será implementada quando as notificações estiverem prontas
-  };
-
   return (
     <Layout title="Configurações">
       <div className="space-y-6 animate-fade-in">
@@ -294,7 +243,7 @@ const ConfiguracoesImobiliaria = () => {
             <ImageUpload
               currentImage={formData.imagem_perfil}
               onImageChange={handleImageChange}
-              userName={formData.nome}
+              userName={user?.name || 'Usuário'}
             />
           </CardContent>
         </Card>
@@ -307,53 +256,61 @@ const ConfiguracoesImobiliaria = () => {
               Dados da Empresa
             </CardTitle>
             <CardDescription>
-              Informações básicas da sua imobiliária (campos obrigatórios)
+              Informações básicas da sua imobiliária
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="nome_empresa">Nome da Empresa/Imobiliária *</Label>
+                <Label htmlFor="nome_empresa">Nome da Empresa/Imobiliária</Label>
                 <Input
                   id="nome_empresa"
                   value={formData.nome_empresa}
                   onChange={(e) => handleInputChange('nome_empresa', e.target.value)}
-                  placeholder="Nome da sua imobiliária"
-                  required
+                  placeholder={profile?.nome_empresa || "Digite o nome da sua imobiliária"}
                 />
+                {profile?.nome_empresa && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.nome_empresa}</p>
+                )}
               </div>
               <div>
-                <Label htmlFor="cnpj">CNPJ *</Label>
+                <Label htmlFor="cnpj">CNPJ</Label>
                 <Input
                   id="cnpj"
                   value={formData.cnpj}
                   onChange={(e) => handleInputChange('cnpj', e.target.value)}
-                  placeholder="00.000.000/0000-00"
-                  required
+                  placeholder={profile?.cnpj ? formatCNPJ(profile.cnpj) : "00.000.000/0000-00"}
                 />
+                {profile?.cnpj && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {formatCNPJ(profile.cnpj)}</p>
+                )}
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
-                <Label htmlFor="endereco">Endereço *</Label>
+                <Label htmlFor="endereco">Endereço</Label>
                 <Input
                   id="endereco"
                   value={formData.endereco}
                   onChange={(e) => handleInputChange('endereco', e.target.value)}
-                  placeholder="Rua, Avenida, etc."
-                  required
+                  placeholder={profile?.endereco || "Rua, Avenida, etc."}
                 />
+                {profile?.endereco && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.endereco}</p>
+                )}
               </div>
               <div>
-                <Label htmlFor="numero">Número *</Label>
+                <Label htmlFor="numero">Número</Label>
                 <Input
                   id="numero"
                   value={formData.numero}
                   onChange={(e) => handleInputChange('numero', e.target.value)}
-                  placeholder="123"
-                  required
+                  placeholder={profile?.numero || "123"}
                 />
+                {profile?.numero && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.numero}</p>
+                )}
               </div>
             </div>
 
@@ -363,40 +320,49 @@ const ConfiguracoesImobiliaria = () => {
                 id="complemento"
                 value={formData.complemento}
                 onChange={(e) => handleInputChange('complemento', e.target.value)}
-                placeholder="Sala, Andar, etc."
+                placeholder={profile?.complemento || "Sala, Andar, etc."}
               />
+              {profile?.complemento && (
+                <p className="text-xs text-gray-500 mt-1">Atual: {profile.complemento}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="bairro">Bairro *</Label>
+                <Label htmlFor="bairro">Bairro</Label>
                 <Input
                   id="bairro"
                   value={formData.bairro}
                   onChange={(e) => handleInputChange('bairro', e.target.value)}
-                  placeholder="Centro"
-                  required
+                  placeholder={profile?.bairro || "Centro"}
                 />
+                {profile?.bairro && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.bairro}</p>
+                )}
               </div>
               <div>
-                <Label htmlFor="cidade">Cidade *</Label>
+                <Label htmlFor="cidade">Cidade</Label>
                 <Input
                   id="cidade"
                   value={formData.cidade}
                   onChange={(e) => handleInputChange('cidade', e.target.value)}
-                  placeholder="São Paulo"
-                  required
+                  placeholder={profile?.cidade || "São Paulo"}
                 />
+                {profile?.cidade && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.cidade}</p>
+                )}
               </div>
               <div>
-                <Label htmlFor="estado">Estado *</Label>
+                <Label htmlFor="estado">Estado</Label>
                 <Input
                   id="estado"
                   value={formData.estado}
                   onChange={(e) => handleInputChange('estado', e.target.value)}
-                  placeholder="SP"
-                  required
+                  placeholder={profile?.estado || "SP"}
                 />
+                {profile?.estado && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.estado}</p>
+                )}
               </div>
             </div>
 
@@ -405,8 +371,8 @@ const ConfiguracoesImobiliaria = () => {
               <Input
                 id="pais"
                 value={formData.pais}
-                readOnly
-                className="bg-gray-100"
+                onChange={(e) => handleInputChange('pais', e.target.value)}
+                placeholder="Brasil"
               />
             </div>
             
@@ -435,37 +401,43 @@ const ConfiguracoesImobiliaria = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="nome">Nome Completo *</Label>
+                <Label htmlFor="nome">Nome Completo</Label>
                 <Input
                   id="nome"
                   value={formData.nome}
                   onChange={(e) => handleInputChange('nome', e.target.value)}
-                  placeholder="Seu nome completo"
-                  required
+                  placeholder={user?.name || "Seu nome completo"}
                 />
+                {user?.name && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {user.name}</p>
+                )}
               </div>
               <div>
-                <Label htmlFor="email">E-mail *</Label>
+                <Label htmlFor="email">E-mail</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="seu@email.com"
-                  required
+                  placeholder={user?.email || "seu@email.com"}
                 />
+                {user?.email && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {user.email}</p>
+                )}
               </div>
             </div>
             
             <div>
-              <Label htmlFor="telefone">Telefone (obrigatório 13 dígitos começando com +55) *</Label>
+              <Label htmlFor="telefone">Telefone</Label>
               <Input
                 id="telefone"
                 value={formData.telefone}
                 onChange={(e) => handleInputChange('telefone', e.target.value)}
-                placeholder="+55 (11) 9 9999-9999"
-                required
+                placeholder={user?.telefone ? formatPhone(user.telefone) : "+55 (11) 9 9999-9999"}
               />
+              {user?.telefone && (
+                <p className="text-xs text-gray-500 mt-1">Atual: {formatPhone(user.telefone)}</p>
+              )}
             </div>
             
             <Button 
