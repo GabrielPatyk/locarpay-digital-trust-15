@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -38,10 +37,29 @@ const formatImovelTipo = (tipo: string) => {
 const FiancasImobiliaria = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { fiancas, isLoading, stats } = useFiancas();
+  const { fiancas, isLoading, getFiancasStats } = useFiancas();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState('');
+
+  // Get stats by calling the function
+  const stats = React.useMemo(() => {
+    const total = fiancas.length;
+    const emAnalise = fiancas.filter(f => f.status_fianca === 'em_analise').length;
+    const aprovadas = fiancas.filter(f => f.status_fianca === 'aprovada').length;
+    const rejeitadas = fiancas.filter(f => f.status_fianca === 'rejeitada').length;
+    const ativas = fiancas.filter(f => f.status_fianca === 'ativa').length;
+    const valorTotal = fiancas.reduce((acc, f) => acc + (Number(f.imovel_valor_aluguel) || 0), 0);
+    
+    return {
+      total,
+      emAnalise,
+      aprovadas,
+      rejeitadas,
+      ativas,
+      valorTotal
+    };
+  }, [fiancas]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
