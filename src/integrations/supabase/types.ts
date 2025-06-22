@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       fiancas_locaticias: {
         Row: {
+          criado_por: string | null
           data_analise: string | null
           data_atualizacao: string
           data_criacao: string
@@ -48,6 +49,7 @@ export type Database = {
           taxa_aplicada: number | null
         }
         Insert: {
+          criado_por?: string | null
           data_analise?: string | null
           data_atualizacao?: string
           data_criacao?: string
@@ -85,6 +87,7 @@ export type Database = {
           taxa_aplicada?: number | null
         }
         Update: {
+          criado_por?: string | null
           data_analise?: string | null
           data_atualizacao?: string
           data_criacao?: string
@@ -122,6 +125,13 @@ export type Database = {
           taxa_aplicada?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fiancas_locaticias_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fiancas_locaticias_id_imobiliaria_fkey"
             columns: ["id_imobiliaria"]

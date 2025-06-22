@@ -229,7 +229,9 @@ const DetalheFianca = () => {
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <User className="h-8 w-8 mx-auto mb-2 text-blue-600" />
                 <p className="text-sm font-medium text-gray-500">Analista</p>
-                <p className="text-sm font-medium text-blue-600">Analista Responsável</p>
+                <p className="text-sm font-medium text-blue-600">
+                  {fianca.analista?.nome || 'Não atribuído'}
+                </p>
               </div>
             </div>
 

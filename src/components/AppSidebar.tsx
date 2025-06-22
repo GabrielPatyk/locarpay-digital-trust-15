@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -313,7 +314,7 @@ const AppSidebar = () => {
 
   const getUserTypeLabel = (type: string) => {
     const labels = {
-      analista: 'Analista de Conta',
+      analista: 'Analista de Fiança',
       juridico: 'Departamento Jurídico',
       sdr: 'SDR - Comercial',
       executivo: 'Executivo de Conta',

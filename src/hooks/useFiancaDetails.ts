@@ -16,7 +16,10 @@ export const useFiancaDetails = (fiancaId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('fiancas_locaticias')
-        .select('*')
+        .select(`
+          *,
+          analista:criado_por(nome)
+        `)
         .eq('id', fiancaId)
         .single();
 

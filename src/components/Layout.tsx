@@ -27,13 +27,15 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   const handleSettings = () => {
     if (user?.type === 'imobiliaria') {
       navigate('/configuracoes-imobiliaria');
+    } else if (user?.type === 'analista') {
+      navigate('/configuracoes-analista');
     }
     // Para outros tipos de usuário, não faz nada ainda
   };
 
   const getUserTypeLabel = (type: string) => {
     const labels = {
-      analista: 'Analista de Conta',
+      analista: 'Analista de Fiança',
       juridico: 'Departamento Jurídico',
       sdr: 'SDR - Comercial',
       executivo: 'Executivo de Conta',
@@ -134,7 +136,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
                 variant="ghost" 
                 size="sm" 
                 onClick={handleSettings}
-                disabled={user?.type !== 'imobiliaria'}
+                disabled={user?.type !== 'imobiliaria' && user?.type !== 'analista'}
               >
                 <Settings className="h-5 w-5" />
               </Button>
