@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useInquilinoData } from '@/hooks/useInquilinoData';
 import { useToast } from '@/hooks/use-toast';
-import { ComprovanteUpload } from '@/components/ComprovanteUpload';
-import { EmailVerificationModal } from '@/components/EmailVerificationModal';
+import ComprovanteUpload from '@/components/ComprovanteUpload';
+import EmailVerificationModal from '@/components/EmailVerificationModal';
 import { 
   Home, 
   DollarSign, 
