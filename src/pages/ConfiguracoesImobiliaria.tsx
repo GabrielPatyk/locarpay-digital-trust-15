@@ -30,7 +30,7 @@ const ConfiguracoesImobiliaria = () => {
   
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    // Dados da empresa (perfil_usuario) - sempre vazios inicialmente
+    // Dados da empresa (perfil_usuario)
     nome_empresa: '',
     cnpj: '',
     endereco: '',
@@ -41,7 +41,7 @@ const ConfiguracoesImobiliaria = () => {
     estado: '',
     pais: 'Brasil',
     
-    // Dados pessoais (usuarios) - sempre vazios inicialmente
+    // Dados pessoais (usuarios)
     nome: '',
     email: '',
     telefone: '+55',
@@ -59,6 +59,7 @@ const ConfiguracoesImobiliaria = () => {
     monthlyReports: true
   });
 
+  // Carregar dados da empresa quando o perfil for carregado
   useEffect(() => {
     if (profile) {
       setFormData(prev => ({
@@ -76,6 +77,7 @@ const ConfiguracoesImobiliaria = () => {
     }
   }, [profile, formatCNPJ]);
 
+  // Manter dados pessoais sempre vazios para o usuário preencher
   useEffect(() => {
     if (user) {
       setFormData(prev => ({
