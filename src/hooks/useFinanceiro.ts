@@ -27,12 +27,9 @@ export const useFinanceiro = () => {
           usuarios!fiancas_locaticias_criado_por_fkey(nome)
         `)
         .in('status_fianca', [
-          'aprovada', 
           'enviada_ao_financeiro', 
-          'aguardando_geracao_pagamento',
-          'pagamento_disponivel',
-          'comprovante_enviado',
-          'ativa'
+          'pagamento_disponivel', 
+          'comprovante_enviado'
         ])
         .order('data_criacao', { ascending: false });
 
@@ -136,19 +133,15 @@ export const useFinanceiro = () => {
 
   const getFinanceiroStats = () => {
     const totalFiancas = fiancas.length;
-    const aguardandoPagamento = fiancas.filter(f => 
-      ['aprovada', 'enviada_ao_financeiro', 'aguardando_geracao_pagamento'].includes(f.status_fianca)
-    ).length;
-    const pagamentoDisponivel = fiancas.filter(f => f.status_fianca === 'pagamento_disponivel').length;
-    const comprovantesEnviados = fiancas.filter(f => f.status_fianca === 'comprovante_enviado').length;
-    const ativas = fiancas.filter(f => f.status_fianca === 'ativa').length;
+    const aguardandoLink = fiancas.filter(f => f.status_fianca === 'enviada_ao_financeiro').length;
+    const linkEnviado = fiancas.filter(f => f.status_fianca === 'pagamento_disponivel').length;
+    const pagos = fiancas.filter(f => f.status_fianca === 'comprovante_enviado').length;
 
     return {
       totalFiancas,
-      aguardandoPagamento,
-      pagamentoDisponivel,
-      comprovantesEnviados,
-      ativas
+      aguardandoLink,
+      linkEnviado,
+      pagos
     };
   };
 

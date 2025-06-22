@@ -18,6 +18,7 @@ import { validateFiancaForm, formatCurrency } from '@/components/FiancaFormValid
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import RejectedFiancaTooltip from '@/components/RejectedFiancaTooltip';
 import ApprovedFiancaTooltip from '@/components/ApprovedFiancaTooltip';
+import AguardandoPagamentoTooltip from '@/components/AguardandoPagamentoTooltip';
 import { 
   FileText, 
   Plus, 
@@ -199,7 +200,9 @@ const FiancasImobiliaria = () => {
       'vencida': 'bg-red-500',
       'cancelada': 'bg-gray-500',
       'enviada_ao_financeiro': 'bg-green-500',
-      'aguardando_geracao_pagamento': 'bg-yellow-500'
+      'aguardando_geracao_pagamento': 'bg-yellow-500',
+      'pagamento_disponivel': 'bg-yellow-500',
+      'comprovante_enviado': 'bg-blue-500'
     };
     return colors[status] || 'bg-gray-500';
   };
@@ -213,7 +216,9 @@ const FiancasImobiliaria = () => {
       'vencida': 'Vencida',
       'cancelada': 'Cancelada',
       'enviada_ao_financeiro': 'Enviada ao Financeiro',
-      'aguardando_geracao_pagamento': 'Aguardando Pagamento'
+      'aguardando_geracao_pagamento': 'Aguardando Pagamento',
+      'pagamento_disponivel': 'Aguardando Pagamento',
+      'comprovante_enviado': 'Comprovante Enviado'
     };
     return labels[status] || status;
   };
@@ -273,30 +278,30 @@ const FiancasImobiliaria = () => {
 
   return (
     <Layout title="Fianças">
-      <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
+      <div className="space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] rounded-lg p-4 sm:p-6 text-[#0C1C2E]">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] rounded-lg p-6 text-[#0C1C2E]">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold mb-2">Gestão de Fianças</h1>
-              <p className="opacity-90 text-sm sm:text-base">Gerencie e acompanhe todas as suas fianças</p>
+              <h1 className="text-2xl font-bold mb-2">Gestão de Fianças</h1>
+              <p className="opacity-90">Gerencie e acompanhe todas as suas fianças</p>
             </div>
-            <FileText className="h-8 w-8 sm:h-12 sm:w-12 opacity-50" />
+            <FileText className="h-12 w-12 opacity-50" />
           </div>
         </div>
 
         {/* Filtros de Data */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center text-sm sm:text-base">
-              <Calendar className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+            <CardTitle className="flex items-center">
+              <Calendar className="mr-2 h-5 w-5 text-primary" />
               Filtros por Período
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="startDate" className="text-sm">Data de Início</Label>
+                <Label htmlFor="startDate">Data de Início</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -306,7 +311,7 @@ const FiancasImobiliaria = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="endDate" className="text-sm">Data de Fim</Label>
+                <Label htmlFor="endDate">Data de Fim</Label>
                 <Input
                   id="endDate"
                   type="date"
@@ -316,7 +321,7 @@ const FiancasImobiliaria = () => {
                 />
               </div>
               <div className="flex items-end">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-sm" onClick={applyDateFilter}>
+                <Button className="w-full bg-primary hover:bg-primary/90" onClick={applyDateFilter}>
                   Aplicar Filtros
                 </Button>
               </div>
@@ -325,11 +330,11 @@ const FiancasImobiliaria = () => {
         </Card>
 
         {/* Cards de métricas */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
-              <CardTitle className="text-xs sm:text-sm font-medium">Total de Fianças</CardTitle>
-              <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Fianças</CardTitle>
+              <FileText className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent className="p-3 sm:p-6 pt-0">
               <div className="text-lg sm:text-2xl font-bold text-primary">{stats.totalFiancas}</div>
@@ -337,9 +342,9 @@ const FiancasImobiliaria = () => {
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-warning">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
-              <CardTitle className="text-xs sm:text-sm font-medium">Fianças Pendentes</CardTitle>
-              <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-warning" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Fianças Pendentes</CardTitle>
+              <Clock className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent className="p-3 sm:p-6 pt-0">
               <div className="text-lg sm:text-2xl font-bold text-warning">{stats.fiancasPendentes}</div>
@@ -347,9 +352,9 @@ const FiancasImobiliaria = () => {
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-success">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
-              <CardTitle className="text-xs sm:text-sm font-medium">Fianças Ativas</CardTitle>
-              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-success" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Fianças Ativas</CardTitle>
+              <CheckCircle className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent className="p-3 sm:p-6 pt-0">
               <div className="text-lg sm:text-2xl font-bold text-success">{stats.fiancasAtivas}</div>
@@ -357,19 +362,19 @@ const FiancasImobiliaria = () => {
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-destructive">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
-              <CardTitle className="text-xs sm:text-sm font-medium">Fianças Vencidas</CardTitle>
-              <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-destructive" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Fianças Vencidas</CardTitle>
+              <AlertCircle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent className="p-3 sm:p-6 pt-0">
               <div className="text-lg sm:text-2xl font-bold text-destructive">{stats.fiancasVencidas}</div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-red-500 col-span-2 sm:col-span-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
-              <CardTitle className="text-xs sm:text-sm font-medium">Fianças Rejeitadas</CardTitle>
-              <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-red-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Fianças Rejeitadas</CardTitle>
+              <AlertCircle className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent className="p-3 sm:p-6 pt-0">
               <div className="text-lg sm:text-2xl font-bold text-red-500">{stats.fiancasRejeitadas}</div>
@@ -380,11 +385,11 @@ const FiancasImobiliaria = () => {
         {/* Ações e Lista de Fianças */}
         <Card>
           <CardHeader>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
               <CardTitle className="text-base sm:text-lg">Lista de Fianças</CardTitle>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90 text-sm w-full sm:w-auto">
+                  <Button className="bg-primary hover:bg-primary/90 w-full lg:w-auto">
                     <Plus className="mr-2 h-4 w-4" />
                     Gerar Fiança
                   </Button>
@@ -716,7 +721,7 @@ const FiancasImobiliaria = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+            <div className="flex flex-col lg:flex-row gap-4 mb-4">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -729,7 +734,7 @@ const FiancasImobiliaria = () => {
                 </div>
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-48">
+                <SelectTrigger className="w-full lg:w-48">
                   <Filter className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
@@ -742,7 +747,8 @@ const FiancasImobiliaria = () => {
                   <SelectItem value="rejeitada">Rejeitadas</SelectItem>
                   <SelectItem value="cancelada">Canceladas</SelectItem>
                   <SelectItem value="enviada_ao_financeiro">Enviada ao Financeiro</SelectItem>
-                  <SelectItem value="aguardando_geracao_pagamento">Aguardando Pagamento</SelectItem>
+                  <SelectItem value="pagamento_disponivel">Aguardando Pagamento</SelectItem>
+                  <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -789,6 +795,16 @@ const FiancasImobiliaria = () => {
                               {getStatusLabel(fianca.status_fianca)}
                             </Badge>
                           </ApprovedFiancaTooltip>
+                        ) : fianca.status_fianca === 'pagamento_disponivel' ? (
+                          <AguardandoPagamentoTooltip
+                            valorFianca={fianca.imovel_valor_aluguel}
+                            nomeInquilino={fianca.inquilino_nome_completo}
+                            dataEnvio={fianca.data_atualizacao}
+                          >
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help text-xs`}>
+                              {getStatusLabel(fianca.status_fianca)}
+                            </Badge>
+                          </AguardandoPagamentoTooltip>
                         ) : (
                           <Badge className={`${getStatusColor(fianca.status_fianca)} text-white text-xs`}>
                             {getStatusLabel(fianca.status_fianca)}
@@ -797,7 +813,7 @@ const FiancasImobiliaria = () => {
                       </TableCell>
                       <TableCell className="text-xs sm:text-sm">{new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}</TableCell>
                       <TableCell>
-                        <div className="flex gap-1 sm:gap-2">
+                        <div className="flex gap-2">
                           <Button 
                             variant="outline" 
                             size="sm"
@@ -822,11 +838,6 @@ const FiancasImobiliaria = () => {
                                   <span className="sm:hidden">OK</span>
                                 </>
                               )}
-                            </Button>
-                          ) : fianca.status_fianca !== 'rejeitada' && fianca.status_fianca !== 'enviada_ao_financeiro' && fianca.status_fianca !== 'aguardando_geracao_pagamento' ? (
-                            <Button variant="outline" size="sm" className="text-xs p-1 sm:p-2">
-                              <Edit className="h-3 w-3" />
-                              <span className="hidden sm:inline ml-1">Edit</span>
                             </Button>
                           ) : null}
                         </div>
