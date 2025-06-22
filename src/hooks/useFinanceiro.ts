@@ -29,7 +29,7 @@ export const useFinanceiro = () => {
           *,
           usuarios!criado_por(nome)
         `)
-        .in('status_fianca', ['enviada_ao_financeiro', 'pagamento_disponivel', 'comprovante_enviado'])
+        .in('status_fianca', ['enviada_ao_financeiro', 'pagamento_disponivel' as any, 'comprovante_enviado' as any])
         .order('data_criacao', { ascending: false });
 
       if (error) throw error;
@@ -76,11 +76,11 @@ export const useFinanceiro = () => {
   const getStats = () => {
     const totalFiancas = todasFiancas.length;
     const aguardandoLink = fiancas.filter(f => f.status_fianca === 'enviada_ao_financeiro').length;
-    const linkEnviado = fiancas.filter(f => f.status_fianca === 'pagamento_disponivel').length;
-    const pagos = todasFiancas.filter(f => f.status_fianca === 'comprovante_enviado').length;
+    const linkEnviado = fiancas.filter(f => (f.status_fianca as any) === 'pagamento_disponivel').length;
+    const pagos = todasFiancas.filter(f => (f.status_fianca as any) === 'comprovante_enviado').length;
     const valorTotal = todasFiancas.reduce((sum, f) => sum + Number(f.imovel_valor_aluguel || 0), 0);
     const valorPago = todasFiancas
-      .filter(f => f.status_fianca === 'comprovante_enviado')
+      .filter(f => (f.status_fianca as any) === 'comprovante_enviado')
       .reduce((sum, f) => sum + Number(f.imovel_valor_aluguel || 0), 0);
 
     return {

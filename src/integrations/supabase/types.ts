@@ -433,6 +433,8 @@ export type Database = {
         | "cancelada"
         | "enviada_ao_financeiro"
         | "aguardando_geracao_pagamento"
+        | "pagamento_disponivel"
+        | "comprovante_enviado"
       tipo_usuario:
         | "inquilino"
         | "analista"
@@ -566,6 +568,8 @@ export const Constants = {
         "cancelada",
         "enviada_ao_financeiro",
         "aguardando_geracao_pagamento",
+        "pagamento_disponivel",
+        "comprovante_enviado",
       ],
       tipo_usuario: [
         "inquilino",

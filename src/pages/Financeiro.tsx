@@ -344,7 +344,7 @@ const Financeiro = () => {
                           </Button>
                         )}
 
-                        {fianca.status_fianca === 'pagamento_disponivel' && (
+                        {(fianca.status_fianca as any) === 'pagamento_disponivel' && (
                           <Button
                             size="sm"
                             onClick={() => confirmarPagamento(fianca.id)}
