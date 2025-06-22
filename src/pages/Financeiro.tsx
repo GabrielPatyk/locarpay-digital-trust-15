@@ -1,11 +1,14 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useFinanceiro } from '@/hooks/useFinanceiro';
 import { 
   DollarSign, 
   CreditCard, 
@@ -18,76 +21,24 @@ import {
   Users,
   Link as LinkIcon,
   Eye,
-  Search
+  Search,
+  Filter
 } from 'lucide-react';
 
-interface FiancaFinanceiro {
-  id: string;
-  inquilino: string;
-  emailInquilino: string;
-  cpfInquilino: string;
-  imovel: string;
-  enderecoImovel: string;
-  valor: number;
-  status: 'pendente_link' | 'link_anexado' | 'link_enviado' | 'pago' | 'vencido';
-  vencimento: string;
-  linkPagamento?: string;
-  dataEnvio?: string;
-  dataPagamento?: string;
-  observacoes?: string;
-}
-
 const Financeiro = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { fiancas, isLoading, atualizarStatusFianca, isUpdating, getStats, error } = useFinanceiro();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFianca, setSelectedFianca] = useState<FiancaFinanceiro | null>(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedFianca, setSelectedFianca] = useState<any>(null);
   const [linkPagamento, setLinkPagamento] = useState('');
-  
-  const [fiancas] = useState<FiancaFinanceiro[]>([
-    {
-      id: '1',
-      inquilino: 'Pedro Almeida',
-      emailInquilino: 'pedro@exemplo.com',
-      cpfInquilino: '123.456.789-01',
-      imovel: 'Apartamento 302',
-      enderecoImovel: 'Rua das Flores, 123 - Centro, São Paulo/SP - CEP: 01234-567',
-      valor: 2500,
-      status: 'pendente_link',
-      vencimento: '2024-02-15',
-      observacoes: 'Fiança aprovada pelo analista em 10/02/2024'
-    },
-    {
-      id: '2',
-      inquilino: 'Maria Santos',
-      emailInquilino: 'maria@exemplo.com',
-      cpfInquilino: '987.654.321-09',
-      imovel: 'Casa Térrea',
-      enderecoImovel: 'Av. Principal, 456 - Jardins, São Paulo/SP - CEP: 98765-432',
-      valor: 3000,
-      status: 'link_enviado',
-      vencimento: '2024-02-10',
-      linkPagamento: 'https://banco.com.br/pagamento/abc123',
-      dataEnvio: '2024-02-08',
-      observacoes: 'Link enviado via e-mail e WhatsApp'
-    },
-    {
-      id: '3',
-      inquilino: 'João Silva',
-      emailInquilino: 'joao@exemplo.com',
-      cpfInquilino: '456.789.123-45',
-      imovel: 'Apartamento 505',
-      enderecoImovel: 'Rua das Palmeiras, 789 - Vila Madalena, São Paulo/SP - CEP: 54321-098',
-      valor: 2800,
-      status: 'pago',
-      vencimento: '2024-02-05',
-      linkPagamento: 'https://banco.com.br/pagamento/def456',
-      dataEnvio: '2024-02-03',
-      dataPagamento: '2024-02-04',
-      observacoes: 'Pagamento confirmado via PIX'
-    }
-  ]);
 
-  const anexarLink = (id: string) => {
+  console.log('Dados do financeiro:', { fiancas, isLoading, error });
+
+  const stats = getStats();
+
+  const anexarLink = async (id: string) => {
     if (!linkPagamento.trim()) {
       toast({
         title: "Erro",
@@ -97,64 +48,107 @@ const Financeiro = () => {
       return;
     }
 
-    toast({
-      title: "Link anexado!",
-      description: "Link de pagamento anexado com sucesso.",
-    });
-    setLinkPagamento('');
-    setSelectedFianca(null);
+    try {
+      await atualizarStatusFianca.mutateAsync({
+        fiancaId: id,
+        novoStatus: 'pagamento_disponivel'
+      });
+
+      toast({
+        title: "Link anexado!",
+        description: "Link de pagamento anexado com sucesso.",
+      });
+      setLinkPagamento('');
+      setSelectedFianca(null);
+    } catch (error) {
+      console.error('Erro ao anexar link:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao anexar link de pagamento.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const enviarLink = (id: string) => {
-    toast({
-      title: "Link enviado!",
-      description: "Link de pagamento enviado para o inquilino via e-mail.",
-    });
-  };
+  const confirmarPagamento = async (id: string) => {
+    try {
+      await atualizarStatusFianca.mutateAsync({
+        fiancaId: id,
+        novoStatus: 'ativa'
+      });
 
-  const confirmarPagamento = (id: string) => {
-    toast({
-      title: "Pagamento confirmado!",
-      description: "Pagamento processado e confirmado no sistema.",
-    });
+      toast({
+        title: "Pagamento confirmado!",
+        description: "Fiança ativada com sucesso.",
+      });
+    } catch (error) {
+      console.error('Erro ao confirmar pagamento:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao confirmar pagamento.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pago': return 'bg-success';
-      case 'link_enviado': return 'bg-blue-500';
-      case 'link_anexado': return 'bg-purple-500';
-      case 'pendente_link': return 'bg-warning';
-      case 'vencido': return 'bg-red-500';
+      case 'ativa': return 'bg-success';
+      case 'comprovante_enviado': return 'bg-green-600';
+      case 'pagamento_disponivel': return 'bg-blue-500';
+      case 'enviada_ao_financeiro': return 'bg-warning';
+      case 'aprovada': return 'bg-orange-500';
       default: return 'bg-gray-500';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pago': return 'Pago';
-      case 'link_enviado': return 'Link Enviado';
-      case 'link_anexado': return 'Link Anexado';
-      case 'pendente_link': return 'Aguardando Link';
-      case 'vencido': return 'Vencido';
+      case 'ativa': return 'Ativa';
+      case 'comprovante_enviado': return 'Comprovante Enviado';
+      case 'pagamento_disponivel': return 'Link Disponível';
+      case 'enviada_ao_financeiro': return 'Aguardando Link';
+      case 'aprovada': return 'Aprovada';
       default: return status;
     }
   };
 
-  const filteredFiancas = fiancas.filter(fianca =>
-    fianca.inquilino.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fianca.emailInquilino.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fianca.imovel.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredFiancas = fiancas.filter(fianca => {
+    const matchesSearch = 
+      fianca.inquilino_nome_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fianca.inquilino_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fianca.imovel_tipo?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || fianca.status_fianca === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
-  const stats = {
-    totalFiancas: fiancas.length,
-    aguardandoLink: fiancas.filter(f => f.status === 'pendente_link').length,
-    linkEnviado: fiancas.filter(f => f.status === 'link_enviado').length,
-    pagos: fiancas.filter(f => f.status === 'pago').length,
-    valorTotal: fiancas.reduce((sum, f) => sum + f.valor, 0),
-    valorPago: fiancas.filter(f => f.status === 'pago').reduce((sum, f) => sum + f.valor, 0)
-  };
+  if (isLoading) {
+    return (
+      <Layout title="Departamento Financeiro">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-2 text-gray-600">Carregando dados financeiros...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout title="Departamento Financeiro">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-red-600">Erro ao carregar dados: {error.message}</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="Departamento Financeiro">
@@ -249,15 +243,33 @@ const Financeiro = () => {
           </Card>
         </div>
 
-        {/* Search */}
-        <div className="flex items-center space-x-2">
-          <Search className="h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Buscar por inquilino, e-mail ou imóvel..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
-          />
+        {/* Search and Filter */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <div className="flex items-center space-x-2 flex-1">
+            <Search className="h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Buscar por inquilino, e-mail ou imóvel..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Filter className="h-4 w-4 text-gray-400" />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filtrar por status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Status</SelectItem>
+                <SelectItem value="aprovada">Aprovada</SelectItem>
+                <SelectItem value="enviada_ao_financeiro">Aguardando Link</SelectItem>
+                <SelectItem value="pagamento_disponivel">Link Disponível</SelectItem>
+                <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
+                <SelectItem value="ativa">Ativa</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Gestão de Fianças */}
@@ -270,118 +282,106 @@ const Financeiro = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {filteredFiancas.map((fianca) => (
-                <Card key={fianca.id} className="border hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                      {/* Informações do Inquilino */}
-                      <div className="space-y-2">
-                        <h4 className="font-semibold text-gray-900 text-lg">{fianca.inquilino}</h4>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <p><strong>E-mail:</strong> {fianca.emailInquilino}</p>
-                          <p><strong>CPF:</strong> {fianca.cpfInquilino}</p>
+              {filteredFiancas.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">
+                    {fiancas.length === 0 
+                      ? "Nenhuma fiança encontrada para o departamento financeiro."
+                      : "Nenhuma fiança encontrada com os filtros aplicados."
+                    }
+                  </p>
+                </div>
+              ) : (
+                filteredFiancas.map((fianca) => (
+                  <Card key={fianca.id} className="border hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                        {/* Informações do Inquilino */}
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-gray-900 text-lg">{fianca.inquilino_nome_completo}</h4>
+                          <div className="space-y-1 text-sm text-gray-600">
+                            <p><strong>E-mail:</strong> {fianca.inquilino_email}</p>
+                            <p><strong>CPF:</strong> {fianca.inquilino_cpf}</p>
+                          </div>
+                        </div>
+                        
+                        {/* Informações do Imóvel */}
+                        <div className="space-y-2">
+                          <h5 className="font-medium text-gray-900">{fianca.imovel_tipo}</h5>
+                          <p className="text-sm text-gray-600">
+                            {fianca.imovel_endereco}, {fianca.imovel_numero} - {fianca.imovel_bairro}, {fianca.imovel_cidade}/{fianca.imovel_estado}
+                          </p>
+                        </div>
+                        
+                        {/* Informações Financeiras */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-2xl font-bold text-gray-900">
+                              R$ {Number(fianca.imovel_valor_aluguel).toLocaleString()}
+                            </span>
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
+                              {getStatusText(fianca.status_fianca)}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            <strong>Criado em:</strong> {new Date(fianca.data_criacao).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
-                      
-                      {/* Informações do Imóvel */}
-                      <div className="space-y-2">
-                        <h5 className="font-medium text-gray-900">{fianca.imovel}</h5>
-                        <p className="text-sm text-gray-600">{fianca.enderecoImovel}</p>
-                      </div>
-                      
-                      {/* Informações Financeiras */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-2xl font-bold text-gray-900">
-                            R$ {fianca.valor.toLocaleString()}
-                          </span>
-                          <Badge className={`${getStatusColor(fianca.status)} text-white`}>
-                            {getStatusText(fianca.status)}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          <strong>Vencimento:</strong> {new Date(fianca.vencimento).toLocaleDateString()}
-                        </p>
-                        {fianca.dataPagamento && (
-                          <p className="text-sm text-success font-medium">
-                            <strong>Pago em:</strong> {new Date(fianca.dataPagamento).toLocaleDateString()}
-                          </p>
+
+                      {/* Ações */}
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/detalhe-fianca/${fianca.id}`)}
+                          className="flex items-center"
+                        >
+                          <Eye className="mr-1 h-4 w-4" />
+                          Ver Detalhes
+                        </Button>
+
+                        {fianca.status_fianca === 'enviada_ao_financeiro' && (
+                          <Button
+                            size="sm"
+                            onClick={() => setSelectedFianca(fianca)}
+                            className="bg-blue-500 hover:bg-blue-600 flex items-center"
+                            disabled={isUpdating}
+                          >
+                            <LinkIcon className="mr-1 h-4 w-4" />
+                            Anexar Link
+                          </Button>
+                        )}
+
+                        {fianca.status_fianca === 'pagamento_disponivel' && (
+                          <Button
+                            size="sm"
+                            onClick={() => confirmarPagamento(fianca.id)}
+                            className="bg-success hover:bg-success/90 flex items-center"
+                            disabled={isUpdating}
+                          >
+                            <CheckCircle className="mr-1 h-4 w-4" />
+                            Confirmar Pagamento
+                          </Button>
+                        )}
+
+                        {fianca.status_fianca === 'comprovante_enviado' && (
+                          <Button
+                            size="sm"
+                            onClick={() => confirmarPagamento(fianca.id)}
+                            className="bg-success hover:bg-success/90 flex items-center"
+                            disabled={isUpdating}
+                          >
+                            <CheckCircle className="mr-1 h-4 w-4" />
+                            Ativar Fiança
+                          </Button>
                         )}
                       </div>
-                    </div>
-
-                    {/* Link de Pagamento */}
-                    {fianca.linkPagamento && (
-                      <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-800 break-all">
-                          <LinkIcon className="inline h-4 w-4 mr-1" />
-                          <strong>Link:</strong> {fianca.linkPagamento}
-                        </p>
-                        {fianca.dataEnvio && (
-                          <p className="text-sm text-blue-600 mt-1">
-                            <strong>Enviado em:</strong> {new Date(fianca.dataEnvio).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Observações */}
-                    {fianca.observacoes && (
-                      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-700">
-                          <strong>Observações:</strong> {fianca.observacoes}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Ações */}
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedFianca(fianca)}
-                        className="flex items-center"
-                      >
-                        <Eye className="mr-1 h-4 w-4" />
-                        Ver Detalhes
-                      </Button>
-
-                      {fianca.status === 'pendente_link' && (
-                        <Button
-                          size="sm"
-                          onClick={() => setSelectedFianca(fianca)}
-                          className="bg-blue-500 hover:bg-blue-600 flex items-center"
-                        >
-                          <LinkIcon className="mr-1 h-4 w-4" />
-                          Anexar Link
-                        </Button>
-                      )}
-
-                      {(fianca.status === 'link_anexado' || fianca.status === 'pendente_link') && fianca.linkPagamento && (
-                        <Button
-                          size="sm"
-                          onClick={() => enviarLink(fianca.id)}
-                          className="bg-green-500 hover:bg-green-600 flex items-center"
-                        >
-                          <Send className="mr-1 h-4 w-4" />
-                          Enviar Link
-                        </Button>
-                      )}
-
-                      {fianca.status === 'link_enviado' && (
-                        <Button
-                          size="sm"
-                          onClick={() => confirmarPagamento(fianca.id)}
-                          className="bg-success hover:bg-success/90 flex items-center"
-                        >
-                          <CheckCircle className="mr-1 h-4 w-4" />
-                          Confirmar Pagamento
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -393,20 +393,20 @@ const Financeiro = () => {
               <CardHeader>
                 <CardTitle>Anexar Link de Pagamento</CardTitle>
                 <CardDescription>
-                  {selectedFianca.inquilino} - {selectedFianca.imovel} - R$ {selectedFianca.valor.toLocaleString()}
+                  {selectedFianca.inquilino_nome_completo} - {selectedFianca.imovel_tipo} - R$ {Number(selectedFianca.imovel_valor_aluguel).toLocaleString()}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="text-sm text-gray-600"><strong>Inquilino:</strong> {selectedFianca.inquilino}</p>
-                    <p className="text-sm text-gray-600"><strong>E-mail:</strong> {selectedFianca.emailInquilino}</p>
-                    <p className="text-sm text-gray-600"><strong>CPF:</strong> {selectedFianca.cpfInquilino}</p>
+                    <p className="text-sm text-gray-600"><strong>Inquilino:</strong> {selectedFianca.inquilino_nome_completo}</p>
+                    <p className="text-sm text-gray-600"><strong>E-mail:</strong> {selectedFianca.inquilino_email}</p>
+                    <p className="text-sm text-gray-600"><strong>CPF:</strong> {selectedFianca.inquilino_cpf}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600"><strong>Imóvel:</strong> {selectedFianca.imovel}</p>
-                    <p className="text-sm text-gray-600"><strong>Valor:</strong> R$ {selectedFianca.valor.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600"><strong>Vencimento:</strong> {new Date(selectedFianca.vencimento).toLocaleDateString()}</p>
+                    <p className="text-sm text-gray-600"><strong>Imóvel:</strong> {selectedFianca.imovel_tipo}</p>
+                    <p className="text-sm text-gray-600"><strong>Valor:</strong> R$ {Number(selectedFianca.imovel_valor_aluguel).toLocaleString()}</p>
+                    <p className="text-sm text-gray-600"><strong>Criado em:</strong> {new Date(selectedFianca.data_criacao).toLocaleDateString()}</p>
                   </div>
                 </div>
                 
@@ -427,8 +427,9 @@ const Financeiro = () => {
                   <Button
                     onClick={() => anexarLink(selectedFianca.id)}
                     className="flex-1"
+                    disabled={isUpdating}
                   >
-                    Anexar Link
+                    {isUpdating ? 'Processando...' : 'Anexar Link'}
                   </Button>
                   <Button
                     variant="outline"

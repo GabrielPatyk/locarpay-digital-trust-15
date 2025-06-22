@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -34,7 +33,6 @@ const Dashboard = () => {
       case 'inquilino': return '/inquilino';
       case 'financeiro': return '/financeiro';
       case 'admin': return '/admin';
-      case 'corretor': return '/dashboard';
       default: return '/dashboard';
     }
   };
