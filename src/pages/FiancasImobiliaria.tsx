@@ -1,864 +1,346 @@
+
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useToast } from '@/hooks/use-toast';
-import { useFiancas, type FiancaFormData } from '@/hooks/useFiancas';
-import { validateFiancaForm, formatCurrency } from '@/components/FiancaFormValidation';
-import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
-import RejectedFiancaTooltip from '@/components/RejectedFiancaTooltip';
-import ApprovedFiancaTooltip from '@/components/ApprovedFiancaTooltip';
+import CriarFiancaModal from '@/components/CriarFiancaModal';
 import AguardandoPagamentoTooltip from '@/components/AguardandoPagamentoTooltip';
+import { useFiancas } from '@/hooks/useFiancas';
+import { useToast } from '@/hooks/use-toast';
 import { 
-  FileText, 
+  Building, 
+  Users, 
+  DollarSign, 
   Plus, 
   Search, 
   Filter,
-  Calendar,
-  Building,
-  Users,
-  CheckCircle,
   Clock,
+  CheckCircle,
+  XCircle,
   AlertCircle,
-  Eye,
-  Loader2
+  FileText,
+  TrendingUp,
+  Eye
 } from 'lucide-react';
 
+const formatImovelTipo = (tipo: string) => {
+  if (!tipo) return '';
+  return tipo
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
 const FiancasImobiliaria = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const { formatPhone } = usePhoneFormatter();
-  const { fiancas, isLoading, createFianca, isCreating, acceptFianca, isAccepting, getFiancasStats } = useFiancas();
-  
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
+  const { fiancas, isLoading, stats } = useFiancas();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('todos');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-
-  // Estado do formulário
-  const [formData, setFormData] = useState<FiancaFormData>({
-    // Dados do Inquilino
-    nomeCompleto: '',
-    cpf: '',
-    email: '',
-    whatsapp: '+55',
-    rendaMensal: '',
-    // Endereço do Inquilino
-    inquilinoEndereco: '',
-    inquilinoNumero: '',
-    inquilinoComplemento: '',
-    inquilinoBairro: '',
-    inquilinoCidade: '',
-    inquilinoEstado: '',
-    inquilinoPais: 'Brasil',
-    // Dados do Imóvel
-    tipoImovel: '',
-    tipoLocacao: '',
-    valorAluguel: '',
-    descricaoImovel: '',
-    areaMetros: '',
-    tempoLocacao: '',
-    // Endereço do Imóvel
-    imovelEndereco: '',
-    imovelNumero: '',
-    imovelComplemento: '',
-    imovelBairro: '',
-    imovelCidade: '',
-    imovelEstado: '',
-    imovelPais: 'Brasil',
-    // CNPJ da Imobiliária
-    cnpjImobiliaria: ''
-  });
-
-  const dashboardData = getFiancasStats();
-
-  const handleInputChange = (field: keyof FiancaFormData, value: string) => {
-    if (field === 'whatsapp') {
-      setFormData(prev => ({
-        ...prev,
-        [field]: formatPhone(value)
-      }));
-    } else if (field === 'cpf') {
-      // Formatar CPF
-      const numbers = value.replace(/\D/g, '');
-      let formatted = numbers;
-      if (numbers.length > 3) formatted = numbers.slice(0, 3) + '.' + numbers.slice(3);
-      if (numbers.length > 6) formatted = numbers.slice(0, 3) + '.' + numbers.slice(3, 6) + '.' + numbers.slice(6);
-      if (numbers.length > 9) formatted = numbers.slice(0, 3) + '.' + numbers.slice(3, 6) + '.' + numbers.slice(6, 9) + '-' + numbers.slice(9, 11);
-      setFormData(prev => ({
-        ...prev,
-        [field]: formatted
-      }));
-    } else if (field === 'rendaMensal' || field === 'valorAluguel') {
-      // Formatar valores monetários
-      const formatted = formatCurrency(value);
-      setFormData(prev => ({
-        ...prev,
-        [field]: formatted
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
-  };
-
-  const handleSubmitFianca = () => {
-    const errors = validateFiancaForm(formData);
-    
-    if (errors.length > 0) {
-      toast({
-        title: "Erro na validação",
-        description: errors[0],
-        variant: "destructive"
-      });
-      return;
-    }
-
-    createFianca(formData, {
-      onSuccess: () => {
-        toast({
-          title: "Fiança criada com sucesso!",
-          description: "A fiança foi enviada para análise.",
-        });
-        setIsDialogOpen(false);
-        // Reset form
-        setFormData({
-          nomeCompleto: '',
-          cpf: '',
-          email: '',
-          whatsapp: '+55',
-          rendaMensal: '',
-          inquilinoEndereco: '',
-          inquilinoNumero: '',
-          inquilinoComplemento: '',
-          inquilinoBairro: '',
-          inquilinoCidade: '',
-          inquilinoEstado: '',
-          inquilinoPais: 'Brasil',
-          tipoImovel: '',
-          tipoLocacao: '',
-          valorAluguel: '',
-          descricaoImovel: '',
-          areaMetros: '',
-          tempoLocacao: '',
-          imovelEndereco: '',
-          imovelNumero: '',
-          imovelComplemento: '',
-          imovelBairro: '',
-          imovelCidade: '',
-          imovelEstado: '',
-          imovelPais: 'Brasil',
-          cnpjImobiliaria: ''
-        });
-      },
-      onError: (error) => {
-        toast({
-          title: "Erro ao criar fiança",
-          description: error.message,
-          variant: "destructive"
-        });
-      }
-    });
-  };
-
-  const handleAcceptFianca = (fiancaId: string) => {
-    acceptFianca.mutate(fiancaId, {
-      onSuccess: () => {
-        toast({
-          title: "Fiança aceita com sucesso!",
-          description: "A fiança foi enviada ao financeiro.",
-        });
-      },
-      onError: (error) => {
-        toast({
-          title: "Erro ao aceitar fiança",
-          description: error.message,
-          variant: "destructive"
-        });
-      }
-    });
-  };
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
-    const colors: { [key: string]: string } = {
-      'em_analise': 'bg-blue-500',
-      'aprovada':  'bg-green-500', 
-      'rejeitada': 'bg-red-500',
-      'ativa': 'bg-green-500',
-      'vencida': 'bg-red-500',
-      'cancelada': 'bg-gray-500',
-      'enviada_ao_financeiro': 'bg-green-500',
-      'aguardando_geracao_pagamento': 'bg-yellow-500',
-      'pagamento_disponivel': 'bg-yellow-500',
-      'comprovante_enviado': 'bg-blue-500'
-    };
-    return colors[status] || 'bg-gray-500';
+    switch (status) {
+      case 'ativa': return 'bg-success';
+      case 'aprovada': return 'bg-green-500';
+      case 'em_analise': return 'bg-blue-500';
+      case 'rejeitada': return 'bg-red-500';
+      case 'enviada_ao_financeiro': return 'bg-purple-500';
+      case 'pagamento_disponivel': return 'bg-orange-500';
+      case 'comprovante_enviado': return 'bg-blue-600';
+      default: return 'bg-gray-500';
+    }
   };
 
-  const getStatusLabel = (status: string) => {
-    const labels: { [key: string]: string } = {
-      'em_analise': 'Em Análise',
-      'aprovada': 'Aprovada',
-      'rejeitada': 'Rejeitada', 
-      'ativa': 'Ativa',
-      'vencida': 'Vencida',
-      'cancelada': 'Cancelada',
-      'enviada_ao_financeiro': 'Enviada ao Financeiro',
-      'aguardando_geracao_pagamento': 'Aguardando Pagamento',
-      'pagamento_disponivel': 'Aguardando Pagamento',
-      'comprovante_enviado': 'Comprovante Enviado'
-    };
-    return labels[status] || status;
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'ativa': return 'Ativa';
+      case 'aprovada': return 'Aprovada';
+      case 'em_analise': return 'Em Análise';
+      case 'rejeitada': return 'Rejeitada';
+      case 'enviada_ao_financeiro': return 'Enviada ao Financeiro';
+      case 'pagamento_disponivel': return 'Pagamento Disponível';
+      case 'comprovante_enviado': return 'Comprovante Enviado';
+      default: return status;
+    }
   };
 
   const filteredFiancas = fiancas.filter(fianca => {
-    const matchesSearch = fianca.inquilino_nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         `${fianca.imovel_endereco}, ${fianca.imovel_numero}`.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'todos' || fianca.status_fianca === statusFilter;
+    const matchesSearch = 
+      fianca.inquilino_nome_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fianca.inquilino_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      formatImovelTipo(fianca.imovel_tipo)?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Filtro de data
-    let matchesDate = true;
-    if (startDate || endDate) {
-      const fiancaDate = new Date(fianca.data_criacao).toISOString().split('T')[0];
-      if (startDate && fiancaDate < startDate) matchesDate = false;
-      if (endDate && fiancaDate > endDate) matchesDate = false;
-    }
+    const matchesStatus = statusFilter === 'all' || fianca.status_fianca === statusFilter;
     
-    return matchesSearch && matchesStatus && matchesDate;
+    return matchesSearch && matchesStatus;
   });
-
-  const getDashboardStats = () => {
-    const totalFiancas = filteredFiancas.length;
-    const fiancasPendentes = filteredFiancas.filter(f => f.status_fianca === 'em_analise').length;
-    const fiancasAtivas = filteredFiancas.filter(f => f.status_fianca === 'ativa').length;
-    const fiancasVencidas = filteredFiancas.filter(f => f.status_fianca === 'vencida').length;
-    const fiancasRejeitadas = filteredFiancas.filter(f => f.status_fianca === 'rejeitada').length;
-
-    return {
-      totalFiancas,
-      fiancasPendentes,
-      fiancasAtivas,
-      fiancasVencidas,
-      fiancasRejeitadas
-    };
-  };
-
-  const stats = getDashboardStats();
-
-  const handleViewFianca = (fiancaId: string) => {
-    navigate(`/detalhe-fianca/${fiancaId}`);
-  };
-
-  const applyDateFilter = () => {
-    // Força uma re-renderização para aplicar os filtros
-    setSearchTerm(searchTerm);
-  };
 
   if (isLoading) {
     return (
-      <Layout title="Fianças">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <Layout title="Gestão de Fianças">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+            <p>Carregando fianças...</p>
+          </div>
         </div>
       </Layout>
     );
   }
 
   return (
-    <Layout title="Fianças">
-      <div className="space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] rounded-lg p-6 text-[#0C1C2E]">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">Gestão de Fianças</h1>
-              <p className="opacity-90">Gerencie e acompanhe todas as suas fianças</p>
-            </div>
-            <FileText className="h-12 w-12 opacity-50" />
-          </div>
-        </div>
-
-        {/* Filtros de Data */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-primary" />
-              Filtros por Período
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="startDate">Data de Início</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
+    <Layout title="Gestão de Fianças">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in p-2 sm:p-0">
+        {/* Welcome Card */}
+        <Card className="bg-gradient-to-r from-primary to-success text-white">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+              <div className="flex-1">
+                <h2 className="text-xl sm:text-2xl font-bold mb-2">Gestão de Fianças Locatícias</h2>
+                <p className="opacity-90 text-sm sm:text-base">
+                  Crie e acompanhe todas as solicitações de fianças da sua imobiliária.
+                </p>
               </div>
-              <div>
-                <Label htmlFor="endDate">Data de Fim</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
-              <div className="flex items-end">
-                <Button className="w-full bg-primary hover:bg-primary/90" onClick={applyDateFilter}>
-                  Aplicar Filtros
-                </Button>
-              </div>
+              <Building className="h-12 w-12 sm:h-16 sm:w-16 opacity-80 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
 
-        {/* Cards de métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Fianças</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats.totalFiancas}</div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
+          <Card className="border-l-4 border-l-primary">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600">Total</p>
+                  <p className="text-lg sm:text-2xl font-bold">{stats.total}</p>
+                </div>
+                <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-warning">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Pendentes</CardTitle>
-              <Clock className="h-4 w-4 text-warning" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-warning">{stats.fiancasPendentes}</div>
+          <Card className="border-l-4 border-l-blue-500">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600">Análise</p>
+                  <p className="text-lg sm:text-2xl font-bold text-blue-500">{stats.emAnalise}</p>
+                </div>
+                <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-success">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Ativas</CardTitle>
-              <CheckCircle className="h-4 w-4 text-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-success">{stats.fiancasAtivas}</div>
+          <Card className="border-l-4 border-l-success">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600">Aprovadas</p>
+                  <p className="text-lg sm:text-2xl font-bold text-success">{stats.aprovadas}</p>
+                </div>
+                <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-destructive">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Vencidas</CardTitle>
-              <AlertCircle className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-destructive">{stats.fiancasVencidas}</div>
+          <Card className="border-l-4 border-l-red-500">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600">Rejeitadas</p>
+                  <p className="text-lg sm:text-2xl font-bold text-red-500">{stats.rejeitadas}</p>
+                </div>
+                <XCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-red-500">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Rejeitadas</CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-500">{stats.fiancasRejeitadas}</div>
+          <Card className="border-l-4 border-l-warning">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600">Ativas</p>
+                  <p className="text-lg sm:text-2xl font-bold text-warning">{stats.ativas}</p>
+                </div>
+                <Building className="h-6 w-6 sm:h-8 sm:w-8 text-warning" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-purple-500">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600">Valor Total</p>
+                  <p className="text-sm sm:text-lg font-bold">R$ {stats.valorTotal.toLocaleString()}</p>
+                </div>
+                <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500" />
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Ações e Lista de Fianças */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-              <CardTitle>Lista de Fianças</CardTitle>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Gerar Fiança
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Nova Fiança</DialogTitle>
-                    <DialogDescription>
-                      Preencha os dados do inquilino e do imóvel para gerar uma nova fiança
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <Tabs defaultValue="inquilino" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="inquilino">Dados do Inquilino</TabsTrigger>
-                      <TabsTrigger value="imovel">Dados do Imóvel</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="inquilino" className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="nomeCompleto">Nome Completo *</Label>
-                          <Input
-                            id="nomeCompleto"
-                            value={formData.nomeCompleto}
-                            onChange={(e) => handleInputChange('nomeCompleto', e.target.value)}
-                            placeholder="Nome completo do inquilino"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="cpf">CPF *</Label>
-                          <Input
-                            id="cpf"
-                            value={formData.cpf}
-                            onChange={(e) => handleInputChange('cpf', e.target.value)}
-                            placeholder="000.000.000-00"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="email">E-mail *</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            placeholder="email@exemplo.com"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="whatsapp">WhatsApp *</Label>
-                          <Input
-                            id="whatsapp"
-                            value={formData.whatsapp}
-                            onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                            placeholder="+55 (11) 9 9999-9999"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="rendaMensal">Renda Mensal *</Label>
-                          <Input
-                            id="rendaMensal"
-                            value={formData.rendaMensal}
-                            onChange={(e) => handleInputChange('rendaMensal', e.target.value)}
-                            placeholder="R$ 5.000,00"
-                            required
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <h4 className="text-lg font-medium">Endereço do Inquilino</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="md:col-span-2">
-                            <Label htmlFor="inquilinoEndereco">Endereço *</Label>
-                            <Input
-                              id="inquilinoEndereco"
-                              value={formData.inquilinoEndereco}
-                              onChange={(e) => handleInputChange('inquilinoEndereco', e.target.value)}
-                              placeholder="Rua, Avenida, etc."
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="inquilinoNumero">Número *</Label>
-                            <Input
-                              id="inquilinoNumero"
-                              value={formData.inquilinoNumero}
-                              onChange={(e) => handleInputChange('inquilinoNumero', e.target.value)}
-                              placeholder="123"
-                              required
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="inquilinoComplemento">Complemento</Label>
-                          <Input
-                            id="inquilinoComplemento"
-                            value={formData.inquilinoComplemento}
-                            onChange={(e) => handleInputChange('inquilinoComplemento', e.target.value)}
-                            placeholder="Apto, Sala, etc."
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <Label htmlFor="inquilinoBairro">Bairro *</Label>
-                            <Input
-                              id="inquilinoBairro"
-                              value={formData.inquilinoBairro}
-                              onChange={(e) => handleInputChange('inquilinoBairro', e.target.value)}
-                              placeholder="Centro"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="inquilinoCidade">Cidade *</Label>
-                            <Input
-                              id="inquilinoCidade"
-                              value={formData.inquilinoCidade}
-                              onChange={(e) => handleInputChange('inquilinoCidade', e.target.value)}
-                              placeholder="São Paulo"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="inquilinoEstado">Estado *</Label>
-                            <Input
-                              id="inquilinoEstado"
-                              value={formData.inquilinoEstado}
-                              onChange={(e) => handleInputChange('inquilinoEstado', e.target.value)}
-                              placeholder="SP"
-                              required
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="inquilinoPais">País</Label>
-                          <Input
-                            id="inquilinoPais"
-                            value={formData.inquilinoPais}
-                            readOnly
-                            className="bg-gray-100"
-                          />
-                        </div>
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="imovel" className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="tipoImovel">Tipo de Imóvel *</Label>
-                          <Select value={formData.tipoImovel} onValueChange={(value) => handleInputChange('tipoImovel', value)}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="casa">Casa</SelectItem>
-                              <SelectItem value="apartamento">Apartamento</SelectItem>
-                              <SelectItem value="kitnet">Kitnet</SelectItem>
-                              <SelectItem value="sobrado">Sobrado</SelectItem>
-                              <SelectItem value="chacara">Chácara</SelectItem>
-                              <SelectItem value="comercial">Comercial</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="tipoLocacao">Tipo de Locação *</Label>
-                          <Select value={formData.tipoLocacao} onValueChange={(value) => handleInputChange('tipoLocacao', value)}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="residencial">Residencial</SelectItem>
-                              <SelectItem value="comercial">Comercial</SelectItem>
-                              <SelectItem value="misto">Misto</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="valorAluguel">Valor do Aluguel Mensal *</Label>
-                          <Input
-                            id="valorAluguel"
-                            value={formData.valorAluguel}
-                            onChange={(e) => handleInputChange('valorAluguel', e.target.value)}
-                            placeholder="R$ 2.500,00"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="areaMetros">Área em m²</Label>
-                          <Input
-                            id="areaMetros"
-                            value={formData.areaMetros}
-                            onChange={(e) => handleInputChange('areaMetros', e.target.value)}
-                            placeholder="80"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="tempoLocacao">Tempo de Locação (anos) *</Label>
-                          <Input
-                            id="tempoLocacao"
-                            value={formData.tempoLocacao}
-                            onChange={(e) => handleInputChange('tempoLocacao', e.target.value)}
-                            placeholder="3"
-                            required
-                          />
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="descricaoImovel">Descrição do Imóvel</Label>
-                        <Textarea
-                          id="descricaoImovel"
-                          value={formData.descricaoImovel}
-                          onChange={(e) => handleInputChange('descricaoImovel', e.target.value)}
-                          placeholder="3 quartos, 2 banheiros, área externa, garagem..."
-                          rows={3}
-                        />
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <h4 className="text-lg font-medium">Endereço do Imóvel</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="md:col-span-2">
-                            <Label htmlFor="imovelEndereco">Endereço *</Label>
-                            <Input
-                              id="imovelEndereco"
-                              value={formData.imovelEndereco}
-                              onChange={(e) => handleInputChange('imovelEndereco', e.target.value)}
-                              placeholder="Rua, Avenida, etc."
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="imovelNumero">Número *</Label>
-                            <Input
-                              id="imovelNumero"
-                              value={formData.imovelNumero}
-                              onChange={(e) => handleInputChange('imovelNumero', e.target.value)}
-                              placeholder="123"
-                              required
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="imovelComplemento">Complemento</Label>
-                          <Input
-                            id="imovelComplemento"
-                            value={formData.imovelComplemento}
-                            onChange={(e) => handleInputChange('imovelComplemento', e.target.value)}
-                            placeholder="Apto, Sala, etc."
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <Label htmlFor="imovelBairro">Bairro *</Label>
-                            <Input
-                              id="imovelBairro"
-                              value={formData.imovelBairro}
-                              onChange={(e) => handleInputChange('imovelBairro', e.target.value)}
-                              placeholder="Centro"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="imovelCidade">Cidade *</Label>
-                            <Input
-                              id="imovelCidade"
-                              value={formData.imovelCidade}
-                              onChange={(e) => handleInputChange('imovelCidade', e.target.value)}
-                              placeholder="São Paulo"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="imovelEstado">Estado *</Label>
-                            <Input
-                              id="imovelEstado"
-                              value={formData.imovelEstado}
-                              onChange={(e) => handleInputChange('imovelEstado', e.target.value)}
-                              placeholder="SP"
-                              required
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="imovelPais">País</Label>
-                          <Input
-                            id="imovelPais"
-                            value={formData.imovelPais}
-                            readOnly
-                            className="bg-gray-100"
-                          />
-                        </div>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                  
-                  <div className="flex justify-end space-x-2 mt-6">
-                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button 
-                      onClick={handleSubmitFianca} 
-                      className="bg-primary hover:bg-primary/90"
-                      disabled={isCreating}
-                    >
-                      {isCreating ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Gerando...
-                        </>
-                      ) : (
-                        'Gerar Fiança'
-                      )}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+        {/* Actions and Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <Button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-success hover:bg-success/90 w-full sm:w-auto"
+            size="lg"
+          >
+            <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+            Nova Fiança
+          </Button>
+          
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-1 w-full sm:w-auto">
+            <div className="flex items-center space-x-2 flex-1 w-full">
+              <Search className="h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Buscar por inquilino, e-mail ou imóvel..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1"
+              />
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col lg:flex-row gap-4 mb-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Pesquisar por inquilino ou imóvel..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-              </div>
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
+              <Filter className="h-4 w-4 text-gray-400" />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full lg:w-48">
-                  <Filter className="mr-2 h-4 w-4" />
+                <SelectTrigger className="w-full sm:w-48">
                   <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todos os Status</SelectItem>
+                  <SelectItem value="all">Todos os Status</SelectItem>
                   <SelectItem value="em_analise">Em Análise</SelectItem>
-                  <SelectItem value="aprovada">Aprovadas</SelectItem>
-                  <SelectItem value="ativa">Ativas</SelectItem>
-                  <SelectItem value="vencida">Vencidas</SelectItem>
-                  <SelectItem value="rejeitada">Rejeitadas</SelectItem>
-                  <SelectItem value="cancelada">Canceladas</SelectItem>
+                  <SelectItem value="aprovada">Aprovada</SelectItem>
+                  <SelectItem value="rejeitada">Rejeitada</SelectItem>
+                  <SelectItem value="ativa">Ativa</SelectItem>
                   <SelectItem value="enviada_ao_financeiro">Enviada ao Financeiro</SelectItem>
-                  <SelectItem value="pagamento_disponivel">Aguardando Pagamento</SelectItem>
+                  <SelectItem value="pagamento_disponivel">Pagamento Disponível</SelectItem>
                   <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </div>
 
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Inquilino</TableHead>
-                    <TableHead className="min-w-[200px]">Imóvel</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data Criação</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredFiancas.map((fianca) => (
-                    <TableRow key={fianca.id}>
-                      <TableCell className="font-medium">{fianca.inquilino_nome_completo}</TableCell>
-                      <TableCell>{`${fianca.imovel_endereco}, ${fianca.imovel_numero} - ${fianca.imovel_bairro}`}</TableCell>
-                      <TableCell>R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}</TableCell>
-                      <TableCell>
-                        {fianca.status_fianca === 'rejeitada' ? (
-                          <RejectedFiancaTooltip
-                            rejectionReason={fianca.motivo_reprovacao || 'Não informado'}
-                            rejectionDate={fianca.data_analise || fianca.data_atualizacao}
-                            score={fianca.score_credito}
-                            analystName="Analista Responsável"
-                          >
-                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
-                              {getStatusLabel(fianca.status_fianca)}
-                            </Badge>
-                          </RejectedFiancaTooltip>
-                        ) : fianca.status_fianca === 'aprovada' ? (
-                          <ApprovedFiancaTooltip
-                            approvalDate={fianca.data_analise || fianca.data_atualizacao}
-                            score={fianca.score_credito}
-                            rate={fianca.taxa_aplicada}
-                            analystName="Analista Responsável"
-                            observations={fianca.observacoes_aprovacao}
-                          >
-                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
-                              {getStatusLabel(fianca.status_fianca)}
-                            </Badge>
-                          </ApprovedFiancaTooltip>
-                        ) : fianca.status_fianca === 'pagamento_disponivel' ? (
-                          <AguardandoPagamentoTooltip
-                            valorFianca={fianca.imovel_valor_aluguel}
-                            nomeInquilino={fianca.inquilino_nome_completo}
-                            dataEnvio={fianca.data_atualizacao}
-                          >
-                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
-                              {getStatusLabel(fianca.status_fianca)}
-                            </Badge>
-                          </AguardandoPagamentoTooltip>
-                        ) : (
-                          <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
-                            {getStatusLabel(fianca.status_fianca)}
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>{new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleViewFianca(fianca.id)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {fianca.status_fianca === 'aprovada' ? (
-                            <Button 
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                              onClick={() => handleAcceptFianca(fianca.id)}
-                              disabled={isAccepting}
-                            >
-                              {isAccepting ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                'Aceitar'
-                              )}
-                            </Button>
-                          ) : null}
+        {/* Fianças List */}
+        <Card>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-lg sm:text-xl">Suas Fianças Locatícias</CardTitle>
+            <CardDescription className="text-sm">
+              Acompanhe o status e gerencie todas as suas solicitações de fiança
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {filteredFiancas.length === 0 ? (
+                <div className="text-center py-8">
+                  <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">
+                    {fiancas.length === 0 
+                      ? "Ainda não há fianças criadas. Clique em 'Nova Fiança' para começar."
+                      : "Nenhuma fiança encontrada com os filtros aplicados."
+                    }
+                  </p>
+                </div>
+              ) : (
+                filteredFiancas.map((fianca) => (
+                  <Card key={fianca.id} className="border hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                        {/* Informações do Inquilino */}
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-gray-900 text-base sm:text-lg">{fianca.inquilino_nome_completo}</h4>
+                          <div className="space-y-1 text-xs sm:text-sm text-gray-600">
+                            <p><strong>E-mail:</strong> {fianca.inquilino_email}</p>
+                            <p><strong>CPF:</strong> {fianca.inquilino_cpf}</p>
+                            <p><strong>WhatsApp:</strong> {fianca.inquilino_whatsapp}</p>
+                            <p><strong>Renda:</strong> R$ {Number(fianca.inquilino_renda_mensal).toLocaleString()}</p>
+                          </div>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                        
+                        {/* Informações do Imóvel */}
+                        <div className="space-y-2">
+                          <h5 className="font-medium text-gray-900">{formatImovelTipo(fianca.imovel_tipo)}</h5>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            {fianca.imovel_endereco}, {fianca.imovel_numero} - {fianca.imovel_bairro}, {fianca.imovel_cidade}/{fianca.imovel_estado}
+                          </p>
+                          <p className="text-sm font-semibold text-success">
+                            R$ {Number(fianca.imovel_valor_aluguel).toLocaleString()}/mês
+                          </p>
+                        </div>
+                        
+                        {/* Status e Ações */}
+                        <div className="space-y-3">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
+                            {fianca.status_fianca === 'pagamento_disponivel' ? (
+                              <AguardandoPagamentoTooltip
+                                valorFianca={Number(fianca.imovel_valor_aluguel)}
+                                nomeInquilino={fianca.inquilino_nome_completo}
+                                dataEnvio={fianca.data_envio_link}
+                              >
+                                <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-pointer hover:opacity-80`}>
+                                  {getStatusText(fianca.status_fianca)}
+                                </Badge>
+                              </AguardandoPagamentoTooltip>
+                            ) : (
+                              <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
+                                {getStatusText(fianca.status_fianca)}
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-1 text-xs text-gray-500">
+                            <p><strong>Criado:</strong> {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}</p>
+                            {fianca.data_analise && (
+                              <p><strong>Analisado:</strong> {new Date(fianca.data_analise).toLocaleDateString('pt-BR')}</p>
+                            )}
+                            {fianca.score_credito && (
+                              <p><strong>Score:</strong> {fianca.score_credito}</p>
+                            )}
+                            {fianca.taxa_aplicada && (
+                              <p><strong>Taxa:</strong> {fianca.taxa_aplicada}%</p>
+                            )}
+                          </div>
 
-            {filteredFiancas.length === 0 && (
-              <div className="text-center py-8">
-                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Nenhuma fiança encontrada
-                </h3>
-                <p className="text-gray-600">
-                  {searchTerm || statusFilter !== 'todos' || startDate || endDate
-                    ? 'Tente ajustar sua busca ou adicione uma nova fiança.'
-                    : 'Adicione sua primeira fiança para começar.'
-                  }
-                </p>
-              </div>
-            )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/detalhe-fianca/${fianca.id}`)}
+                            className="w-full"
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            Ver Detalhes
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Motivo de Rejeição */}
+                      {fianca.status_fianca === 'rejeitada' && fianca.motivo_reprovacao && (
+                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-800">
+                            <strong>Motivo da rejeição:</strong> {fianca.motivo_reprovacao}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
           </CardContent>
         </Card>
+
+        {/* Modal de Criação */}
+        <CriarFiancaModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
       </div>
     </Layout>
   );
