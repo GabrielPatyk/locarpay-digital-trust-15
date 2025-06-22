@@ -21,7 +21,8 @@ export const useFiancaDetails = (fiancaId: string) => {
         .from('fiancas_locaticias')
         .select(`
           *,
-          usuarios!criado_por(nome)
+          usuarios!criado_por(nome),
+          analista:usuarios!analisado_por(nome)
         `)
         .eq('id', fiancaId)
         .single();
@@ -39,7 +40,7 @@ export const useFiancaDetails = (fiancaId: string) => {
         .from('historico_fiancas')
         .select(`
           *,
-          analisado_por_usuario:analisado_por(nome)
+          analisado_por_usuario:usuarios!analisado_por(nome)
         `)
         .eq('fianca_id', fiancaId)
         .order('data_criacao', { ascending: false });
