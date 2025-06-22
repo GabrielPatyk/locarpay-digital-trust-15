@@ -18,7 +18,7 @@ export const useFiancaDetails = (fiancaId: string) => {
         .from('fiancas_locaticias')
         .select(`
           *,
-          analista:criado_por(nome)
+          usuarios!criado_por(nome)
         `)
         .eq('id', fiancaId)
         .single();
