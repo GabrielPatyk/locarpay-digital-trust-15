@@ -76,53 +76,53 @@ function App() {
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               
               {/* Admin routes */}
-              <Route path="/admin" element={<ProtectedRoute allowedTypes={['admin']}><Admin /></ProtectedRoute>} />
-              <Route path="/configuracoes-admin" element={<ProtectedRoute allowedTypes={['admin']}><ConfiguracoesAdmin /></ProtectedRoute>} />
-              <Route path="/fiancas-admin" element={<ProtectedRoute allowedTypes={['admin']}><FiancasAdmin /></ProtectedRoute>} />
-              <Route path="/imobiliarias-admin" element={<ProtectedRoute allowedTypes={['admin']}><ImobiliariasAdmin /></ProtectedRoute>} />
-              <Route path="/executivos-admin" element={<ProtectedRoute allowedTypes={['admin']}><ExecutivosAdmin /></ProtectedRoute>} />
-              <Route path="/leads-admin" element={<ProtectedRoute allowedTypes={['admin']}><LeadsAdmin /></ProtectedRoute>} />
-              <Route path="/relatorios-admin" element={<ProtectedRoute allowedTypes={['admin']}><RelatoriosAdmin /></ProtectedRoute>} />
-              <Route path="/sinistros-admin" element={<ProtectedRoute allowedTypes={['admin']}><SinistrosAdmin /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><Admin /></ProtectedRoute>} />
+              <Route path="/configuracoes-admin" element={<ProtectedRoute allowedRoles={['admin']}><ConfiguracoesAdmin /></ProtectedRoute>} />
+              <Route path="/fiancas-admin" element={<ProtectedRoute allowedRoles={['admin']}><FiancasAdmin /></ProtectedRoute>} />
+              <Route path="/imobiliarias-admin" element={<ProtectedRoute allowedRoles={['admin']}><ImobiliariasAdmin /></ProtectedRoute>} />
+              <Route path="/executivos-admin" element={<ProtectedRoute allowedRoles={['admin']}><ExecutivosAdmin /></ProtectedRoute>} />
+              <Route path="/leads-admin" element={<ProtectedRoute allowedRoles={['admin']}><LeadsAdmin /></ProtectedRoute>} />
+              <Route path="/relatorios-admin" element={<ProtectedRoute allowedRoles={['admin']}><RelatoriosAdmin /></ProtectedRoute>} />
+              <Route path="/sinistros-admin" element={<ProtectedRoute allowedRoles={['admin']}><SinistrosAdmin /></ProtectedRoute>} />
 
               {/* Analista routes */}
-              <Route path="/analista" element={<ProtectedRoute allowedTypes={['analista']}><Analista /></ProtectedRoute>} />
-              <Route path="/configuracoes-analista" element={<ProtectedRoute allowedTypes={['analista']}><ConfiguracoesAnalista /></ProtectedRoute>} />
-              <Route path="/relatorios-analista" element={<ProtectedRoute allowedTypes={['analista']}><RelatoriosAnalista /></ProtectedRoute>} />
+              <Route path="/analista" element={<ProtectedRoute allowedRoles={['analista']}><Analista /></ProtectedRoute>} />
+              <Route path="/configuracoes-analista" element={<ProtectedRoute allowedRoles={['analista']}><ConfiguracoesAnalista /></ProtectedRoute>} />
+              <Route path="/relatorios-analista" element={<ProtectedRoute allowedRoles={['analista']}><RelatoriosAnalista /></ProtectedRoute>} />
 
               {/* Executivo routes */}
-              <Route path="/executivo" element={<ProtectedRoute allowedTypes={['executivo']}><Executivo /></ProtectedRoute>} />
-              <Route path="/configuracoes-executivo" element={<ProtectedRoute allowedTypes={['executivo']}><ConfiguracoesExecutivo /></ProtectedRoute>} />
-              <Route path="/imobiliarias-executivo" element={<ProtectedRoute allowedTypes={['executivo']}><ImobiliariasExecutivo /></ProtectedRoute>} />
-              <Route path="/propostas-executivo" element={<ProtectedRoute allowedTypes={['executivo']}><PropostasExecutivo /></ProtectedRoute>} />
-              <Route path="/performance-executivo" element={<ProtectedRoute allowedTypes={['executivo']}><PerformanceExecutivo /></ProtectedRoute>} />
+              <Route path="/executivo" element={<ProtectedRoute allowedRoles={['executivo']}><Executivo /></ProtectedRoute>} />
+              <Route path="/configuracoes-executivo" element={<ProtectedRoute allowedRoles={['executivo']}><ConfiguracoesExecutivo /></ProtectedRoute>} />
+              <Route path="/imobiliarias-executivo" element={<ProtectedRoute allowedRoles={['executivo']}><ImobiliariasExecutivo /></ProtectedRoute>} />
+              <Route path="/propostas-executivo" element={<ProtectedRoute allowedRoles={['executivo']}><PropostasExecutivo /></ProtectedRoute>} />
+              <Route path="/performance-executivo" element={<ProtectedRoute allowedRoles={['executivo']}><PerformanceExecutivo /></ProtectedRoute>} />
 
               {/* Financeiro routes */}
-              <Route path="/financeiro" element={<ProtectedRoute allowedTypes={['financeiro']}><Financeiro /></ProtectedRoute>} />
-              <Route path="/configuracoes-financeiro" element={<ProtectedRoute allowedTypes={['financeiro']}><ConfiguracoesFinanceiro /></ProtectedRoute>} />
-              <Route path="/relatorios-financeiro" element={<ProtectedRoute allowedTypes={['financeiro']}><RelatoriosFinanceiro /></ProtectedRoute>} />
-              <Route path="/pagamentos-financeiro" element={<ProtectedRoute allowedTypes={['financeiro']}><PagamentosFinanceiro /></ProtectedRoute>} />
-              <Route path="/inadimplencia-financeiro" element={<ProtectedRoute allowedTypes={['financeiro']}><InadimplenciaFinanceiro /></ProtectedRoute>} />
+              <Route path="/financeiro" element={<ProtectedRoute allowedRoles={['financeiro']}><Financeiro /></ProtectedRoute>} />
+              <Route path="/configuracoes-financeiro" element={<ProtectedRoute allowedRoles={['financeiro']}><ConfiguracoesFinanceiro /></ProtectedRoute>} />
+              <Route path="/relatorios-financeiro" element={<ProtectedRoute allowedRoles={['financeiro']}><RelatoriosFinanceiro /></ProtectedRoute>} />
+              <Route path="/pagamentos-financeiro" element={<ProtectedRoute allowedRoles={['financeiro']}><PagamentosFinanceiro /></ProtectedRoute>} />
+              <Route path="/inadimplencia-financeiro" element={<ProtectedRoute allowedRoles={['financeiro']}><InadimplenciaFinanceiro /></ProtectedRoute>} />
 
               {/* Juridico routes */}
-              <Route path="/juridico" element={<ProtectedRoute allowedTypes={['juridico']}><Juridico /></ProtectedRoute>} />
-              <Route path="/configuracoes-juridico" element={<ProtectedRoute allowedTypes={['juridico']}><ConfiguracoesJuridico /></ProtectedRoute>} />
-              <Route path="/contratos-juridico" element={<ProtectedRoute allowedTypes={['juridico']}><ContratosJuridico /></ProtectedRoute>} />
-              <Route path="/processos" element={<ProtectedRoute allowedTypes={['juridico']}><Processos /></ProtectedRoute>} />
+              <Route path="/juridico" element={<ProtectedRoute allowedRoles={['juridico']}><Juridico /></ProtectedRoute>} />
+              <Route path="/configuracoes-juridico" element={<ProtectedRoute allowedRoles={['juridico']}><ConfiguracoesJuridico /></ProtectedRoute>} />
+              <Route path="/contratos-juridico" element={<ProtectedRoute allowedRoles={['juridico']}><ContratosJuridico /></ProtectedRoute>} />
+              <Route path="/processos" element={<ProtectedRoute allowedRoles={['juridico']}><Processos /></ProtectedRoute>} />
 
               {/* Imobiliária routes */}
-              <Route path="/imobiliaria" element={<ProtectedRoute allowedTypes={['imobiliaria']}><Imobiliaria /></ProtectedRoute>} />
-              <Route path="/configuracoes-imobiliaria" element={<ProtectedRoute allowedTypes={['imobiliaria']}><ConfiguracoesImobiliaria /></ProtectedRoute>} />
-              <Route path="/fiancas-imobiliaria" element={<ProtectedRoute allowedTypes={['imobiliaria']}><FiancasImobiliaria /></ProtectedRoute>} />
-              <Route path="/contratos-imobiliaria" element={<ProtectedRoute allowedTypes={['imobiliaria']}><ContratosImobiliaria /></ProtectedRoute>} />
-              <Route path="/inquilinos-imobiliaria" element={<ProtectedRoute allowedTypes={['imobiliaria']}><InquilinosImobiliaria /></ProtectedRoute>} />
+              <Route path="/imobiliaria" element={<ProtectedRoute allowedRoles={['imobiliaria']}><Imobiliaria /></ProtectedRoute>} />
+              <Route path="/configuracoes-imobiliaria" element={<ProtectedRoute allowedRoles={['imobiliaria']}><ConfiguracoesImobiliaria /></ProtectedRoute>} />
+              <Route path="/fiancas-imobiliaria" element={<ProtectedRoute allowedRoles={['imobiliaria']}><FiancasImobiliaria /></ProtectedRoute>} />
+              <Route path="/contratos-imobiliaria" element={<ProtectedRoute allowedRoles={['imobiliaria']}><ContratosImobiliaria /></ProtectedRoute>} />
+              <Route path="/inquilinos-imobiliaria" element={<ProtectedRoute allowedRoles={['imobiliaria']}><InquilinosImobiliaria /></ProtectedRoute>} />
 
               {/* Inquilino routes */}
-              <Route path="/inquilino" element={<ProtectedRoute allowedTypes={['inquilino']}><Inquilino /></ProtectedRoute>} />
+              <Route path="/inquilino" element={<ProtectedRoute allowedRoles={['inquilino']}><Inquilino /></ProtectedRoute>} />
 
               {/* SDR routes */}
-              <Route path="/sdr" element={<ProtectedRoute allowedTypes={['sdr']}><SDR /></ProtectedRoute>} />
-              <Route path="/relatorios-sdr" element={<ProtectedRoute allowedTypes={['sdr']}><RelatoriosSDR /></ProtectedRoute>} />
+              <Route path="/sdr" element={<ProtectedRoute allowedRoles={['sdr']}><SDR /></ProtectedRoute>} />
+              <Route path="/relatorios-sdr" element={<ProtectedRoute allowedRoles={['sdr']}><RelatoriosSDR /></ProtectedRoute>} />
 
               {/* Shared routes */}
               <Route path="/fiancas" element={<ProtectedRoute><Fiancas /></ProtectedRoute>} />
