@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -101,7 +102,7 @@ const Financeiro = () => {
     }
   };
 
-  const getStatusLabel = (status: string) => {
+  const getStatusText = (status: string) => {
     switch (status) {
       case 'ativa': return 'Ativa';
       case 'comprovante_enviado': return 'Comprovante Enviado';
@@ -150,7 +151,7 @@ const Financeiro = () => {
   }
 
   return (
-    <Layout title="Gestão Financeira">
+    <Layout title="Departamento Financeiro">
       <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
         {/* Welcome Card */}
         <Card className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E]">
@@ -273,10 +274,10 @@ const Financeiro = () => {
 
         {/* Gestão de Fianças */}
         <Card>
-          <CardHeader>
-            <CardTitle>Fianças para Gestão Financeira</CardTitle>
-            <CardDescription>
-              Gerencie pagamentos e anexe links de pagamento para as fianças aprovadas
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-lg sm:text-xl">Gestão de Fianças Locatícias</CardTitle>
+            <CardDescription className="text-sm">
+              Gerencie links de pagamento e confirme recebimentos das fianças aprovadas
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -293,90 +294,92 @@ const Financeiro = () => {
                 </div>
               ) : (
                 filteredFiancas.map((fianca) => (
-                  <div key={fianca.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                      {/* Informações do Inquilino */}
-                      <div className="space-y-2">
-                        <h4 className="font-semibold text-gray-900 text-lg">{fianca.inquilino_nome_completo}</h4>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <p><strong>E-mail:</strong> {fianca.inquilino_email}</p>
-                          <p><strong>CPF:</strong> {fianca.inquilino_cpf}</p>
+                  <Card key={fianca.id} className="border hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                        {/* Informações do Inquilino */}
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-gray-900 text-lg">{fianca.inquilino_nome_completo}</h4>
+                          <div className="space-y-1 text-sm text-gray-600">
+                            <p><strong>E-mail:</strong> {fianca.inquilino_email}</p>
+                            <p><strong>CPF:</strong> {fianca.inquilino_cpf}</p>
+                          </div>
+                        </div>
+                        
+                        {/* Informações do Imóvel */}
+                        <div className="space-y-2">
+                          <h5 className="font-medium text-gray-900">{fianca.imovel_tipo}</h5>
+                          <p className="text-sm text-gray-600">
+                            {fianca.imovel_endereco}, {fianca.imovel_numero} - {fianca.imovel_bairro}, {fianca.imovel_cidade}/{fianca.imovel_estado}
+                          </p>
+                        </div>
+                        
+                        {/* Informações Financeiras */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-2xl font-bold text-gray-900">
+                              R$ {Number(fianca.imovel_valor_aluguel).toLocaleString()}
+                            </span>
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
+                              {getStatusText(fianca.status_fianca)}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            <strong>Criado em:</strong> {new Date(fianca.data_criacao).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
-                      
-                      {/* Informações do Imóvel */}
-                      <div className="space-y-2">
-                        <h5 className="font-medium text-gray-900">{fianca.imovel_tipo}</h5>
-                        <p className="text-sm text-gray-600">
-                          {fianca.imovel_endereco}, {fianca.imovel_numero} - {fianca.imovel_bairro}, {fianca.imovel_cidade}/{fianca.imovel_estado}
-                        </p>
+
+                      {/* Ações */}
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/detalhe-fianca/${fianca.id}`)}
+                          className="flex items-center"
+                        >
+                          <Eye className="mr-1 h-4 w-4" />
+                          Ver Detalhes
+                        </Button>
+
+                        {fianca.status_fianca === 'enviada_ao_financeiro' && (
+                          <Button
+                            size="sm"
+                            onClick={() => setSelectedFianca(fianca)}
+                            className="bg-blue-500 hover:bg-blue-600 flex items-center"
+                            disabled={isUpdating}
+                          >
+                            <LinkIcon className="mr-1 h-4 w-4" />
+                            Anexar Link
+                          </Button>
+                        )}
+
+                        {fianca.status_fianca === 'pagamento_disponivel' && (
+                          <Button
+                            size="sm"
+                            onClick={() => confirmarPagamento(fianca.id)}
+                            className="bg-success hover:bg-success/90 flex items-center"
+                            disabled={isUpdating}
+                          >
+                            <CheckCircle className="mr-1 h-4 w-4" />
+                            Confirmar Pagamento
+                          </Button>
+                        )}
+
+                        {fianca.status_fianca === 'comprovante_enviado' && (
+                          <Button
+                            size="sm"
+                            onClick={() => confirmarPagamento(fianca.id)}
+                            className="bg-success hover:bg-success/90 flex items-center"
+                            disabled={isUpdating}
+                          >
+                            <CheckCircle className="mr-1 h-4 w-4" />
+                            Ativar Fiança
+                          </Button>
+                        )}
                       </div>
-                      
-                      {/* Informações Financeiras */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-2xl font-bold text-gray-900">
-                            R$ {Number(fianca.imovel_valor_aluguel).toLocaleString()}
-                          </span>
-                          <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
-                            {getStatusLabel(fianca.status_fianca)}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          <strong>Criado em:</strong> {new Date(fianca.data_criacao).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Ações */}
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/detalhe-fianca/${fianca.id}`)}
-                        className="flex items-center"
-                      >
-                        <Eye className="mr-1 h-4 w-4" />
-                        Ver Detalhes
-                      </Button>
-
-                      {fianca.status_fianca === 'enviada_ao_financeiro' && (
-                        <Button
-                          size="sm"
-                          onClick={() => setSelectedFianca(fianca)}
-                          className="bg-blue-500 hover:bg-blue-600 flex items-center"
-                          disabled={isUpdating}
-                        >
-                          <LinkIcon className="mr-1 h-4 w-4" />
-                          Anexar Link
-                        </Button>
-                      )}
-
-                      {fianca.status_fianca === 'pagamento_disponivel' && (
-                        <Button
-                          size="sm"
-                          onClick={() => confirmarPagamento(fianca.id)}
-                          className="bg-success hover:bg-success/90 flex items-center"
-                          disabled={isUpdating}
-                        >
-                          <CheckCircle className="mr-1 h-4 w-4" />
-                          Confirmar Pagamento
-                        </Button>
-                      )}
-
-                      {fianca.status_fianca === 'comprovante_enviado' && (
-                        <Button
-                          size="sm"
-                          onClick={() => confirmarPagamento(fianca.id)}
-                          className="bg-success hover:bg-success/90 flex items-center"
-                          disabled={isUpdating}
-                        >
-                          <CheckCircle className="mr-1 h-4 w-4" />
-                          Ativar Fiança
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))
               )}
             </div>

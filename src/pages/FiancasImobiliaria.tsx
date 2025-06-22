@@ -1,243 +1,863 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { Badge } from '@/components/ui/badge';
-import { Search } from 'lucide-react';
-import { useFiancas } from '@/hooks/useFiancas';
-import { useAuth } from '@/contexts/AuthContext';
-import { Skeleton } from "@/components/ui/skeleton"
-import CriarFiancaModal from '@/components/CriarFiancaModal';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { useCargoRedirect } from '@/hooks/useCargoRedirect';
-import { useImobiliariaData } from '@/hooks/useImobiliariaData';
+import { useFiancas, type FiancaFormData } from '@/hooks/useFiancas';
+import { validateFiancaForm, formatCurrency } from '@/components/FiancaFormValidation';
+import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
+import RejectedFiancaTooltip from '@/components/RejectedFiancaTooltip';
+import ApprovedFiancaTooltip from '@/components/ApprovedFiancaTooltip';
+import AguardandoPagamentoTooltip from '@/components/AguardandoPagamentoTooltip';
+import { 
+  FileText, 
+  Plus, 
+  Search, 
+  Filter,
+  Calendar,
+  Building,
+  Users,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  Eye,
+  Loader2
+} from 'lucide-react';
 
-interface DataTableProps {
-  data: any[];
-}
-
-const DataTable: React.FC<DataTableProps> = ({ data }) => {
-  const navigate = useNavigate();
+const FiancasImobiliaria = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
-  const { updateFiancaStatus } = useFiancas();
-  const { getCargoHomePage } = useCargoRedirect();
+  const navigate = useNavigate();
+  const { formatPhone } = usePhoneFormatter();
+  const { fiancas, isLoading, createFianca, isCreating, acceptFianca, isAccepting, getFiancasStats } = useFiancas();
+  
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todos');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
-  const handleAceitarFianca = async (fiancaId: string) => {
-    try {
-      await updateFiancaStatus(fiancaId, 'aprovada');
-      toast({
-        title: "Fiança Aprovada!",
-        description: "A fiança foi aprovada com sucesso.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: "Erro ao aprovar fiança: " + error.message,
-        variant: "destructive",
-      });
+  // Estado do formulário
+  const [formData, setFormData] = useState<FiancaFormData>({
+    // Dados do Inquilino
+    nomeCompleto: '',
+    cpf: '',
+    email: '',
+    whatsapp: '+55',
+    rendaMensal: '',
+    // Endereço do Inquilino
+    inquilinoEndereco: '',
+    inquilinoNumero: '',
+    inquilinoComplemento: '',
+    inquilinoBairro: '',
+    inquilinoCidade: '',
+    inquilinoEstado: '',
+    inquilinoPais: 'Brasil',
+    // Dados do Imóvel
+    tipoImovel: '',
+    tipoLocacao: '',
+    valorAluguel: '',
+    descricaoImovel: '',
+    areaMetros: '',
+    tempoLocacao: '',
+    // Endereço do Imóvel
+    imovelEndereco: '',
+    imovelNumero: '',
+    imovelComplemento: '',
+    imovelBairro: '',
+    imovelCidade: '',
+    imovelEstado: '',
+    imovelPais: 'Brasil'
+  });
+
+  const dashboardData = getFiancasStats();
+
+  const handleInputChange = (field: keyof FiancaFormData, value: string) => {
+    if (field === 'whatsapp') {
+      setFormData(prev => ({
+        ...prev,
+        [field]: formatPhone(value)
+      }));
+    } else if (field === 'cpf') {
+      // Formatar CPF
+      const numbers = value.replace(/\D/g, '');
+      let formatted = numbers;
+      if (numbers.length > 3) formatted = numbers.slice(0, 3) + '.' + numbers.slice(3);
+      if (numbers.length > 6) formatted = numbers.slice(0, 3) + '.' + numbers.slice(3, 6) + '.' + numbers.slice(6);
+      if (numbers.length > 9) formatted = numbers.slice(0, 3) + '.' + numbers.slice(3, 6) + '.' + numbers.slice(6, 9) + '-' + numbers.slice(9, 11);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formatted
+      }));
+    } else if (field === 'rendaMensal' || field === 'valorAluguel') {
+      // Formatar valores monetários
+      const formatted = formatCurrency(value);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formatted
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
     }
   };
 
-  const handleRejeitarFianca = async (fiancaId: string) => {
-    try {
-      await updateFiancaStatus(fiancaId, 'rejeitada');
+  const handleSubmitFianca = () => {
+    const errors = validateFiancaForm(formData);
+    
+    if (errors.length > 0) {
       toast({
-        title: "Fiança Rejeitada!",
-        description: "A fiança foi rejeitada com sucesso.",
+        title: "Erro na validação",
+        description: errors[0],
+        variant: "destructive"
       });
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: "Erro ao rejeitar fiança: " + error.message,
-        variant: "destructive",
-      });
+      return;
     }
+
+    createFianca(formData, {
+      onSuccess: () => {
+        toast({
+          title: "Fiança criada com sucesso!",
+          description: "A fiança foi enviada para análise.",
+        });
+        setIsDialogOpen(false);
+        // Reset form
+        setFormData({
+          nomeCompleto: '',
+          cpf: '',
+          email: '',
+          whatsapp: '+55',
+          rendaMensal: '',
+          inquilinoEndereco: '',
+          inquilinoNumero: '',
+          inquilinoComplemento: '',
+          inquilinoBairro: '',
+          inquilinoCidade: '',
+          inquilinoEstado: '',
+          inquilinoPais: 'Brasil',
+          tipoImovel: '',
+          tipoLocacao: '',
+          valorAluguel: '',
+          descricaoImovel: '',
+          areaMetros: '',
+          tempoLocacao: '',
+          imovelEndereco: '',
+          imovelNumero: '',
+          imovelComplemento: '',
+          imovelBairro: '',
+          imovelCidade: '',
+          imovelEstado: '',
+          imovelPais: 'Brasil'
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Erro ao criar fiança",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    });
   };
 
-  const handleDetalhesClick = (fiancaId: string) => {
+  const handleAcceptFianca = (fiancaId: string) => {
+    acceptFianca.mutate(fiancaId, {
+      onSuccess: () => {
+        toast({
+          title: "Fiança aceita com sucesso!",
+          description: "A fiança foi enviada ao financeiro.",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Erro ao aceitar fiança",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    const colors: { [key: string]: string } = {
+      'em_analise': 'bg-blue-500',
+      'aprovada':  'bg-green-500', 
+      'rejeitada': 'bg-red-500',
+      'ativa': 'bg-green-500',
+      'vencida': 'bg-red-500',
+      'cancelada': 'bg-gray-500',
+      'enviada_ao_financeiro': 'bg-green-500',
+      'aguardando_geracao_pagamento': 'bg-yellow-500',
+      'pagamento_disponivel': 'bg-yellow-500',
+      'comprovante_enviado': 'bg-blue-500'
+    };
+    return colors[status] || 'bg-gray-500';
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: { [key: string]: string } = {
+      'em_analise': 'Em Análise',
+      'aprovada': 'Aprovada',
+      'rejeitada': 'Rejeitada', 
+      'ativa': 'Ativa',
+      'vencida': 'Vencida',
+      'cancelada': 'Cancelada',
+      'enviada_ao_financeiro': 'Enviada ao Financeiro',
+      'aguardando_geracao_pagamento': 'Aguardando Pagamento',
+      'pagamento_disponivel': 'Aguardando Pagamento',
+      'comprovante_enviado': 'Comprovante Enviado'
+    };
+    return labels[status] || status;
+  };
+
+  const filteredFiancas = fiancas.filter(fianca => {
+    const matchesSearch = fianca.inquilino_nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         `${fianca.imovel_endereco}, ${fianca.imovel_numero}`.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'todos' || fianca.status_fianca === statusFilter;
+    
+    // Filtro de data
+    let matchesDate = true;
+    if (startDate || endDate) {
+      const fiancaDate = new Date(fianca.data_criacao).toISOString().split('T')[0];
+      if (startDate && fiancaDate < startDate) matchesDate = false;
+      if (endDate && fiancaDate > endDate) matchesDate = false;
+    }
+    
+    return matchesSearch && matchesStatus && matchesDate;
+  });
+
+  const getDashboardStats = () => {
+    const totalFiancas = filteredFiancas.length;
+    const fiancasPendentes = filteredFiancas.filter(f => f.status_fianca === 'em_analise').length;
+    const fiancasAtivas = filteredFiancas.filter(f => f.status_fianca === 'ativa').length;
+    const fiancasVencidas = filteredFiancas.filter(f => f.status_fianca === 'vencida').length;
+    const fiancasRejeitadas = filteredFiancas.filter(f => f.status_fianca === 'rejeitada').length;
+
+    return {
+      totalFiancas,
+      fiancasPendentes,
+      fiancasAtivas,
+      fiancasVencidas,
+      fiancasRejeitadas
+    };
+  };
+
+  const stats = getDashboardStats();
+
+  const handleViewFianca = (fiancaId: string) => {
     navigate(`/detalhe-fianca/${fiancaId}`);
   };
 
-  return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Status</TableHead>
-            <TableHead>Inquilino</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Imóvel</TableHead>
-            <TableHead>Aluguel</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((fianca) => (
-            <TableRow key={fianca.id}>
-              <TableCell className="font-medium">
-                <Badge variant="secondary">{fianca.status_fianca}</Badge>
-              </TableCell>
-              <TableCell>{fianca.inquilino_nome_completo}</TableCell>
-              <TableCell>{fianca.inquilino_email}</TableCell>
-              <TableCell>{fianca.imovel_endereco}, {fianca.imovel_cidade}</TableCell>
-              <TableCell>R$ {fianca.imovel_valor_aluguel}</TableCell>
-              <TableCell className="text-right">
-                <Button variant="outline" size="sm" onClick={() => handleDetalhesClick(fianca.id)}>
-                  Detalhes
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-};
-
-const SkeletonTable = () => {
-  return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Status</TableHead>
-            <TableHead>Inquilino</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Imóvel</TableHead>
-            <TableHead>Aluguel</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <TableRow key={i}>
-              <TableCell className="font-medium"><Skeleton className="h-4 w-[100px]" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
-              <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-              <TableCell className="text-right"><Skeleton className="h-4 w-[100px]" /></TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-};
-
-const FiancasImobiliaria = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const { user } = useAuth();
-  const { fiancas, isLoading, refetch, getFiancasStats } = useFiancas(user?.id, searchTerm);
-  const { totalFiancas, fiancasPendentes, fiancasAtivas, fiancasVencidas } = getFiancasStats();
-  const { cnpj } = useImobiliariaData();
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+  const applyDateFilter = () => {
+    // Força uma re-renderização para aplicar os filtros
+    setSearchTerm(searchTerm);
   };
 
+  if (isLoading) {
+    return (
+      <Layout title="Fianças">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
-    <Layout title="Minhas Fianças">
-      <div className="container mx-auto py-10">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Minhas Fianças</h1>
-            <p className="text-gray-500">
-              Acompanhe suas solicitações de fiança e gerencie seus clientes.
-            </p>
-          </div>
-          <Button onClick={() => setIsModalOpen(true)}>
-            Solicitar Fiança
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Total de Fianças</CardTitle>
-              <CardDescription>Número total de fianças solicitadas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalFiancas}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Fianças Pendentes</CardTitle>
-              <CardDescription>Fianças aguardando aprovação</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{fiancasPendentes}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Fianças Ativas</CardTitle>
-              <CardDescription>Fianças com contrato ativo</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{fiancasAtivas}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Fianças Vencidas</CardTitle>
-              <CardDescription>Fianças com contrato vencido</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{fiancasVencidas}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mb-4">
-          <div className="relative">
-            <Input
-              type="text"
-              placeholder="Buscar por nome, email ou endereço..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="pl-10"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+    <Layout title="Fianças">
+      <div className="space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] rounded-lg p-6 text-[#0C1C2E]">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold mb-2">Gestão de Fianças</h1>
+              <p className="opacity-90">Gerencie e acompanhe todas as suas fianças</p>
+            </div>
+            <FileText className="h-12 w-12 opacity-50" />
           </div>
         </div>
 
-        {isLoading ? (
-          <SkeletonTable />
-        ) : (
-          <DataTable data={fiancas} />
-        )}
+        {/* Filtros de Data */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Calendar className="mr-2 h-5 w-5 text-primary" />
+              Filtros por Período
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="startDate">Data de Início</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="endDate">Data de Fim</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
+              <div className="flex items-end">
+                <Button className="w-full bg-primary hover:bg-primary/90" onClick={applyDateFilter}>
+                  Aplicar Filtros
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Cards de métricas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Fianças</CardTitle>
+              <FileText className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">{stats.totalFiancas}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-warning">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Fianças Pendentes</CardTitle>
+              <Clock className="h-4 w-4 text-warning" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-warning">{stats.fiancasPendentes}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-success">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Fianças Ativas</CardTitle>
+              <CheckCircle className="h-4 w-4 text-success" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-success">{stats.fiancasAtivas}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-destructive">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Fianças Vencidas</CardTitle>
+              <AlertCircle className="h-4 w-4 text-destructive" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-destructive">{stats.fiancasVencidas}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-red-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Fianças Rejeitadas</CardTitle>
+              <AlertCircle className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-500">{stats.fiancasRejeitadas}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Ações e Lista de Fianças */}
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+              <CardTitle>Lista de Fianças</CardTitle>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-primary hover:bg-primary/90">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Gerar Fiança
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Nova Fiança</DialogTitle>
+                    <DialogDescription>
+                      Preencha os dados do inquilino e do imóvel para gerar uma nova fiança
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <Tabs defaultValue="inquilino" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="inquilino">Dados do Inquilino</TabsTrigger>
+                      <TabsTrigger value="imovel">Dados do Imóvel</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="inquilino" className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="nomeCompleto">Nome Completo *</Label>
+                          <Input
+                            id="nomeCompleto"
+                            value={formData.nomeCompleto}
+                            onChange={(e) => handleInputChange('nomeCompleto', e.target.value)}
+                            placeholder="Nome completo do inquilino"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="cpf">CPF *</Label>
+                          <Input
+                            id="cpf"
+                            value={formData.cpf}
+                            onChange={(e) => handleInputChange('cpf', e.target.value)}
+                            placeholder="000.000.000-00"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="email">E-mail *</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            placeholder="email@exemplo.com"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="whatsapp">WhatsApp *</Label>
+                          <Input
+                            id="whatsapp"
+                            value={formData.whatsapp}
+                            onChange={(e) => handleInputChange('whatsapp', e.target.value)}
+                            placeholder="+55 (11) 9 9999-9999"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="rendaMensal">Renda Mensal *</Label>
+                          <Input
+                            id="rendaMensal"
+                            value={formData.rendaMensal}
+                            onChange={(e) => handleInputChange('rendaMensal', e.target.value)}
+                            placeholder="R$ 5.000,00"
+                            required
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <h4 className="text-lg font-medium">Endereço do Inquilino</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="md:col-span-2">
+                            <Label htmlFor="inquilinoEndereco">Endereço *</Label>
+                            <Input
+                              id="inquilinoEndereco"
+                              value={formData.inquilinoEndereco}
+                              onChange={(e) => handleInputChange('inquilinoEndereco', e.target.value)}
+                              placeholder="Rua, Avenida, etc."
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="inquilinoNumero">Número *</Label>
+                            <Input
+                              id="inquilinoNumero"
+                              value={formData.inquilinoNumero}
+                              onChange={(e) => handleInputChange('inquilinoNumero', e.target.value)}
+                              placeholder="123"
+                              required
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="inquilinoComplemento">Complemento</Label>
+                          <Input
+                            id="inquilinoComplemento"
+                            value={formData.inquilinoComplemento}
+                            onChange={(e) => handleInputChange('inquilinoComplemento', e.target.value)}
+                            placeholder="Apto, Sala, etc."
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <Label htmlFor="inquilinoBairro">Bairro *</Label>
+                            <Input
+                              id="inquilinoBairro"
+                              value={formData.inquilinoBairro}
+                              onChange={(e) => handleInputChange('inquilinoBairro', e.target.value)}
+                              placeholder="Centro"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="inquilinoCidade">Cidade *</Label>
+                            <Input
+                              id="inquilinoCidade"
+                              value={formData.inquilinoCidade}
+                              onChange={(e) => handleInputChange('inquilinoCidade', e.target.value)}
+                              placeholder="São Paulo"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="inquilinoEstado">Estado *</Label>
+                            <Input
+                              id="inquilinoEstado"
+                              value={formData.inquilinoEstado}
+                              onChange={(e) => handleInputChange('inquilinoEstado', e.target.value)}
+                              placeholder="SP"
+                              required
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="inquilinoPais">País</Label>
+                          <Input
+                            id="inquilinoPais"
+                            value={formData.inquilinoPais}
+                            readOnly
+                            className="bg-gray-100"
+                          />
+                        </div>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="imovel" className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="tipoImovel">Tipo de Imóvel *</Label>
+                          <Select value={formData.tipoImovel} onValueChange={(value) => handleInputChange('tipoImovel', value)}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="casa">Casa</SelectItem>
+                              <SelectItem value="apartamento">Apartamento</SelectItem>
+                              <SelectItem value="kitnet">Kitnet</SelectItem>
+                              <SelectItem value="sobrado">Sobrado</SelectItem>
+                              <SelectItem value="chacara">Chácara</SelectItem>
+                              <SelectItem value="comercial">Comercial</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="tipoLocacao">Tipo de Locação *</Label>
+                          <Select value={formData.tipoLocacao} onValueChange={(value) => handleInputChange('tipoLocacao', value)}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="residencial">Residencial</SelectItem>
+                              <SelectItem value="comercial">Comercial</SelectItem>
+                              <SelectItem value="misto">Misto</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="valorAluguel">Valor do Aluguel Mensal *</Label>
+                          <Input
+                            id="valorAluguel"
+                            value={formData.valorAluguel}
+                            onChange={(e) => handleInputChange('valorAluguel', e.target.value)}
+                            placeholder="R$ 2.500,00"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="areaMetros">Área em m²</Label>
+                          <Input
+                            id="areaMetros"
+                            value={formData.areaMetros}
+                            onChange={(e) => handleInputChange('areaMetros', e.target.value)}
+                            placeholder="80"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="tempoLocacao">Tempo de Locação (anos) *</Label>
+                          <Input
+                            id="tempoLocacao"
+                            value={formData.tempoLocacao}
+                            onChange={(e) => handleInputChange('tempoLocacao', e.target.value)}
+                            placeholder="3"
+                            required
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="descricaoImovel">Descrição do Imóvel</Label>
+                        <Textarea
+                          id="descricaoImovel"
+                          value={formData.descricaoImovel}
+                          onChange={(e) => handleInputChange('descricaoImovel', e.target.value)}
+                          placeholder="3 quartos, 2 banheiros, área externa, garagem..."
+                          rows={3}
+                        />
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <h4 className="text-lg font-medium">Endereço do Imóvel</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="md:col-span-2">
+                            <Label htmlFor="imovelEndereco">Endereço *</Label>
+                            <Input
+                              id="imovelEndereco"
+                              value={formData.imovelEndereco}
+                              onChange={(e) => handleInputChange('imovelEndereco', e.target.value)}
+                              placeholder="Rua, Avenida, etc."
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="imovelNumero">Número *</Label>
+                            <Input
+                              id="imovelNumero"
+                              value={formData.imovelNumero}
+                              onChange={(e) => handleInputChange('imovelNumero', e.target.value)}
+                              placeholder="123"
+                              required
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="imovelComplemento">Complemento</Label>
+                          <Input
+                            id="imovelComplemento"
+                            value={formData.imovelComplemento}
+                            onChange={(e) => handleInputChange('imovelComplemento', e.target.value)}
+                            placeholder="Apto, Sala, etc."
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <Label htmlFor="imovelBairro">Bairro *</Label>
+                            <Input
+                              id="imovelBairro"
+                              value={formData.imovelBairro}
+                              onChange={(e) => handleInputChange('imovelBairro', e.target.value)}
+                              placeholder="Centro"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="imovelCidade">Cidade *</Label>
+                            <Input
+                              id="imovelCidade"
+                              value={formData.imovelCidade}
+                              onChange={(e) => handleInputChange('imovelCidade', e.target.value)}
+                              placeholder="São Paulo"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="imovelEstado">Estado *</Label>
+                            <Input
+                              id="imovelEstado"
+                              value={formData.imovelEstado}
+                              onChange={(e) => handleInputChange('imovelEstado', e.target.value)}
+                              placeholder="SP"
+                              required
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="imovelPais">País</Label>
+                          <Input
+                            id="imovelPais"
+                            value={formData.imovelPais}
+                            readOnly
+                            className="bg-gray-100"
+                          />
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                  
+                  <div className="flex justify-end space-x-2 mt-6">
+                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={handleSubmitFianca} 
+                      className="bg-primary hover:bg-primary/90"
+                      disabled={isCreating}
+                    >
+                      {isCreating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Gerando...
+                        </>
+                      ) : (
+                        'Gerar Fiança'
+                      )}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col lg:flex-row gap-4 mb-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Pesquisar por inquilino ou imóvel..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full lg:w-48">
+                  <Filter className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Filtrar por status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Status</SelectItem>
+                  <SelectItem value="em_analise">Em Análise</SelectItem>
+                  <SelectItem value="aprovada">Aprovadas</SelectItem>
+                  <SelectItem value="ativa">Ativas</SelectItem>
+                  <SelectItem value="vencida">Vencidas</SelectItem>
+                  <SelectItem value="rejeitada">Rejeitadas</SelectItem>
+                  <SelectItem value="cancelada">Canceladas</SelectItem>
+                  <SelectItem value="enviada_ao_financeiro">Enviada ao Financeiro</SelectItem>
+                  <SelectItem value="pagamento_disponivel">Aguardando Pagamento</SelectItem>
+                  <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Inquilino</TableHead>
+                    <TableHead className="min-w-[200px]">Imóvel</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Data Criação</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredFiancas.map((fianca) => (
+                    <TableRow key={fianca.id}>
+                      <TableCell className="font-medium">{fianca.inquilino_nome_completo}</TableCell>
+                      <TableCell>{`${fianca.imovel_endereco}, ${fianca.imovel_numero} - ${fianca.imovel_bairro}`}</TableCell>
+                      <TableCell>R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}</TableCell>
+                      <TableCell>
+                        {fianca.status_fianca === 'rejeitada' ? (
+                          <RejectedFiancaTooltip
+                            rejectionReason={fianca.motivo_reprovacao || 'Não informado'}
+                            rejectionDate={fianca.data_analise || fianca.data_atualizacao}
+                            score={fianca.score_credito}
+                            analystName="Analista Responsável"
+                          >
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
+                              {getStatusLabel(fianca.status_fianca)}
+                            </Badge>
+                          </RejectedFiancaTooltip>
+                        ) : fianca.status_fianca === 'aprovada' ? (
+                          <ApprovedFiancaTooltip
+                            approvalDate={fianca.data_analise || fianca.data_atualizacao}
+                            score={fianca.score_credito}
+                            rate={fianca.taxa_aplicada}
+                            analystName="Analista Responsável"
+                            observations={fianca.observacoes_aprovacao}
+                          >
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
+                              {getStatusLabel(fianca.status_fianca)}
+                            </Badge>
+                          </ApprovedFiancaTooltip>
+                        ) : fianca.status_fianca === 'pagamento_disponivel' ? (
+                          <AguardandoPagamentoTooltip
+                            valorFianca={fianca.imovel_valor_aluguel}
+                            nomeInquilino={fianca.inquilino_nome_completo}
+                            dataEnvio={fianca.data_atualizacao}
+                          >
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
+                              {getStatusLabel(fianca.status_fianca)}
+                            </Badge>
+                          </AguardandoPagamentoTooltip>
+                        ) : (
+                          <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
+                            {getStatusLabel(fianca.status_fianca)}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>{new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewFianca(fianca.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {fianca.status_fianca === 'aprovada' ? (
+                            <Button 
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => handleAcceptFianca(fianca.id)}
+                              disabled={isAccepting}
+                            >
+                              {isAccepting ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                'Aceitar'
+                              )}
+                            </Button>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {filteredFiancas.length === 0 && (
+              <div className="text-center py-8">
+                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Nenhuma fiança encontrada
+                </h3>
+                <p className="text-gray-600">
+                  {searchTerm || statusFilter !== 'todos' || startDate || endDate
+                    ? 'Tente ajustar sua busca ou adicione uma nova fiança.'
+                    : 'Adicione sua primeira fiança para começar.'
+                  }
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-      
-      {/* Modal de criar fiança */}
-      <CriarFiancaModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => {
-          setIsModalOpen(false);
-          refetch();
-        }}
-        cnpjPlaceholder={cnpj}
-      />
     </Layout>
   );
 };
