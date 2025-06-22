@@ -1,107 +1,114 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useToast } from '@/hooks/use-toast';
-import { useFiancas, type FiancaFormData } from '@/hooks/useFiancas';
-import { validateFiancaForm, formatCurrency } from '@/components/FiancaFormValidation';
-import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import { 
-  FileText, 
+  Shield, 
   Plus, 
   Search, 
-  Filter,
+  Filter, 
   Calendar,
-  Building,
-  Users,
-  CheckCircle,
+  TrendingUp,
   Clock,
-  AlertCircle,
-  Eye,
-  Edit,
-  Loader2
+  CheckCircle,
+  User,
+  Building
 } from 'lucide-react';
+import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 
 const FiancasImobiliaria = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const { formatPhone } = usePhoneFormatter();
-  const { fiancas, isLoading, createFianca, isCreating, getFiancasStats } = useFiancas();
-  
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { formatPhone, formatCNPJ } = usePhoneFormatter();
+  const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('todos');
+  const [statusFilter, setStatusFilter] = useState('todas');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  
+  // Dados mock para as estatísticas
+  const stats = {
+    total: 45,
+    pendentes: 8,
+    ativas: 32,
+    rejeitadas: 5
+  };
 
-  // Estado do formulário
-  const [formData, setFormData] = useState<FiancaFormData>({
+  // Dados mock para a listagem de fianças
+  const fiancas = [
+    {
+      id: 'F-001',
+      inquilino: 'João Silva Santos',
+      cpf: '123.456.789-10',
+      imovel: 'Apartamento - Rua das Flores, 123',
+      valor: 'R$ 2.500,00',
+      status: 'ativa',
+      dataCreated: '2024-01-15',
+      dataVencimento: '2025-01-15'
+    },
+    {
+      id: 'F-002',
+      inquilino: 'Maria Oliveira Costa',
+      cpf: '987.654.321-00',
+      imovel: 'Casa - Av. Principal, 456',
+      valor: 'R$ 3.200,00',
+      status: 'pendente',
+      dataCreated: '2024-01-20',
+      dataVencimento: '2025-01-20'
+    },
+    {
+      id: 'F-003',
+      inquilino: 'Pedro Souza Lima',
+      cpf: '456.789.123-45',
+      imovel: 'Apartamento - Rua Central, 789',
+      valor: 'R$ 1.800,00',
+      status: 'rejeitada',
+      dataCreated: '2024-01-10',
+      dataVencimento: null
+    }
+  ];
+
+  const [formData, setFormData] = useState({
     // Dados do Inquilino
     nomeCompleto: '',
     cpf: '',
     email: '',
-    whatsapp: '+55',
+    whatsapp: '',
+    endereco: '',
+    numero: '',
+    complemento: '',
+    bairro: '',
+    cidade: '',
+    estado: '',
+    pais: 'Brasil',
     rendaMensal: '',
-    // Endereço do Inquilino
-    inquilinoEndereco: '',
-    inquilinoNumero: '',
-    inquilinoComplemento: '',
-    inquilinoBairro: '',
-    inquilinoCidade: '',
-    inquilinoEstado: '',
-    inquilinoPais: 'Brasil',
+    
     // Dados do Imóvel
     tipoImovel: '',
     tipoLocacao: '',
     valorAluguel: '',
-    descricaoImovel: '',
+    descricao: '',
     areaMetros: '',
-    tempoLocacao: '',
-    // Endereço do Imóvel
     imovelEndereco: '',
     imovelNumero: '',
     imovelComplemento: '',
     imovelBairro: '',
     imovelCidade: '',
     imovelEstado: '',
-    imovelPais: 'Brasil'
+    imovelPais: 'Brasil',
+    tempoLocacao: ''
   });
 
-  const dashboardData = getFiancasStats();
-
-  const handleInputChange = (field: keyof FiancaFormData, value: string) => {
+  const handleInputChange = (field: string, value: string) => {
     if (field === 'whatsapp') {
       setFormData(prev => ({
         ...prev,
         [field]: formatPhone(value)
-      }));
-    } else if (field === 'cpf') {
-      // Formatar CPF
-      const numbers = value.replace(/\D/g, '');
-      let formatted = numbers;
-      if (numbers.length > 3) formatted = numbers.slice(0, 3) + '.' + numbers.slice(3);
-      if (numbers.length > 6) formatted = numbers.slice(0, 3) + '.' + numbers.slice(3, 6) + '.' + numbers.slice(6);
-      if (numbers.length > 9) formatted = numbers.slice(0, 3) + '.' + numbers.slice(3, 6) + '.' + numbers.slice(6, 9) + '-' + numbers.slice(9, 11);
-      setFormData(prev => ({
-        ...prev,
-        [field]: formatted
-      }));
-    } else if (field === 'rendaMensal' || field === 'valorAluguel') {
-      // Formatar valores monetários
-      const formatted = formatCurrency(value);
-      setFormData(prev => ({
-        ...prev,
-        [field]: formatted
       }));
     } else {
       setFormData(prev => ({
@@ -111,131 +118,125 @@ const FiancasImobiliaria = () => {
     }
   };
 
-  const handleSubmitFianca = () => {
-    const errors = validateFiancaForm(formData);
-    
-    if (errors.length > 0) {
-      toast({
-        title: "Erro na validação",
-        description: errors[0],
-        variant: "destructive"
-      });
-      return;
-    }
-
-    createFianca(formData, {
-      onSuccess: () => {
-        toast({
-          title: "Fiança criada com sucesso!",
-          description: "A fiança foi enviada para análise.",
-        });
-        setIsDialogOpen(false);
-        // Reset form
-        setFormData({
-          nomeCompleto: '',
-          cpf: '',
-          email: '',
-          whatsapp: '+55',
-          rendaMensal: '',
-          inquilinoEndereco: '',
-          inquilinoNumero: '',
-          inquilinoComplemento: '',
-          inquilinoBairro: '',
-          inquilinoCidade: '',
-          inquilinoEstado: '',
-          inquilinoPais: 'Brasil',
-          tipoImovel: '',
-          tipoLocacao: '',
-          valorAluguel: '',
-          descricaoImovel: '',
-          areaMetros: '',
-          tempoLocacao: '',
-          imovelEndereco: '',
-          imovelNumero: '',
-          imovelComplemento: '',
-          imovelBairro: '',
-          imovelCidade: '',
-          imovelEstado: '',
-          imovelPais: 'Brasil'
-        });
-      },
-      onError: (error) => {
-        toast({
-          title: "Erro ao criar fiança",
-          description: error.message,
-          variant: "destructive"
-        });
-      }
+  const handleSubmit = () => {
+    console.log('Dados da fiança:', formData);
+    setShowModal(false);
+    // Reset form
+    setFormData({
+      nomeCompleto: '',
+      cpf: '',
+      email: '',
+      whatsapp: '',
+      endereco: '',
+      numero: '',
+      complemento: '',
+      bairro: '',
+      cidade: '',
+      estado: '',
+      pais: 'Brasil',
+      rendaMensal: '',
+      tipoImovel: '',
+      tipoLocacao: '',
+      valorAluguel: '',
+      descricao: '',
+      areaMetros: '',
+      imovelEndereco: '',
+      imovelNumero: '',
+      imovelComplemento: '',
+      imovelBairro: '',
+      imovelCidade: '',
+      imovelEstado: '',
+      imovelPais: 'Brasil',
+      tempoLocacao: ''
     });
   };
 
-  const getStatusColor = (status: string) => {
-    const colors: { [key: string]: string } = {
-      'em_analise': 'bg-blue-500',
-      'aprovada': 'bg-green-500', 
-      'rejeitada': 'bg-red-500',
-      'ativa': 'bg-green-500',
-      'vencida': 'bg-red-500',
-      'cancelada': 'bg-gray-500'
-    };
-    return colors[status] || 'bg-gray-500';
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: { [key: string]: string } = {
-      'em_analise': 'Em Análise',
-      'aprovada': 'Aprovada',
-      'rejeitada': 'Rejeitada', 
-      'ativa': 'Ativa',
-      'vencida': 'Vencida',
-      'cancelada': 'Cancelada'
-    };
-    return labels[status] || status;
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'ativa':
+        return <Badge className="bg-green-100 text-green-800">Ativa</Badge>;
+      case 'pendente':
+        return <Badge className="bg-yellow-100 text-yellow-800">Pendente</Badge>;
+      case 'rejeitada':
+        return <Badge className="bg-red-100 text-red-800">Rejeitada</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
   };
 
   const filteredFiancas = fiancas.filter(fianca => {
-    const matchesSearch = fianca.inquilino_nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         `${fianca.imovel_endereco}, ${fianca.imovel_numero}`.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'todos' || fianca.status_fianca === statusFilter;
+    const matchesSearch = fianca.inquilino.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         fianca.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'todas' || fianca.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
-  if (isLoading) {
-    return (
-      <Layout title="Fianças">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout title="Fianças">
       <div className="space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] rounded-lg p-6 text-[#0C1C2E]">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">Gestão de Fianças</h1>
-              <p className="opacity-90">Gerencie e acompanhe todas as suas fianças</p>
-            </div>
-            <FileText className="h-12 w-12 opacity-50" />
-          </div>
+        {/* Dashboard de Estatísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Shield className="h-8 w-8 text-primary" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total de Fianças</p>
+                  <p className="text-2xl font-bold">{stats.total}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Clock className="h-8 w-8 text-yellow-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Pendentes</p>
+                  <p className="text-2xl font-bold">{stats.pendentes}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Ativas</p>
+                  <p className="text-2xl font-bold">{stats.ativas}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <TrendingUp className="h-8 w-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Taxa de Aprovação</p>
+                  <p className="text-2xl font-bold">89%</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Filtros de Data */}
+        {/* Filtros */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-primary" />
-              Filtros por Período
+              <Filter className="mr-2 h-5 w-5" />
+              Filtros
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <Label htmlFor="startDate">Data de Início</Label>
+                <Label htmlFor="startDate">Data Início</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -244,7 +245,7 @@ const FiancasImobiliaria = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="endDate">Data de Fim</Label>
+                <Label htmlFor="endDate">Data Fim</Label>
                 <Input
                   id="endDate"
                   type="date"
@@ -253,293 +254,227 @@ const FiancasImobiliaria = () => {
                 />
               </div>
               <div className="flex items-end">
-                <Button className="w-full bg-primary hover:bg-primary/90">
-                  Aplicar Filtros
+                <Button variant="outline" className="w-full">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Aplicar Filtro
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Cards de métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Fianças</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{dashboardData.totalFiancas}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-warning">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Pendentes</CardTitle>
-              <Clock className="h-4 w-4 text-warning" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-warning">{dashboardData.fiancasPendentes}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-success">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Ativas</CardTitle>
-              <CheckCircle className="h-4 w-4 text-success" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-success">{dashboardData.fiancasAtivas}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-destructive">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Vencidas</CardTitle>
-              <AlertCircle className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-destructive">{dashboardData.fiancasVencidas}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Ações e Lista de Fianças */}
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>Lista de Fianças</CardTitle>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Gerar Fiança
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Nova Fiança</DialogTitle>
-                    <DialogDescription>
-                      Preencha os dados do inquilino e do imóvel para gerar uma nova fiança
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <Tabs defaultValue="inquilino" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="inquilino">Dados do Inquilino</TabsTrigger>
-                      <TabsTrigger value="imovel">Dados do Imóvel</TabsTrigger>
-                    </TabsList>
+              <div className="flex items-end">
+                <Dialog open={showModal} onOpenChange={setShowModal}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full bg-primary hover:bg-primary/90">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Gerar Fiança
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Nova Fiança Locatícia</DialogTitle>
+                      <DialogDescription>
+                        Preencha os dados do inquilino e do imóvel para gerar uma nova fiança.
+                      </DialogDescription>
+                    </DialogHeader>
                     
-                    <TabsContent value="inquilino" className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="nomeCompleto">Nome Completo *</Label>
-                          <Input
-                            id="nomeCompleto"
-                            value={formData.nomeCompleto}
-                            onChange={(e) => handleInputChange('nomeCompleto', e.target.value)}
-                            placeholder="Nome completo do inquilino"
-                            required
-                          />
+                    <div className="space-y-6">
+                      {/* Dados do Inquilino */}
+                      <div>
+                        <h3 className="text-lg font-semibold flex items-center mb-4">
+                          <User className="mr-2 h-5 w-5" />
+                          Dados do Inquilino
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="nomeCompleto">Nome Completo *</Label>
+                            <Input
+                              id="nomeCompleto"
+                              value={formData.nomeCompleto}
+                              onChange={(e) => handleInputChange('nomeCompleto', e.target.value)}
+                              placeholder="Nome completo do inquilino"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="cpf">CPF *</Label>
+                            <Input
+                              id="cpf"
+                              value={formData.cpf}
+                              onChange={(e) => handleInputChange('cpf', e.target.value)}
+                              placeholder="000.000.000-00"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="email">Email *</Label>
+                            <Input
+                              id="email"
+                              type="email"
+                              value={formData.email}
+                              onChange={(e) => handleInputChange('email', e.target.value)}
+                              placeholder="email@exemplo.com"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="whatsapp">WhatsApp *</Label>
+                            <Input
+                              id="whatsapp"
+                              value={formData.whatsapp}
+                              onChange={(e) => handleInputChange('whatsapp', e.target.value)}
+                              placeholder="+55 (11) 9 9999-9999"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="rendaMensal">Renda Mensal *</Label>
+                            <Input
+                              id="rendaMensal"
+                              value={formData.rendaMensal}
+                              onChange={(e) => handleInputChange('rendaMensal', e.target.value)}
+                              placeholder="R$ 0,00"
+                            />
+                          </div>
                         </div>
-                        <div>
-                          <Label htmlFor="cpf">CPF *</Label>
-                          <Input
-                            id="cpf"
-                            value={formData.cpf}
-                            onChange={(e) => handleInputChange('cpf', e.target.value)}
-                            placeholder="000.000.000-00"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="email">E-mail *</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            placeholder="email@exemplo.com"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="whatsapp">WhatsApp *</Label>
-                          <Input
-                            id="whatsapp"
-                            value={formData.whatsapp}
-                            onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                            placeholder="+55 (11) 9 9999-9999"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="rendaMensal">Renda Mensal *</Label>
-                          <Input
-                            id="rendaMensal"
-                            value={formData.rendaMensal}
-                            onChange={(e) => handleInputChange('rendaMensal', e.target.value)}
-                            placeholder="R$ 5.000,00"
-                            required
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <h4 className="text-lg font-medium">Endereço do Inquilino</h4>
+                        
+                        <h4 className="text-md font-medium mt-6 mb-3">Endereço do Inquilino</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="md:col-span-2">
-                            <Label htmlFor="inquilinoEndereco">Endereço *</Label>
+                            <Label htmlFor="endereco">Endereço *</Label>
                             <Input
-                              id="inquilinoEndereco"
-                              value={formData.inquilinoEndereco}
-                              onChange={(e) => handleInputChange('inquilinoEndereco', e.target.value)}
+                              id="endereco"
+                              value={formData.endereco}
+                              onChange={(e) => handleInputChange('endereco', e.target.value)}
                               placeholder="Rua, Avenida, etc."
-                              required
                             />
                           </div>
                           <div>
-                            <Label htmlFor="inquilinoNumero">Número *</Label>
+                            <Label htmlFor="numero">Número *</Label>
                             <Input
-                              id="inquilinoNumero"
-                              value={formData.inquilinoNumero}
-                              onChange={(e) => handleInputChange('inquilinoNumero', e.target.value)}
+                              id="numero"
+                              value={formData.numero}
+                              onChange={(e) => handleInputChange('numero', e.target.value)}
                               placeholder="123"
-                              required
                             />
                           </div>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="inquilinoComplemento">Complemento</Label>
-                          <Input
-                            id="inquilinoComplemento"
-                            value={formData.inquilinoComplemento}
-                            onChange={(e) => handleInputChange('inquilinoComplemento', e.target.value)}
-                            placeholder="Apto, Sala, etc."
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <Label htmlFor="inquilinoBairro">Bairro *</Label>
+                            <Label htmlFor="complemento">Complemento</Label>
                             <Input
-                              id="inquilinoBairro"
-                              value={formData.inquilinoBairro}
-                              onChange={(e) => handleInputChange('inquilinoBairro', e.target.value)}
+                              id="complemento"
+                              value={formData.complemento}
+                              onChange={(e) => handleInputChange('complemento', e.target.value)}
+                              placeholder="Apto, Sala, etc."
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="bairro">Bairro *</Label>
+                            <Input
+                              id="bairro"
+                              value={formData.bairro}
+                              onChange={(e) => handleInputChange('bairro', e.target.value)}
                               placeholder="Centro"
-                              required
                             />
                           </div>
                           <div>
-                            <Label htmlFor="inquilinoCidade">Cidade *</Label>
+                            <Label htmlFor="cidade">Cidade *</Label>
                             <Input
-                              id="inquilinoCidade"
-                              value={formData.inquilinoCidade}
-                              onChange={(e) => handleInputChange('inquilinoCidade', e.target.value)}
+                              id="cidade"
+                              value={formData.cidade}
+                              onChange={(e) => handleInputChange('cidade', e.target.value)}
                               placeholder="São Paulo"
-                              required
                             />
                           </div>
                           <div>
-                            <Label htmlFor="inquilinoEstado">Estado *</Label>
+                            <Label htmlFor="estado">Estado *</Label>
                             <Input
-                              id="inquilinoEstado"
-                              value={formData.inquilinoEstado}
-                              onChange={(e) => handleInputChange('inquilinoEstado', e.target.value)}
+                              id="estado"
+                              value={formData.estado}
+                              onChange={(e) => handleInputChange('estado', e.target.value)}
                               placeholder="SP"
-                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="pais">País</Label>
+                            <Input
+                              id="pais"
+                              value={formData.pais}
+                              readOnly
+                              className="bg-gray-100"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Dados do Imóvel */}
+                      <div>
+                        <h3 className="text-lg font-semibold flex items-center mb-4">
+                          <Building className="mr-2 h-5 w-5" />
+                          Dados do Imóvel
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="tipoImovel">Tipo do Imóvel *</Label>
+                            <Select value={formData.tipoImovel} onValueChange={(value) => handleInputChange('tipoImovel', value)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o tipo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="casa">Casa</SelectItem>
+                                <SelectItem value="apartamento">Apartamento</SelectItem>
+                                <SelectItem value="kitnet">Kitnet</SelectItem>
+                                <SelectItem value="sobrado">Sobrado</SelectItem>
+                                <SelectItem value="comercial">Comercial</SelectItem>
+                                <SelectItem value="galpao">Galpão</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="tipoLocacao">Tipo de Locação *</Label>
+                            <Select value={formData.tipoLocacao} onValueChange={(value) => handleInputChange('tipoLocacao', value)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o tipo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="residencial">Residencial</SelectItem>
+                                <SelectItem value="comercial">Comercial</SelectItem>
+                                <SelectItem value="misto">Misto</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="valorAluguel">Valor do Aluguel *</Label>
+                            <Input
+                              id="valorAluguel"
+                              value={formData.valorAluguel}
+                              onChange={(e) => handleInputChange('valorAluguel', e.target.value)}
+                              placeholder="R$ 0,00"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="areaMetros">Área (m²) *</Label>
+                            <Input
+                              id="areaMetros"
+                              value={formData.areaMetros}
+                              onChange={(e) => handleInputChange('areaMetros', e.target.value)}
+                              placeholder="85"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="tempoLocacao">Tempo de Locação (anos) *</Label>
+                            <Input
+                              id="tempoLocacao"
+                              value={formData.tempoLocacao}
+                              onChange={(e) => handleInputChange('tempoLocacao', e.target.value)}
+                              placeholder="2"
                             />
                           </div>
                         </div>
                         
-                        <div>
-                          <Label htmlFor="inquilinoPais">País</Label>
+                        <div className="mt-4">
+                          <Label htmlFor="descricao">Descrição do Imóvel</Label>
                           <Input
-                            id="inquilinoPais"
-                            value={formData.inquilinoPais}
-                            readOnly
-                            className="bg-gray-100"
+                            id="descricao"
+                            value={formData.descricao}
+                            onChange={(e) => handleInputChange('descricao', e.target.value)}
+                            placeholder="3 quartos, 2 banheiros, área de serviço, garagem..."
                           />
                         </div>
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="imovel" className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="tipoImovel">Tipo de Imóvel *</Label>
-                          <Select value={formData.tipoImovel} onValueChange={(value) => handleInputChange('tipoImovel', value)}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="casa">Casa</SelectItem>
-                              <SelectItem value="apartamento">Apartamento</SelectItem>
-                              <SelectItem value="kitnet">Kitnet</SelectItem>
-                              <SelectItem value="sobrado">Sobrado</SelectItem>
-                              <SelectItem value="chacara">Chácara</SelectItem>
-                              <SelectItem value="comercial">Comercial</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="tipoLocacao">Tipo de Locação *</Label>
-                          <Select value={formData.tipoLocacao} onValueChange={(value) => handleInputChange('tipoLocacao', value)}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="residencial">Residencial</SelectItem>
-                              <SelectItem value="comercial">Comercial</SelectItem>
-                              <SelectItem value="misto">Misto</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="valorAluguel">Valor do Aluguel Mensal *</Label>
-                          <Input
-                            id="valorAluguel"
-                            value={formData.valorAluguel}
-                            onChange={(e) => handleInputChange('valorAluguel', e.target.value)}
-                            placeholder="R$ 2.500,00"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="areaMetros">Área em m²</Label>
-                          <Input
-                            id="areaMetros"
-                            value={formData.areaMetros}
-                            onChange={(e) => handleInputChange('areaMetros', e.target.value)}
-                            placeholder="80"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="tempoLocacao">Tempo de Locação (anos) *</Label>
-                          <Input
-                            id="tempoLocacao"
-                            value={formData.tempoLocacao}
-                            onChange={(e) => handleInputChange('tempoLocacao', e.target.value)}
-                            placeholder="3"
-                            required
-                          />
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="descricaoImovel">Descrição do Imóvel</Label>
-                        <Textarea
-                          id="descricaoImovel"
-                          value={formData.descricaoImovel}
-                          onChange={(e) => handleInputChange('descricaoImovel', e.target.value)}
-                          placeholder="3 quartos, 2 banheiros, área externa, garagem..."
-                          rows={3}
-                        />
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <h4 className="text-lg font-medium">Endereço do Imóvel</h4>
+
+                        <h4 className="text-md font-medium mt-6 mb-3">Endereço do Imóvel</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="md:col-span-2">
                             <Label htmlFor="imovelEndereco">Endereço *</Label>
@@ -548,7 +483,6 @@ const FiancasImobiliaria = () => {
                               value={formData.imovelEndereco}
                               onChange={(e) => handleInputChange('imovelEndereco', e.target.value)}
                               placeholder="Rua, Avenida, etc."
-                              required
                             />
                           </div>
                           <div>
@@ -558,22 +492,17 @@ const FiancasImobiliaria = () => {
                               value={formData.imovelNumero}
                               onChange={(e) => handleInputChange('imovelNumero', e.target.value)}
                               placeholder="123"
-                              required
                             />
                           </div>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="imovelComplemento">Complemento</Label>
-                          <Input
-                            id="imovelComplemento"
-                            value={formData.imovelComplemento}
-                            onChange={(e) => handleInputChange('imovelComplemento', e.target.value)}
-                            placeholder="Apto, Sala, etc."
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <Label htmlFor="imovelComplemento">Complemento</Label>
+                            <Input
+                              id="imovelComplemento"
+                              value={formData.imovelComplemento}
+                              onChange={(e) => handleInputChange('imovelComplemento', e.target.value)}
+                              placeholder="Apto, Sala, etc."
+                            />
+                          </div>
                           <div>
                             <Label htmlFor="imovelBairro">Bairro *</Label>
                             <Input
@@ -581,7 +510,6 @@ const FiancasImobiliaria = () => {
                               value={formData.imovelBairro}
                               onChange={(e) => handleInputChange('imovelBairro', e.target.value)}
                               placeholder="Centro"
-                              required
                             />
                           </div>
                           <div>
@@ -591,7 +519,6 @@ const FiancasImobiliaria = () => {
                               value={formData.imovelCidade}
                               onChange={(e) => handleInputChange('imovelCidade', e.target.value)}
                               placeholder="São Paulo"
-                              required
                             />
                           </div>
                           <div>
@@ -601,129 +528,100 @@ const FiancasImobiliaria = () => {
                               value={formData.imovelEstado}
                               onChange={(e) => handleInputChange('imovelEstado', e.target.value)}
                               placeholder="SP"
-                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="imovelPais">País</Label>
+                            <Input
+                              id="imovelPais"
+                              value={formData.imovelPais}
+                              readOnly
+                              className="bg-gray-100"
                             />
                           </div>
                         </div>
-                        
-                        <div>
-                          <Label htmlFor="imovelPais">País</Label>
-                          <Input
-                            id="imovelPais"
-                            value={formData.imovelPais}
-                            readOnly
-                            className="bg-gray-100"
-                          />
-                        </div>
                       </div>
-                    </TabsContent>
-                  </Tabs>
-                  
-                  <div className="flex justify-end space-x-2 mt-6">
-                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button 
-                      onClick={handleSubmitFianca} 
-                      className="bg-primary hover:bg-primary/90"
-                      disabled={isCreating}
-                    >
-                      {isCreating ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Gerando...
-                        </>
-                      ) : (
-                        'Gerar Fiança'
-                      )}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+
+                      <div className="flex justify-end space-x-2 pt-4">
+                        <Button variant="outline" onClick={() => setShowModal(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={handleSubmit} className="bg-primary hover:bg-primary/90">
+                          Gerar Fiança
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Listagem de Fianças */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Minhas Fianças</CardTitle>
+            <CardDescription>
+              Gerencie todas as fianças locatícias da sua imobiliária
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4 mb-4">
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Pesquisar por inquilino ou imóvel..."
+                    placeholder="Pesquisar por inquilino ou ID..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
                   />
                 </div>
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Filtrar por status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os Status</SelectItem>
-                  <SelectItem value="em_analise">Em Análise</SelectItem>
-                  <SelectItem value="aprovada">Aprovadas</SelectItem>
-                  <SelectItem value="ativa">Ativas</SelectItem>
-                  <SelectItem value="vencida">Vencidas</SelectItem>
-                  <SelectItem value="rejeitada">Rejeitadas</SelectItem>
-                  <SelectItem value="cancelada">Canceladas</SelectItem>
-                </SelectContent>
-              </Select>
+              <div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Filtrar por status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todas">Todas</SelectItem>
+                    <SelectItem value="ativa">Ativas</SelectItem>
+                    <SelectItem value="pendente">Pendentes</SelectItem>
+                    <SelectItem value="rejeitada">Rejeitadas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Inquilino</TableHead>
-                  <TableHead>Imóvel</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Data Criação</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredFiancas.map((fianca) => (
-                  <TableRow key={fianca.id}>
-                    <TableCell className="font-medium">{fianca.inquilino_nome_completo}</TableCell>
-                    <TableCell>{`${fianca.imovel_endereco}, ${fianca.imovel_numero} - ${fianca.imovel_bairro}`}</TableCell>
-                    <TableCell>R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}</TableCell>
-                    <TableCell>
-                      <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
-                        {getStatusLabel(fianca.status_fianca)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Inquilino</TableHead>
+                    <TableHead>CPF</TableHead>
+                    <TableHead>Imóvel</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Data de Criação</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-
-            {filteredFiancas.length === 0 && (
-              <div className="text-center py-8">
-                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Nenhuma fiança encontrada
-                </h3>
-                <p className="text-gray-600">
-                  {searchTerm || statusFilter !== 'todos' 
-                    ? 'Tente ajustar sua busca ou adicione uma nova fiança.'
-                    : 'Adicione sua primeira fiança para começar.'
-                  }
-                </p>
-              </div>
-            )}
+                </TableHeader>
+                <TableBody>
+                  {filteredFiancas.map((fianca) => (
+                    <TableRow key={fianca.id}>
+                      <TableCell className="font-medium">{fianca.id}</TableCell>
+                      <TableCell>{fianca.inquilino}</TableCell>
+                      <TableCell>{fianca.cpf}</TableCell>
+                      <TableCell>{fianca.imovel}</TableCell>
+                      <TableCell>{fianca.valor}</TableCell>
+                      <TableCell>{getStatusBadge(fianca.status)}</TableCell>
+                      <TableCell>{new Date(fianca.dataCreated).toLocaleDateString('pt-BR')}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -2,23 +2,29 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { useLocation } from 'react-router-dom';
-import ProfileCompletionModal from './ProfileCompletionModal';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle } from 'lucide-react';
 
 const ProfileCompletionCheck: React.FC = () => {
   const { user } = useAuth();
   const { profile } = useUserProfile();
+  const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    if (user?.type === 'imobiliaria' && location.pathname !== '/configuracoes-imobiliaria') {
-      // Verificar se existe perfil da empresa e se os campos obrigatórios estão preenchidos
-      if (!profile) {
-        setShowModal(true);
-        return;
-      }
-
+    if (user?.type === 'imobiliaria' && profile && location.pathname !== '/configuracoes-imobiliaria') {
+      // Verificar se os campos obrigatórios estão preenchidos
       const requiredFields = [
         profile.nome_empresa,
         profile.cnpj,
@@ -37,15 +43,43 @@ const ProfileCompletionCheck: React.FC = () => {
     }
   }, [user, profile, location.pathname]);
 
-  if (!showModal) {
-    return null;
-  }
+  const handleGoToSettings = () => {
+    setShowModal(false);
+    navigate('/configuracoes-imobiliaria');
+  };
+
+  const handleClose = () => {
+    setShowModal(false);
+    toast({
+      title: "Atenção",
+      description: "Você precisa completar o cadastro da empresa para usar todas as funcionalidades da plataforma.",
+      variant: "destructive",
+    });
+  };
 
   return (
-    <ProfileCompletionModal 
-      isOpen={showModal}
-      onClose={() => setShowModal(false)}
-    />
+    <Dialog open={showModal} onOpenChange={() => {}}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-5 w-5" />
+            Cadastro Incompleto
+          </DialogTitle>
+          <DialogDescription className="text-center pt-4">
+            Para utilizar a plataforma, é necessário completar o cadastro da sua empresa.
+            Alguns dados obrigatórios ainda não foram preenchidos.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-3 pt-4">
+          <Button onClick={handleGoToSettings} className="w-full">
+            Completar Cadastro
+          </Button>
+          <Button variant="outline" onClick={handleClose} className="w-full">
+            Lembrar Depois
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
