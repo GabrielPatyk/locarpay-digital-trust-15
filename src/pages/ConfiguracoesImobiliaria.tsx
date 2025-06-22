@@ -1,12 +1,15 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import Layout from '@/components/Layout';
+import ImageUpload from '@/components/ImageUpload';
+import ConfirmationModal from '@/components/ConfirmationModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -16,24 +19,46 @@ import {
   Shield, 
   Save,
   Eye,
-  EyeOff
+  EyeOff,
+  AlertTriangle
 } from 'lucide-react';
 
 const ConfiguracoesImobiliaria = () => {
   const { user, updateUser } = useAuth();
+  const { profile, updateProfile, updateUserData, updatePassword, loading } = useUserProfile();
+  const { formatPhone, formatCNPJ, unformatPhone, unformatCNPJ, isValidPhone } = usePhoneFormatter();
   const { toast } = useToast();
   
   const [showPassword, setShowPassword] = useState(false);
+  const [showCompanyConfirmation, setShowCompanyConfirmation] = useState(false);
+  const [showPersonalConfirmation, setShowPersonalConfirmation] = useState(false);
+  const [pendingCompanyChanges, setPendingCompanyChanges] = useState<Record<string, string>>({});
+  const [pendingPersonalChanges, setPendingPersonalChanges] = useState<Record<string, string>>({});
+  
   const [formData, setFormData] = useState({
-    companyName: user?.companyName || '',
-    cnpj: user?.cnpj || '',
-    address: user?.address || '',
-    fullName: user?.fullName || '',
-    email: user?.email || '',
-    phone: '',
+    // Dados da empresa - campos vazios para edição
+    nome_empresa: '',
+    cnpj: '',
+    endereco: '',
+    numero: '',
+    complemento: '',
+    bairro: '',
+    cidade: '',
+    estado: '',
+    pais: 'Brasil',
+    
+    // Dados pessoais - campos vazios para edição
+    nome: '',
+    email: '',
+    telefone: '',
+    imagem_perfil: user?.imagem_perfil || '',
+    
+    // Segurança
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
+    
+    // Notificações
     emailNotifications: true,
     smsNotifications: false,
     weeklyReports: true,
@@ -41,32 +66,131 @@ const ConfiguracoesImobiliaria = () => {
   });
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSaveProfile = () => {
-    if (user) {
-      const updatedUser = {
-        ...user,
-        companyName: formData.companyName,
-        cnpj: formData.cnpj,
-        address: formData.address,
-        fullName: formData.fullName,
-        email: formData.email
-      };
-      updateUser(updatedUser);
-      
-      toast({
-        title: "Perfil atualizado!",
-        description: "Suas informações foram salvas com sucesso.",
-      });
+    if (field === 'telefone') {
+      setFormData(prev => ({
+        ...prev,
+        [field]: formatPhone(value as string)
+      }));
+    } else if (field === 'cnpj') {
+      setFormData(prev => ({
+        ...prev,
+        [field]: formatCNPJ(value as string)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
     }
   };
 
-  const handleChangePassword = () => {
+  const handleSaveCompanyData = async () => {
+    // Preparar dados para confirmação
+    const changes = {
+      'Nome da Empresa': formData.nome_empresa || '(não alterado)',
+      'CNPJ': formData.cnpj || '(não alterado)',
+      'Endereço': formData.endereco || '(não alterado)',
+      'Número': formData.numero || '(não alterado)',
+      'Complemento': formData.complemento || '(não alterado)',
+      'Bairro': formData.bairro || '(não alterado)',
+      'Cidade': formData.cidade || '(não alterado)',
+      'Estado': formData.estado || '(não alterado)',
+      'País': formData.pais || 'Brasil'
+    };
+
+    setPendingCompanyChanges(changes);
+    setShowCompanyConfirmation(true);
+  };
+
+  const confirmCompanyChanges = async () => {
+    // Filtrar apenas campos preenchidos
+    const updateData: any = {};
+    
+    if (formData.nome_empresa.trim()) updateData.nome_empresa = formData.nome_empresa;
+    if (formData.cnpj.trim()) updateData.cnpj = unformatCNPJ(formData.cnpj);
+    if (formData.endereco.trim()) updateData.endereco = formData.endereco;
+    if (formData.numero.trim()) updateData.numero = formData.numero;
+    if (formData.complemento.trim()) updateData.complemento = formData.complemento;
+    if (formData.bairro.trim()) updateData.bairro = formData.bairro;
+    if (formData.cidade.trim()) updateData.cidade = formData.cidade;
+    if (formData.estado.trim()) updateData.estado = formData.estado;
+    if (formData.pais.trim()) updateData.pais = formData.pais;
+
+    const success = await updateProfile(updateData);
+
+    if (success) {
+      toast({
+        title: "Dados da empresa atualizados!",
+        description: "As informações da empresa foram salvas com sucesso.",
+      });
+      setShowCompanyConfirmation(false);
+      // Limpar os campos após salvar
+      setFormData(prev => ({
+        ...prev,
+        nome_empresa: '',
+        cnpj: '',
+        endereco: '',
+        numero: '',
+        complemento: '',
+        bairro: '',
+        cidade: '',
+        estado: ''
+      }));
+    }
+  };
+
+  const handleSavePersonalData = async () => {
+    // Preparar dados para confirmação
+    const changes = {
+      'Nome Completo': formData.nome || '(não alterado)',
+      'E-mail': formData.email || '(não alterado)',
+      'Telefone': formData.telefone || '(não alterado)'
+    };
+
+    setPendingPersonalChanges(changes);
+    setShowPersonalConfirmation(true);
+  };
+
+  const confirmPersonalChanges = async () => {
+    // Filtrar apenas campos preenchidos
+    const updateData: any = {};
+    
+    if (formData.nome.trim()) updateData.nome = formData.nome;
+    if (formData.email.trim()) updateData.email = formData.email;
+    if (formData.telefone.trim()) {
+      if (!isValidPhone(formData.telefone)) {
+        toast({
+          title: "Telefone inválido",
+          description: "O telefone deve ter 13 dígitos e começar com +55.",
+          variant: "destructive",
+        });
+        return;
+      }
+      updateData.telefone = unformatPhone(formData.telefone);
+    }
+
+    const success = await updateUserData(updateData);
+
+    if (success && user) {
+      // Atualizar o contexto do usuário
+      updateUser({
+        ...user,
+        name: updateData.nome || user.name,
+        email: updateData.email || user.email,
+        telefone: updateData.telefone || user.telefone
+      });
+      setShowPersonalConfirmation(false);
+      // Limpar os campos após salvar
+      setFormData(prev => ({
+        ...prev,
+        nome: '',
+        email: '',
+        telefone: ''
+      }));
+    }
+  };
+
+  const handleChangePassword = async () => {
     if (formData.newPassword !== formData.confirmPassword) {
       toast({
         title: "Erro ao alterar senha",
@@ -76,29 +200,54 @@ const ConfiguracoesImobiliaria = () => {
       return;
     }
 
-    toast({
-      title: "Senha alterada!",
-      description: "Sua senha foi alterada com sucesso.",
-    });
+    if (formData.newPassword.length < 6) {
+      toast({
+        title: "Senha muito curta",
+        description: "A senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setFormData(prev => ({
-      ...prev,
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    }));
+    const success = await updatePassword(formData.currentPassword, formData.newPassword);
+    
+    if (success) {
+      setFormData(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }));
+    }
   };
 
-  const handleSaveNotifications = () => {
-    toast({
-      title: "Preferências salvas!",
-      description: "Suas preferências de notificação foram atualizadas.",
-    });
+  const handleImageChange = async (imageUrl: string) => {
+    setFormData(prev => ({ ...prev, imagem_perfil: imageUrl }));
   };
 
   return (
     <Layout title="Configurações">
       <div className="space-y-6 animate-fade-in">
+        {/* Profile Image */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <User className="mr-2 h-5 w-5 text-primary" />
+              Foto de Perfil
+            </CardTitle>
+            <CardDescription>
+              Atualize sua foto de perfil
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ImageUpload
+              currentImage={formData.imagem_perfil}
+              onImageChange={handleImageChange}
+              userName={user?.name || 'Usuário'}
+            />
+          </CardContent>
+        </Card>
+
         {/* Company Profile */}
         <Card>
           <CardHeader>
@@ -113,13 +262,16 @@ const ConfiguracoesImobiliaria = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="companyName">Nome da Empresa</Label>
+                <Label htmlFor="nome_empresa">Nome da Empresa/Imobiliária</Label>
                 <Input
-                  id="companyName"
-                  value={formData.companyName}
-                  onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  placeholder="Nome da sua imobiliária"
+                  id="nome_empresa"
+                  value={formData.nome_empresa}
+                  onChange={(e) => handleInputChange('nome_empresa', e.target.value)}
+                  placeholder={profile?.nome_empresa || "Digite o nome da sua imobiliária"}
                 />
+                {profile?.nome_empresa && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.nome_empresa}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="cnpj">CNPJ</Label>
@@ -127,25 +279,110 @@ const ConfiguracoesImobiliaria = () => {
                   id="cnpj"
                   value={formData.cnpj}
                   onChange={(e) => handleInputChange('cnpj', e.target.value)}
-                  placeholder="00.000.000/0000-00"
+                  placeholder={profile?.cnpj ? formatCNPJ(profile.cnpj) : "00.000.000/0000-00"}
                 />
+                {profile?.cnpj && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {formatCNPJ(profile.cnpj)}</p>
+                )}
               </div>
             </div>
             
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <Label htmlFor="endereco">Endereço</Label>
+                <Input
+                  id="endereco"
+                  value={formData.endereco}
+                  onChange={(e) => handleInputChange('endereco', e.target.value)}
+                  placeholder={profile?.endereco || "Rua, Avenida, etc."}
+                />
+                {profile?.endereco && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.endereco}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="numero">Número</Label>
+                <Input
+                  id="numero"
+                  value={formData.numero}
+                  onChange={(e) => handleInputChange('numero', e.target.value)}
+                  placeholder={profile?.numero || "123"}
+                />
+                {profile?.numero && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.numero}</p>
+                )}
+              </div>
+            </div>
+
             <div>
-              <Label htmlFor="address">Endereço Completo</Label>
-              <Textarea
-                id="address"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                placeholder="Endereço completo da empresa"
-                rows={3}
+              <Label htmlFor="complemento">Complemento</Label>
+              <Input
+                id="complemento"
+                value={formData.complemento}
+                onChange={(e) => handleInputChange('complemento', e.target.value)}
+                placeholder={profile?.complemento || "Sala, Andar, etc."}
+              />
+              {profile?.complemento && (
+                <p className="text-xs text-gray-500 mt-1">Atual: {profile.complemento}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="bairro">Bairro</Label>
+                <Input
+                  id="bairro"
+                  value={formData.bairro}
+                  onChange={(e) => handleInputChange('bairro', e.target.value)}
+                  placeholder={profile?.bairro || "Centro"}
+                />
+                {profile?.bairro && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.bairro}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="cidade">Cidade</Label>
+                <Input
+                  id="cidade"
+                  value={formData.cidade}
+                  onChange={(e) => handleInputChange('cidade', e.target.value)}
+                  placeholder={profile?.cidade || "São Paulo"}
+                />
+                {profile?.cidade && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.cidade}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="estado">Estado</Label>
+                <Input
+                  id="estado"
+                  value={formData.estado}
+                  onChange={(e) => handleInputChange('estado', e.target.value)}
+                  placeholder={profile?.estado || "SP"}
+                />
+                {profile?.estado && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.estado}</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="pais">País</Label>
+              <Input
+                id="pais"
+                value={formData.pais}
+                onChange={(e) => handleInputChange('pais', e.target.value)}
+                placeholder="Brasil"
               />
             </div>
             
-            <Button onClick={handleSaveProfile} className="bg-primary hover:bg-primary/90">
+            <Button 
+              onClick={handleSaveCompanyData} 
+              disabled={loading}
+              className="bg-primary hover:bg-primary/90"
+            >
               <Save className="mr-2 h-4 w-4" />
-              Salvar Dados da Empresa
+              {loading ? 'Salvando...' : 'Salvar Dados da Empresa'}
             </Button>
           </CardContent>
         </Card>
@@ -164,13 +401,16 @@ const ConfiguracoesImobiliaria = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="fullName">Nome Completo</Label>
+                <Label htmlFor="nome">Nome Completo</Label>
                 <Input
-                  id="fullName"
-                  value={formData.fullName}
-                  onChange={(e) => handleInputChange('fullName', e.target.value)}
-                  placeholder="Seu nome completo"
+                  id="nome"
+                  value={formData.nome}
+                  onChange={(e) => handleInputChange('nome', e.target.value)}
+                  placeholder={user?.name || "Seu nome completo"}
                 />
+                {user?.name && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {user.name}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="email">E-mail</Label>
@@ -179,24 +419,34 @@ const ConfiguracoesImobiliaria = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="seu@email.com"
+                  placeholder={user?.email || "seu@email.com"}
                 />
+                {user?.email && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {user.email}</p>
+                )}
               </div>
             </div>
             
             <div>
-              <Label htmlFor="phone">Telefone</Label>
+              <Label htmlFor="telefone">Telefone</Label>
               <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="(11) 99999-9999"
+                id="telefone"
+                value={formData.telefone}
+                onChange={(e) => handleInputChange('telefone', e.target.value)}
+                placeholder={user?.telefone ? formatPhone(user.telefone) : "+55 (11) 9 9999-9999"}
               />
+              {user?.telefone && (
+                <p className="text-xs text-gray-500 mt-1">Atual: {formatPhone(user.telefone)}</p>
+              )}
             </div>
             
-            <Button onClick={handleSaveProfile} className="bg-success hover:bg-success/90">
+            <Button 
+              onClick={handleSavePersonalData} 
+              disabled={loading}
+              className="bg-success hover:bg-success/90"
+            >
               <Save className="mr-2 h-4 w-4" />
-              Salvar Dados Pessoais
+              {loading ? 'Salvando...' : 'Salvar Dados Pessoais'}
             </Button>
           </CardContent>
         </Card>
@@ -262,25 +512,30 @@ const ConfiguracoesImobiliaria = () => {
               </div>
             </div>
             
-            <Button onClick={handleChangePassword} className="bg-warning hover:bg-warning/90 text-white">
+            <Button 
+              onClick={handleChangePassword} 
+              disabled={loading}
+              className="bg-warning hover:bg-warning/90 text-white"
+            >
               <Save className="mr-2 h-4 w-4" />
-              Alterar Senha
+              {loading ? 'Alterando...' : 'Alterar Senha'}
             </Button>
           </CardContent>
         </Card>
 
-        {/* Notifications */}
-        <Card>
+        {/* Notifications - Bloqueada */}
+        <Card className="opacity-60">
           <CardHeader>
             <CardTitle className="flex items-center">
               <Bell className="mr-2 h-5 w-5" style={{ color: '#BC942C' }} />
               Notificações
+              <AlertTriangle className="ml-2 h-4 w-4 text-red-500" />
             </CardTitle>
             <CardDescription>
-              Configure suas preferências de notificação
+              <span className="text-red-600 font-medium">Esta opção ainda está em desenvolvimento</span>
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pointer-events-none">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Notificações por E-mail</p>
@@ -288,7 +543,7 @@ const ConfiguracoesImobiliaria = () => {
               </div>
               <Switch
                 checked={formData.emailNotifications}
-                onCheckedChange={(checked) => handleInputChange('emailNotifications', checked)}
+                disabled
               />
             </div>
             
@@ -299,7 +554,7 @@ const ConfiguracoesImobiliaria = () => {
               </div>
               <Switch
                 checked={formData.smsNotifications}
-                onCheckedChange={(checked) => handleInputChange('smsNotifications', checked)}
+                disabled
               />
             </div>
             
@@ -310,7 +565,7 @@ const ConfiguracoesImobiliaria = () => {
               </div>
               <Switch
                 checked={formData.weeklyReports}
-                onCheckedChange={(checked) => handleInputChange('weeklyReports', checked)}
+                disabled
               />
             </div>
             
@@ -321,16 +576,41 @@ const ConfiguracoesImobiliaria = () => {
               </div>
               <Switch
                 checked={formData.monthlyReports}
-                onCheckedChange={(checked) => handleInputChange('monthlyReports', checked)}
+                disabled
               />
             </div>
             
-            <Button onClick={handleSaveNotifications} style={{ backgroundColor: '#BC942C' }} className="hover:opacity-90 text-white">
+            <Button 
+              disabled
+              style={{ backgroundColor: '#BC942C' }} 
+              className="hover:opacity-90 text-white opacity-50"
+            >
               <Save className="mr-2 h-4 w-4" />
               Salvar Preferências
             </Button>
           </CardContent>
         </Card>
+
+        {/* Modais de Confirmação */}
+        <ConfirmationModal
+          isOpen={showCompanyConfirmation}
+          onClose={() => setShowCompanyConfirmation(false)}
+          onConfirm={confirmCompanyChanges}
+          title="Confirmar Alterações - Dados da Empresa"
+          description="Você está prestes a alterar os dados da empresa. Confirme as informações abaixo:"
+          changes={pendingCompanyChanges}
+          isLoading={loading}
+        />
+
+        <ConfirmationModal
+          isOpen={showPersonalConfirmation}
+          onClose={() => setShowPersonalConfirmation(false)}
+          onConfirm={confirmPersonalChanges}
+          title="Confirmar Alterações - Dados Pessoais"
+          description="Você está prestes a alterar seus dados pessoais. Confirme as informações abaixo:"
+          changes={pendingPersonalChanges}
+          isLoading={loading}
+        />
       </div>
     </Layout>
   );

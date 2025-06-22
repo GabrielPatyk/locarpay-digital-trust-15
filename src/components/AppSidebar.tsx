@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,7 +33,7 @@ import {
   BarChart3,
   TrendingUp
 } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -192,6 +191,11 @@ const AppSidebar = () => {
           title: 'Dashboard',
           url: '/imobiliaria',
           icon: Home,
+        },
+        {
+          title: 'Fianças',
+          url: '/fiancas-imobiliaria',
+          icon: FileText,
         },
         {
           title: 'Inquilinos',
@@ -425,9 +429,13 @@ const AppSidebar = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E] font-semibold text-xs">
-                    {user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                  </AvatarFallback>
+                  {user?.imagem_perfil ? (
+                    <AvatarImage src={user.imagem_perfil} alt="Foto de perfil" />
+                  ) : (
+                    <AvatarFallback className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E] font-semibold text-xs">
+                      {user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
                 <div>
                   <p className="text-sm text-gray-300 font-medium">{user?.name}</p>
@@ -446,9 +454,13 @@ const AppSidebar = () => {
           ) : (
             <div className="flex justify-center">
               <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E] font-semibold text-xs">
-                  {user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                </AvatarFallback>
+                {user?.imagem_perfil ? (
+                  <AvatarImage src={user.imagem_perfil} alt="Foto de perfil" />
+                ) : (
+                  <AvatarFallback className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E] font-semibold text-xs">
+                    {user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </AvatarFallback>
+                )}
               </Avatar>
             </div>
           )}
