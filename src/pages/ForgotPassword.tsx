@@ -43,10 +43,10 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen w-full relative overflow-hidden">
       {/* Background image with overlay */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url('/lovable-uploads/5bdbd93e-9136-4714-9c8d-216c143ab781.png')`
         }}
@@ -54,14 +54,14 @@ const ForgotPassword = () => {
       
       {/* Dark blue overlay with 65% opacity */}
       <div 
-        className="absolute inset-0"
+        className="absolute inset-0 w-full h-full"
         style={{
           backgroundColor: '#040433',
           opacity: 0.65
         }}
       ></div>
 
-      <div className="relative min-h-screen flex items-center justify-center p-4">
+      <div className="relative w-full min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           {/* Recovery Card */}
           <Card className="shadow-2xl border-0 backdrop-blur-sm bg-white/95 overflow-hidden">

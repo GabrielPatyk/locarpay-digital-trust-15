@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useFiancas, type FiancaFormData } from '@/hooks/useFiancas';
 import { validateFiancaForm, formatCurrency } from '@/components/FiancaFormValidation';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
+import RejectedFiancaTooltip from '@/components/RejectedFiancaTooltip';
 import { 
   FileText, 
   Plus, 
@@ -35,6 +36,7 @@ import {
 const FiancasImobiliaria = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { formatPhone } = usePhoneFormatter();
   const { fiancas, isLoading, createFianca, isCreating, getFiancasStats } = useFiancas();
   
@@ -172,7 +174,7 @@ const FiancasImobiliaria = () => {
   const getStatusColor = (status: string) => {
     const colors: { [key: string]: string } = {
       'em_analise': 'bg-blue-500',
-      'aprovada': 'bg-green-500', 
+      'aprovada':  'bg-green-500', 
       'rejeitada': 'bg-red-500',
       'ativa': 'bg-green-500',
       'vencida': 'bg-red-500',
@@ -199,6 +201,10 @@ const FiancasImobiliaria = () => {
     const matchesStatus = statusFilter === 'todos' || fianca.status_fianca === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const handleViewFianca = (fiancaId: string) => {
+    navigate(`/detalhe-fianca/${fiancaId}`);
+  };
 
   if (isLoading) {
     return (
@@ -690,19 +696,38 @@ const FiancasImobiliaria = () => {
                     <TableCell>{`${fianca.imovel_endereco}, ${fianca.imovel_numero} - ${fianca.imovel_bairro}`}</TableCell>
                     <TableCell>R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}</TableCell>
                     <TableCell>
-                      <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
-                        {getStatusLabel(fianca.status_fianca)}
-                      </Badge>
+                      {fianca.status_fianca === 'rejeitada' ? (
+                        <RejectedFiancaTooltip
+                          rejectionReason={fianca.motivo_reprovacao || 'Não informado'}
+                          rejectionDate={fianca.data_analise || fianca.data_atualizacao}
+                          score={fianca.score_credito}
+                          analystName="Ana Costa Oliveira"
+                        >
+                          <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
+                            {getStatusLabel(fianca.status_fianca)}
+                          </Badge>
+                        </RejectedFiancaTooltip>
+                      ) : (
+                        <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
+                          {getStatusLabel(fianca.status_fianca)}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>{new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewFianca(fianca.id)}
+                        >
                           <Eye className="h-3 w-3" />
                         </Button>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-3 w-3" />
-                        </Button>
+                        {fianca.status_fianca !== 'rejeitada' && (
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

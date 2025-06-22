@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -56,6 +55,7 @@ import PropostasExecutivo from "./pages/PropostasExecutivo";
 import PerformanceExecutivo from "./pages/PerformanceExecutivo";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
+import DetalheFianca from './pages/DetalheFianca';
 
 const queryClient = new QueryClient();
 
@@ -349,6 +349,9 @@ function App() {
                       <Pagamentos />
                     </ProtectedRoute>
                   } />
+
+                  {/* Add this route within the Routes component */}
+                  <Route path="/detalhe-fianca/:id" element={<ProtectedRoute><DetalheFianca /></ProtectedRoute>} />
                 </Routes>
               </SidebarProvider>
             </div>
