@@ -1,10 +1,10 @@
 
 import React from 'react';
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from '@/components/ui/hover-card';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, CreditCard, Info } from 'lucide-react';
 
@@ -24,11 +24,11 @@ const AguardandoPagamentoTooltip = ({
   nomeInquilino
 }: AguardandoPagamentoTooltipProps) => {
   return (
-    <HoverCard>
-      <HoverCardTrigger asChild>
+    <Popover>
+      <PopoverTrigger asChild>
         {children}
-      </HoverCardTrigger>
-      <HoverCardContent className="w-80 p-4">
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-4">
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
             <Clock className="h-4 w-4 text-yellow-600" />
@@ -66,8 +66,8 @@ const AguardandoPagamentoTooltip = ({
             </p>
           </div>
         </div>
-      </HoverCardContent>
-    </HoverCard>
+      </PopoverContent>
+    </Popover>
   );
 };
 

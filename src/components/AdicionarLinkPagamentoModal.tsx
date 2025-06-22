@@ -25,7 +25,7 @@ const AdicionarLinkPagamentoModal: React.FC<AdicionarLinkPagamentoModalProps> = 
     link_pagamento: '',
     metodo_pagamento: '',
     prazo_pagamento: '',
-    situacao_pagamento: 'pendente'
+    observacoes: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -39,11 +39,7 @@ const AdicionarLinkPagamentoModal: React.FC<AdicionarLinkPagamentoModalProps> = 
         .from('fiancas_locaticias')
         .update({
           link_pagamento: formData.link_pagamento,
-          metodo_pagamento: formData.metodo_pagamento,
-          prazo_pagamento: formData.prazo_pagamento,
-          situacao_pagamento: formData.situacao_pagamento,
           data_envio_link: new Date().toISOString(),
-          data_atualizacao_pagamento: new Date().toISOString(),
           status_fianca: 'pagamento_disponivel'
         })
         .eq('id', fiancaId);
@@ -61,7 +57,7 @@ const AdicionarLinkPagamentoModal: React.FC<AdicionarLinkPagamentoModalProps> = 
         link_pagamento: '',
         metodo_pagamento: '',
         prazo_pagamento: '',
-        situacao_pagamento: 'pendente'
+        observacoes: ''
       });
     } catch (error: any) {
       toast({
@@ -93,59 +89,41 @@ const AdicionarLinkPagamentoModal: React.FC<AdicionarLinkPagamentoModalProps> = 
             />
           </div>
 
-          <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Detalhes do Pagamento</h4>
-            
-            <div>
-              <Label htmlFor="metodo_pagamento">Método *</Label>
-              <Select 
-                value={formData.metodo_pagamento} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, metodo_pagamento: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o método" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="transferencia_bancaria">Transferência Bancária</SelectItem>
-                  <SelectItem value="pix">PIX</SelectItem>
-                  <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-                  <SelectItem value="boleto">Boleto Bancário</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div>
+            <Label htmlFor="metodo_pagamento">Método de Pagamento *</Label>
+            <Select 
+              value={formData.metodo_pagamento} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, metodo_pagamento: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o método" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="transferencia_bancaria">Transferência Bancária</SelectItem>
+                <SelectItem value="pix">PIX</SelectItem>
+                <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                <SelectItem value="boleto">Boleto Bancário</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div>
-              <Label htmlFor="prazo_pagamento">Prazo *</Label>
-              <Select 
-                value={formData.prazo_pagamento} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, prazo_pagamento: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o prazo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1_dia">Até 1 dia útil</SelectItem>
-                  <SelectItem value="2_dias">Até 2 dias úteis</SelectItem>
-                  <SelectItem value="3_dias">Até 3 dias úteis</SelectItem>
-                  <SelectItem value="5_dias">Até 5 dias úteis</SelectItem>
-                  <SelectItem value="7_dias">Até 7 dias úteis</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Situação</Label>
-              <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                Pendente
-              </div>
-            </div>
-
-            <div>
-              <Label>Atualizado em</Label>
-              <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}
-              </div>
-            </div>
+          <div>
+            <Label htmlFor="prazo_pagamento">Prazo para Pagamento *</Label>
+            <Select 
+              value={formData.prazo_pagamento} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, prazo_pagamento: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o prazo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1_dia">Até 1 dia útil</SelectItem>
+                <SelectItem value="2_dias">Até 2 dias úteis</SelectItem>
+                <SelectItem value="3_dias">Até 3 dias úteis</SelectItem>
+                <SelectItem value="5_dias">Até 5 dias úteis</SelectItem>
+                <SelectItem value="7_dias">Até 7 dias úteis</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex gap-2">

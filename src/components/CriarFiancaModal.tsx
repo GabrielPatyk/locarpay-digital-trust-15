@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useFiancas, FiancaFormData } from '@/hooks/useFiancas';
-import { useImobiliariaData } from '@/hooks/useImobiliariaData';
 
 interface CriarFiancaModalProps {
   isOpen: boolean;
@@ -18,7 +17,6 @@ interface CriarFiancaModalProps {
 
 const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, refetch }) => {
   const { createFianca, isCreating } = useFiancas();
-  const { cnpj } = useImobiliariaData();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState<FiancaFormData>({
@@ -46,8 +44,7 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
     imovelBairro: '',
     imovelCidade: '',
     imovelEstado: '',
-    imovelPais: 'Brasil',
-    cnpjImobiliaria: ''
+    imovelPais: 'Brasil'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,8 +83,7 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
         imovelBairro: '',
         imovelCidade: '',
         imovelEstado: '',
-        imovelPais: 'Brasil',
-        cnpjImobiliaria: ''
+        imovelPais: 'Brasil'
       });
     } catch (error: any) {
       toast({
@@ -157,15 +153,6 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
                   onChange={(e) => setFormData({...formData, rendaMensal: e.target.value})}
                   placeholder="R$ 0,00"
                   required
-                />
-              </div>
-              <div>
-                <Label htmlFor="cnpjImobiliaria">CNPJ da Imobiliária</Label>
-                <Input
-                  id="cnpjImobiliaria"
-                  value={formData.cnpjImobiliaria}
-                  onChange={(e) => setFormData({...formData, cnpjImobiliaria: e.target.value})}
-                  placeholder={cnpj || "00.000.000/0000-00"}
                 />
               </div>
             </div>

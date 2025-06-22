@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,8 +38,6 @@ export interface FiancaFormData {
   imovelCidade: string;
   imovelEstado: string;
   imovelPais: string;
-  // CNPJ da Imobiliária
-  cnpjImobiliaria: string;
 }
 
 export const useFiancas = (imobiliariaId?: string, searchTerm?: string) => {
@@ -173,6 +172,7 @@ export const useFiancas = (imobiliariaId?: string, searchTerm?: string) => {
         'rejeitada': 'Fiança rejeitada',
         'em_analise': 'Enviada para análise',
         'enviada_ao_financeiro': 'Enviada ao financeiro',
+        'aguardando_geracao_pagamento': 'Aguardando geração de pagamento',
         'pagamento_disponivel': 'Link de pagamento anexado',
         'comprovante_enviado': 'Comprovante de pagamento enviado',
         'ativa': 'Fiança ativada'

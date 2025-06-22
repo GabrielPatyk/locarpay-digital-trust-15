@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -77,9 +78,7 @@ const FiancasImobiliaria = () => {
     imovelBairro: '',
     imovelCidade: '',
     imovelEstado: '',
-    imovelPais: 'Brasil',
-    // CNPJ da Imobiliária
-    cnpjImobiliaria: ''
+    imovelPais: 'Brasil'
   });
 
   const dashboardData = getFiancasStats();
@@ -161,8 +160,7 @@ const FiancasImobiliaria = () => {
           imovelBairro: '',
           imovelCidade: '',
           imovelEstado: '',
-          imovelPais: 'Brasil',
-          cnpjImobiliaria: ''
+          imovelPais: 'Brasil'
         });
       },
       onError: (error) => {
