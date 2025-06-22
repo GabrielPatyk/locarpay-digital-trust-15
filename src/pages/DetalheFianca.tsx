@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useFiancaDetails } from '@/hooks/useFiancaDetails';
+import { useCargoRedirect } from '@/hooks/useCargoRedirect';
 import { 
   ArrowLeft, 
   User, 
@@ -17,13 +17,22 @@ import {
   DollarSign,
   AlertCircle,
   Clock,
-  Loader2
+  Loader2,
+  CreditCard,
+  CheckCircle,
+  Link as LinkIcon
 } from 'lucide-react';
 
 const DetalheFianca = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { fianca, historico, isLoading } = useFiancaDetails(id || '');
+  const { getCargoHomePage } = useCargoRedirect();
+
+  const handleVoltar = () => {
+    const homePage = getCargoHomePage();
+    navigate(homePage);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -106,7 +115,7 @@ const DetalheFianca = () => {
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             Fiança não encontrada
           </h3>
-          <Button variant="outline" onClick={() => navigate('/fiancas-imobiliaria')}>
+          <Button variant="outline" onClick={handleVoltar}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar
           </Button>
@@ -121,7 +130,7 @@ const DetalheFianca = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={() => navigate('/fiancas-imobiliaria')}>
+            <Button variant="outline" onClick={handleVoltar}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar
             </Button>
@@ -269,6 +278,77 @@ const DetalheFianca = () => {
               <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <h4 className="font-semibold text-red-800 mb-2">Motivo da Rejeição</h4>
                 <p className="text-red-700">{fianca.motivo_reprovacao}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Informações de Pagamento */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <CreditCard className="mr-2 h-5 w-5 text-green-600" />
+              Informações de Pagamento
+            </CardTitle>
+            <CardDescription>
+              Status e detalhes do processo de pagamento da fiança
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Status de Pagamento */}
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="flex items-center justify-center mb-2">
+                  {['pagamento_disponivel', 'comprovante_enviado', 'ativa'].includes(fianca.status_fianca) ? (
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  ) : (
+                    <Clock className="h-8 w-8 text-yellow-600" />
+                  )}
+                </div>
+                <p className="text-sm font-medium text-gray-500">Status do Pagamento</p>
+                <Badge className={`${getStatusColor(fianca.status_fianca)} text-white mt-1`}>
+                  {getStatusLabel(fianca.status_fianca)}
+                </Badge>
+              </div>
+
+              {/* Valor da Fiança */}
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <DollarSign className="h-8 w-8 mx-auto mb-2 text-green-600" />
+                <p className="text-sm font-medium text-gray-500">Valor da Fiança</p>
+                <p className="text-xl font-bold text-green-600">
+                  R$ {Number(fianca.imovel_valor_aluguel).toLocaleString('pt-BR')}
+                </p>
+              </div>
+
+              {/* Link de Pagamento */}
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <LinkIcon className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                <p className="text-sm font-medium text-gray-500">Link de Pagamento</p>
+                <p className="text-sm font-medium text-purple-600">
+                  {fianca.status_fianca === 'pagamento_disponivel' ? 'Disponível' : 
+                   ['comprovante_enviado', 'ativa'].includes(fianca.status_fianca) ? 'Pago' : 'Pendente'}
+                </p>
+              </div>
+            </div>
+
+            {/* Informações Adicionais de Pagamento */}
+            {['pagamento_disponivel', 'comprovante_enviado', 'ativa'].includes(fianca.status_fianca) && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-3">Detalhes do Pagamento</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-600"><strong>Método:</strong> Transferência Bancária</p>
+                    <p className="text-gray-600"><strong>Prazo:</strong> Até 2 dias úteis</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600"><strong>Situação:</strong> 
+                      {fianca.status_fianca === 'pagamento_disponivel' && ' Aguardando Pagamento'}
+                      {fianca.status_fianca === 'comprovante_enviado' && ' Comprovante Enviado'}
+                      {fianca.status_fianca === 'ativa' && ' Pagamento Confirmado'}
+                    </p>
+                    <p className="text-gray-600"><strong>Atualizado em:</strong> {new Date(fianca.data_atualizacao).toLocaleDateString('pt-BR')}</p>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>

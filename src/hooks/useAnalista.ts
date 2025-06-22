@@ -1,8 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useHistoricoFiancas } from './useHistoricoFiancas';
+import { useInquilinoCreation } from './useInquilinoCreation';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Fianca = Tables<'fiancas_locaticias'>;
@@ -12,6 +12,7 @@ export const useAnalista = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { registrarLog } = useHistoricoFiancas();
+  const { verificarOuCriarInquilino } = useInquilinoCreation();
 
   const {
     data: fiancas = [],
@@ -221,6 +222,56 @@ export const useAnalista = () => {
     }
   });
 
+  const consultarScoreComInquilino = useMutation({
+    mutationFn: async ({ fiancaId, dadosInquilino }: { 
+      fiancaId: string; 
+      dadosInquilino: {
+        nome_completo: string;
+        cpf: string;
+        email: string;
+        whatsapp: string;
+        endereco: string;
+        numero: string;
+        complemento?: string;
+        bairro: string;
+        cidade: string;
+        estado: string;
+        renda_mensal: number;
+      }
+    }) => {
+      console.log('Iniciando consulta de score com verificação de inquilino...');
+      
+      // Verificar ou criar inquilino
+      const resultadoInquilino = await verificarOuCriarInquilino(dadosInquilino);
+      
+      if (!resultadoInquilino.success) {
+        throw new Error(resultadoInquilino.error);
+      }
+
+      // Registrar no histórico
+      await registrarLog({
+        fiancaId,
+        acao: resultadoInquilino.isNew ? 'Conta de inquilino criada' : 'Inquilino encontrado',
+        detalhes: `${resultadoInquilino.isNew ? 'Nova conta criada' : 'Conta existente encontrada'} para ${dadosInquilino.nome_completo}`
+      });
+
+      // Simular consulta de score (aqui você integraria com o serviço real)
+      const scoreSimulado = Math.floor(Math.random() * (850 - 300) + 300);
+      
+      await registrarLog({
+        fiancaId,
+        acao: 'Score consultado',
+        detalhes: `Score obtido: ${scoreSimulado}`
+      });
+
+      return { inquilino: resultadoInquilino.usuario, score: scoreSimulado };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fiancas-analise'] });
+      queryClient.invalidateQueries({ queryKey: ['fiancas-para-analise'] });
+    }
+  });
+
   const getAnaliseStats = () => {
     const totalFiancas = fiancas.length;
     const pendentesAnalise = fiancas.filter(f => f.status_fianca === 'em_analise').length;
@@ -255,6 +306,8 @@ export const useAnalista = () => {
     isRejecting: reprovarFianca.isPending,
     isEditingScore: editarScore.isPending,
     getAnaliseStats,
-    registrarLog
+    registrarLog,
+    consultarScoreComInquilino,
+    isConsultingScore: consultarScoreComInquilino.isPending,
   };
 };
