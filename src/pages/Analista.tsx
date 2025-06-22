@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAnalista } from '@/hooks/useAnalista';
+import { useInquilinoVerification } from '@/hooks/useInquilinoVerification';
+import InquilinoVerificationAlert from '@/components/InquilinoVerificationAlert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +45,16 @@ const Analista = () => {
     isReprovingFianca
   } = useAnalista();
 
+  const {
+    verificarUsuarioExistente,
+    vincularFiancaAContaExistente,
+    criarContaComDadosFianca,
+    resetVerification,
+    usuarioExistente,
+    isVerificationComplete,
+    isLoading: isVerificationLoading,
+  } = useInquilinoVerification();
+
   const [selectedFianca, setSelectedFianca] = useState<FiancaParaAnalise | null>(null);
   const [isConsultingScore, setIsConsultingScore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,6 +62,68 @@ const Analista = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [currentScore, setCurrentScore] = useState<number>(0);
   const [currentTaxa, setCurrentTaxa] = useState<number>(0);
+
+  // Função para verificar automaticamente o inquilino quando uma fiança é selecionada
+  React.useEffect(() => {
+    if (selectedFianca) {
+      setCurrentScore(selectedFianca.score_credito || 0);
+      setCurrentTaxa(selectedFianca.taxa_aplicada || 0);
+      
+      // Reset da verificação anterior
+      resetVerification();
+      
+      // Verificar automaticamente se o inquilino já existe
+      const dadosInquilino = {
+        nome_completo: selectedFianca.inquilino_nome_completo || '',
+        cpf: selectedFianca.inquilino_cpf || '',
+        email: selectedFianca.inquilino_email || '',
+        whatsapp: selectedFianca.inquilino_whatsapp || '',
+        endereco: selectedFianca.inquilino_endereco || '',
+        numero: selectedFianca.inquilino_numero || '',
+        complemento: selectedFianca.inquilino_complemento || '',
+        bairro: selectedFianca.inquilino_bairro || '',
+        cidade: selectedFianca.inquilino_cidade || '',
+        estado: selectedFianca.inquilino_estado || '',
+        renda_mensal: selectedFianca.inquilino_renda_mensal || 0,
+      };
+      
+      verificarUsuarioExistente(dadosInquilino);
+    }
+  }, [selectedFianca]);
+
+  const handleVincularContaExistente = async () => {
+    if (!selectedFianca || !usuarioExistente) return;
+    
+    const resultado = await vincularFiancaAContaExistente(selectedFianca.id!, usuarioExistente.id);
+    if (resultado.success) {
+      // Resetar verificação após sucesso
+      resetVerification();
+    }
+  };
+
+  const handleCriarNovaConta = async () => {
+    if (!selectedFianca) return;
+    
+    const dadosInquilino = {
+      nome_completo: selectedFianca.inquilino_nome_completo || '',
+      cpf: selectedFianca.inquilino_cpf || '',
+      email: selectedFianca.inquilino_email || '',
+      whatsapp: selectedFianca.inquilino_whatsapp || '',
+      endereco: selectedFianca.inquilino_endereco || '',
+      numero: selectedFianca.inquilino_numero || '',
+      complemento: selectedFianca.inquilino_complemento || '',
+      bairro: selectedFianca.inquilino_bairro || '',
+      cidade: selectedFianca.inquilino_cidade || '',
+      estado: selectedFianca.inquilino_estado || '',
+      renda_mensal: selectedFianca.inquilino_renda_mensal || 0,
+    };
+    
+    const resultado = await criarContaComDadosFianca(dadosInquilino, selectedFianca.id!);
+    if (resultado.success) {
+      // Resetar verificação após sucesso
+      resetVerification();
+    }
+  };
 
   const consultarScore = async () => {
     if (!selectedFianca) return;
@@ -173,14 +247,6 @@ const Analista = () => {
       minute: '2-digit'
     });
   };
-
-  // Set current score and taxa when selecting a fianca
-  React.useEffect(() => {
-    if (selectedFianca) {
-      setCurrentScore(selectedFianca.score_credito || 0);
-      setCurrentTaxa(selectedFianca.taxa_aplicada || 0);
-    }
-  }, [selectedFianca]);
 
   if (isLoadingFiancas || isLoadingStats) {
     return (
@@ -373,6 +439,15 @@ const Analista = () => {
                       </p>
                     </div>
                   </div>
+
+                  {/* Aviso de Verificação do Inquilino */}
+                  <InquilinoVerificationAlert
+                    usuarioExistente={usuarioExistente}
+                    isVerificationComplete={isVerificationComplete}
+                    isLoading={isVerificationLoading}
+                    onVincularContaExistente={handleVincularContaExistente}
+                    onCriarNovaConta={handleCriarNovaConta}
+                  />
 
                   {/* Dados do Imóvel */}
                   <div className="border-t pt-4">
