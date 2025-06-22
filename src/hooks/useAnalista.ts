@@ -34,7 +34,7 @@ export const useAnalista = () => {
       if (error) throw error;
       return data as FiancaParaAnalise[];
     },
-    enabled: !!user?.id && user?.cargo === 'analista'
+    enabled: !!user?.id && user?.type === 'analista'
   });
 
   // Buscar estatísticas do analista
@@ -71,7 +71,7 @@ export const useAnalista = () => {
         taxaMedia: Math.round(taxaMedia * 100) / 100
       };
     },
-    enabled: !!user?.id && user?.cargo === 'analista'
+    enabled: !!user?.id && user?.type === 'analista'
   });
 
   // Atualizar score e taxa
