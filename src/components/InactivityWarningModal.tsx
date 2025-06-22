@@ -46,7 +46,7 @@ const InactivityWarningModal: React.FC<InactivityWarningModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md" hideCloseButton>
+      <DialogContent className="sm:max-w-md [&>button]:hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-orange-600">
             <AlertTriangle className="h-5 w-5" />
