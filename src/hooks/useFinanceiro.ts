@@ -2,19 +2,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useHistoricoFiancas } from './useHistoricoFiancas';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Fianca = Tables<'fiancas_locaticias'>;
 
-export interface FiancaFinanceiro extends Fianca {
-  usuarios?: {
-    nome: string;
-  };
-}
-
 export const useFinanceiro = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { registrarLog } = useHistoricoFiancas();
 
   const {
     data: fiancas = [],
@@ -23,65 +19,142 @@ export const useFinanceiro = () => {
   } = useQuery({
     queryKey: ['fiancas-financeiro'],
     queryFn: async () => {
+      console.log('Buscando fianças para financeiro...');
       const { data, error } = await supabase
         .from('fiancas_locaticias')
         .select(`
           *,
-          usuarios!criado_por(nome)
+          usuarios!fiancas_locaticias_criado_por_fkey(nome)
         `)
-        .in('status_fianca', ['enviada_ao_financeiro', 'pagamento_disponivel' as any, 'comprovante_enviado' as any])
+        .in('status_fianca', [
+          'enviada_ao_financeiro', 
+          'pagamento_disponivel', 
+          'comprovante_enviado'
+        ])
         .order('data_criacao', { ascending: false });
 
-      if (error) throw error;
-      return data as FiancaFinanceiro[];
-    },
-    enabled: !!user?.id
-  });
-
-  const {
-    data: todasFiancas = [],
-    isLoading: isLoadingTodas
-  } = useQuery({
-    queryKey: ['todas-fiancas-stats'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('fiancas_locaticias')
-        .select('*')
-        .order('data_criacao', { ascending: false });
-
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar fianças:', error);
+        throw error;
+      }
+      
+      console.log('Fianças encontradas:', data?.length || 0);
       return data as Fianca[];
     },
     enabled: !!user?.id
   });
 
   const atualizarStatusFianca = useMutation({
-    mutationFn: async ({ fiancaId, novoStatus }: { fiancaId: string; novoStatus: string }) => {
+    mutationFn: async ({ fiancaId, novoStatus }: { fiancaId: string; novoStatus: Tables<'fiancas_locaticias'>['status_fianca'] }) => {
+      console.log('Atualizando status da fiança:', fiancaId, 'para:', novoStatus);
+      
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({ 
-          status_fianca: novoStatus as any,
+          status_fianca: novoStatus,
           data_atualizacao: new Date().toISOString()
         })
         .eq('id', fiancaId);
 
       if (error) throw error;
+
+      const acoes: Record<string, string> = {
+        'pagamento_disponivel': 'Link de pagamento anexado',
+        'comprovante_enviado': 'Comprovante de pagamento enviado',
+        'ativa': 'Fiança ativada'
+      };
+
+      await registrarLog({
+        fiancaId,
+        acao: acoes[novoStatus] || `Status alterado para ${novoStatus}`,
+        detalhes: `Status alterado para ${novoStatus}`
+      });
+
+      return fiancaId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fiancas-financeiro'] });
-      queryClient.invalidateQueries({ queryKey: ['todas-fiancas-stats'] });
     }
   });
 
-  const getStats = () => {
-    const totalFiancas = todasFiancas.length;
+  const anexarLinkPagamento = useMutation({
+    mutationFn: async ({ fiancaId, linkPagamento }: { fiancaId: string; linkPagamento: string }) => {
+      console.log('Anexando link de pagamento para fiança:', fiancaId);
+      
+      const { error } = await supabase
+        .from('fiancas_locaticias')
+        .update({ 
+          status_fianca: 'pagamento_disponivel',
+          data_atualizacao: new Date().toISOString()
+        })
+        .eq('id', fiancaId);
+
+      if (error) throw error;
+
+      await registrarLog({
+        fiancaId,
+        acao: 'Link de pagamento anexado',
+        detalhes: `Link: ${linkPagamento}`
+      });
+
+      return fiancaId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fiancas-financeiro'] });
+    }
+  });
+
+  const confirmarPagamento = useMutation({
+    mutationFn: async (fiancaId: string) => {
+      console.log('Confirmando pagamento para fiança:', fiancaId);
+      
+      const { error } = await supabase
+        .from('fiancas_locaticias')
+        .update({ 
+          status_fianca: 'ativa',
+          data_atualizacao: new Date().toISOString()
+        })
+        .eq('id', fiancaId);
+
+      if (error) throw error;
+
+      await registrarLog({
+        fiancaId,
+        acao: 'Pagamento confirmado',
+        detalhes: 'Fiança ativada após confirmação do pagamento'
+      });
+
+      return fiancaId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fiancas-financeiro'] });
+    }
+  });
+
+  const getFinanceiroStats = () => {
+    const totalFiancas = fiancas.length;
     const aguardandoLink = fiancas.filter(f => f.status_fianca === 'enviada_ao_financeiro').length;
-    const linkEnviado = fiancas.filter(f => (f.status_fianca as any) === 'pagamento_disponivel').length;
-    const pagos = todasFiancas.filter(f => (f.status_fianca as any) === 'comprovante_enviado').length;
-    const valorTotal = todasFiancas.reduce((sum, f) => sum + Number(f.imovel_valor_aluguel || 0), 0);
-    const valorPago = todasFiancas
-      .filter(f => (f.status_fianca as any) === 'comprovante_enviado')
-      .reduce((sum, f) => sum + Number(f.imovel_valor_aluguel || 0), 0);
+    const linkEnviado = fiancas.filter(f => f.status_fianca === 'pagamento_disponivel').length;
+    const pagos = fiancas.filter(f => f.status_fianca === 'comprovante_enviado').length;
+
+    return {
+      totalFiancas,
+      aguardandoLink,
+      linkEnviado,
+      pagos
+    };
+  };
+
+  const getStats = () => {
+    const totalFiancas = fiancas.length;
+    const aguardandoLink = fiancas.filter(f => f.status_fianca === 'enviada_ao_financeiro').length;
+    const linkEnviado = fiancas.filter(f => f.status_fianca === 'pagamento_disponivel').length;
+    const pagos = fiancas.filter(f => f.status_fianca === 'comprovante_enviado').length;
+    
+    const valorTotal = fiancas.reduce((acc, f) => acc + (f.imovel_valor_aluguel || 0), 0);
+    const valorPago = fiancas
+      .filter(f => ['comprovante_enviado', 'ativa'].includes(f.status_fianca))
+      .reduce((acc, f) => acc + (f.imovel_valor_aluguel || 0), 0);
 
     return {
       totalFiancas,
@@ -95,10 +168,16 @@ export const useFinanceiro = () => {
 
   return {
     fiancas,
-    isLoading: isLoading || isLoadingTodas,
+    isLoading,
     error,
     atualizarStatusFianca,
     isUpdating: atualizarStatusFianca.isPending,
-    getStats
+    anexarLinkPagamento,
+    confirmarPagamento,
+    isAttachingLink: anexarLinkPagamento.isPending,
+    isConfirmingPayment: confirmarPagamento.isPending,
+    getFinanceiroStats,
+    getStats,
+    registrarLog
   };
 };

@@ -1,6 +1,8 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useHistoricoFiancas } from './useHistoricoFiancas';
 import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 
 type Fianca = Tables<'fiancas_locaticias'>;
@@ -38,29 +40,37 @@ export interface FiancaFormData {
   imovelPais: string;
 }
 
-export const useFiancas = () => {
+export const useFiancas = (imobiliariaId?: string, searchTerm?: string) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { registrarLog } = useHistoricoFiancas();
 
   const {
     data: fiancas = [],
     isLoading,
-    error
+    error,
+    refetch
   } = useQuery({
-    queryKey: ['fiancas', user?.id],
+    queryKey: ['fiancas', imobiliariaId || user?.id, searchTerm],
     queryFn: async () => {
-      if (!user?.id) return [];
+      const userId = imobiliariaId || user?.id;
+      if (!userId) return [];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('fiancas_locaticias')
         .select('*')
-        .eq('id_imobiliaria', user.id)
-        .order('data_criacao', { ascending: false });
+        .eq('id_imobiliaria', userId);
+      
+      if (searchTerm) {
+        query = query.or(`inquilino_nome_completo.ilike.%${searchTerm}%,inquilino_email.ilike.%${searchTerm}%,imovel_endereco.ilike.%${searchTerm}%`);
+      }
+      
+      const { data, error } = await query.order('data_criacao', { ascending: false });
 
       if (error) throw error;
       return data as Fianca[];
     },
-    enabled: !!user?.id
+    enabled: !!(imobiliariaId || user?.id)
   });
 
   const createFiancaMutation = useMutation({
@@ -94,7 +104,8 @@ export const useFiancas = () => {
         imovel_cidade: formData.imovelCidade,
         imovel_estado: formData.imovelEstado,
         imovel_pais: formData.imovelPais,
-        status_fianca: 'em_analise'
+        status_fianca: 'em_analise',
+        criado_por: user.id
       };
 
       const { data, error } = await supabase
@@ -104,10 +115,18 @@ export const useFiancas = () => {
         .single();
 
       if (error) throw error;
+
+      // Registrar log da criação
+      await registrarLog({
+        fiancaId: data.id,
+        acao: 'Fiança criada',
+        detalhes: `Nova solicitação de fiança para o inquilino ${formData.nomeCompleto}`
+      });
+
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fiancas', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fiancas'] });
     }
   });
 
@@ -122,11 +141,55 @@ export const useFiancas = () => {
         .eq('id', fiancaId);
 
       if (error) throw error;
+
+      // Registrar log da aceitação
+      await registrarLog({
+        fiancaId,
+        acao: 'Fiança enviada ao financeiro',
+        detalhes: 'Fiança aceita pela imobiliária e enviada para o setor financeiro'
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fiancas'] });
     }
   });
+
+  const updateFiancaStatus = async (fiancaId: string, novoStatus: Tables<'fiancas_locaticias'>['status_fianca'], detalhes?: string) => {
+    try {
+      const { error } = await supabase
+        .from('fiancas_locaticias')
+        .update({ 
+          status_fianca: novoStatus,
+          data_atualizacao: new Date().toISOString()
+        })
+        .eq('id', fiancaId);
+
+      if (error) throw error;
+
+      // Registrar log da mudança de status
+      const acoes: Record<string, string> = {
+        'aprovada': 'Fiança aprovada',
+        'rejeitada': 'Fiança rejeitada',
+        'em_analise': 'Enviada para análise',
+        'enviada_ao_financeiro': 'Enviada ao financeiro',
+        'aguardando_geracao_pagamento': 'Aguardando geração de pagamento',
+        'pagamento_disponivel': 'Link de pagamento anexado',
+        'comprovante_enviado': 'Comprovante de pagamento enviado',
+        'ativa': 'Fiança ativada'
+      };
+
+      await registrarLog({
+        fiancaId,
+        acao: acoes[novoStatus] || `Status alterado para ${novoStatus}`,
+        detalhes
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['fiancas'] });
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      throw error;
+    }
+  };
 
   const getFiancasStats = () => {
     const totalFiancas = fiancas.length;
@@ -145,11 +208,15 @@ export const useFiancas = () => {
   return {
     fiancas,
     isLoading,
+    error,
+    refetch,
     createFianca: createFiancaMutation.mutate,
     isCreating: createFiancaMutation.isPending,
     createError: createFiancaMutation.error,
     acceptFianca,
     isAccepting: acceptFianca.isPending,
+    updateFiancaStatus,
+    registrarLog,
     getFiancasStats
   };
 };

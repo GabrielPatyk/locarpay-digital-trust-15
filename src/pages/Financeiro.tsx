@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -27,11 +28,13 @@ import {
 const Financeiro = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { fiancas, isLoading, atualizarStatusFianca, isUpdating, getStats } = useFinanceiro();
+  const { fiancas, isLoading, atualizarStatusFianca, isUpdating, getStats, error } = useFinanceiro();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedFianca, setSelectedFianca] = useState<any>(null);
   const [linkPagamento, setLinkPagamento] = useState('');
+
+  console.log('Dados do financeiro:', { fiancas, isLoading, error });
 
   const stats = getStats();
 
@@ -58,29 +61,10 @@ const Financeiro = () => {
       setLinkPagamento('');
       setSelectedFianca(null);
     } catch (error) {
+      console.error('Erro ao anexar link:', error);
       toast({
         title: "Erro",
         description: "Erro ao anexar link de pagamento.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const enviarLink = async (id: string) => {
-    try {
-      await atualizarStatusFianca.mutateAsync({
-        fiancaId: id,
-        novoStatus: 'pagamento_disponivel'
-      });
-
-      toast({
-        title: "Link enviado!",
-        description: "Link de pagamento enviado para o inquilino via e-mail.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao enviar link de pagamento.",
         variant: "destructive"
       });
     }
@@ -90,14 +74,15 @@ const Financeiro = () => {
     try {
       await atualizarStatusFianca.mutateAsync({
         fiancaId: id,
-        novoStatus: 'comprovante_enviado'
+        novoStatus: 'ativa'
       });
 
       toast({
         title: "Pagamento confirmado!",
-        description: "Pagamento processado e confirmado no sistema.",
+        description: "Fiança ativada com sucesso.",
       });
     } catch (error) {
+      console.error('Erro ao confirmar pagamento:', error);
       toast({
         title: "Erro",
         description: "Erro ao confirmar pagamento.",
@@ -108,27 +93,31 @@ const Financeiro = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'comprovante_enviado': return 'bg-success';
+      case 'ativa': return 'bg-success';
+      case 'comprovante_enviado': return 'bg-green-600';
       case 'pagamento_disponivel': return 'bg-blue-500';
       case 'enviada_ao_financeiro': return 'bg-warning';
+      case 'aprovada': return 'bg-orange-500';
       default: return 'bg-gray-500';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'comprovante_enviado': return 'Pago';
+      case 'ativa': return 'Ativa';
+      case 'comprovante_enviado': return 'Comprovante Enviado';
       case 'pagamento_disponivel': return 'Link Disponível';
       case 'enviada_ao_financeiro': return 'Aguardando Link';
+      case 'aprovada': return 'Aprovada';
       default: return status;
     }
   };
 
   const filteredFiancas = fiancas.filter(fianca => {
     const matchesSearch = 
-      fianca.inquilino_nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      fianca.inquilino_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      fianca.imovel_tipo.toLowerCase().includes(searchTerm.toLowerCase());
+      fianca.inquilino_nome_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fianca.inquilino_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fianca.imovel_tipo?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || fianca.status_fianca === statusFilter;
     
@@ -142,6 +131,19 @@ const Financeiro = () => {
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
             <p className="mt-2 text-gray-600">Carregando dados financeiros...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout title="Departamento Financeiro">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-red-600">Erro ao carregar dados: {error.message}</p>
           </div>
         </div>
       </Layout>
@@ -260,9 +262,11 @@ const Financeiro = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
+                <SelectItem value="aprovada">Aprovada</SelectItem>
                 <SelectItem value="enviada_ao_financeiro">Aguardando Link</SelectItem>
                 <SelectItem value="pagamento_disponivel">Link Disponível</SelectItem>
-                <SelectItem value="comprovante_enviado">Pago</SelectItem>
+                <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
+                <SelectItem value="ativa">Ativa</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -281,7 +285,12 @@ const Financeiro = () => {
               {filteredFiancas.length === 0 ? (
                 <div className="text-center py-8">
                   <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Nenhuma fiança encontrada com os filtros aplicados.</p>
+                  <p className="text-gray-600">
+                    {fiancas.length === 0 
+                      ? "Nenhuma fiança encontrada para o departamento financeiro."
+                      : "Nenhuma fiança encontrada com os filtros aplicados."
+                    }
+                  </p>
                 </div>
               ) : (
                 filteredFiancas.map((fianca) => (
@@ -345,7 +354,7 @@ const Financeiro = () => {
                           </Button>
                         )}
 
-                        {(fianca.status_fianca as any) === 'pagamento_disponivel' && (
+                        {fianca.status_fianca === 'pagamento_disponivel' && (
                           <Button
                             size="sm"
                             onClick={() => confirmarPagamento(fianca.id)}
@@ -354,6 +363,18 @@ const Financeiro = () => {
                           >
                             <CheckCircle className="mr-1 h-4 w-4" />
                             Confirmar Pagamento
+                          </Button>
+                        )}
+
+                        {fianca.status_fianca === 'comprovante_enviado' && (
+                          <Button
+                            size="sm"
+                            onClick={() => confirmarPagamento(fianca.id)}
+                            className="bg-success hover:bg-success/90 flex items-center"
+                            disabled={isUpdating}
+                          >
+                            <CheckCircle className="mr-1 h-4 w-4" />
+                            Ativar Fiança
                           </Button>
                         )}
                       </div>
