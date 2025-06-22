@@ -19,11 +19,12 @@ export const useFinanceiro = () => {
   } = useQuery({
     queryKey: ['fiancas-financeiro'],
     queryFn: async () => {
+      console.log('Buscando fianças para financeiro...');
       const { data, error } = await supabase
         .from('fiancas_locaticias')
         .select(`
           *,
-          usuarios!id_imobiliaria(nome)
+          usuarios!fiancas_locaticias_criado_por_fkey(nome)
         `)
         .in('status_fianca', [
           'aprovada', 
@@ -35,7 +36,12 @@ export const useFinanceiro = () => {
         ])
         .order('data_criacao', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar fianças:', error);
+        throw error;
+      }
+      
+      console.log('Fianças encontradas:', data?.length || 0);
       return data as Fianca[];
     },
     enabled: !!user?.id
@@ -43,6 +49,8 @@ export const useFinanceiro = () => {
 
   const atualizarStatusFianca = useMutation({
     mutationFn: async ({ fiancaId, novoStatus }: { fiancaId: string; novoStatus: Tables<'fiancas_locaticias'>['status_fianca'] }) => {
+      console.log('Atualizando status da fiança:', fiancaId, 'para:', novoStatus);
+      
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({ 
@@ -74,6 +82,8 @@ export const useFinanceiro = () => {
 
   const anexarLinkPagamento = useMutation({
     mutationFn: async ({ fiancaId, linkPagamento }: { fiancaId: string; linkPagamento: string }) => {
+      console.log('Anexando link de pagamento para fiança:', fiancaId);
+      
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({ 
@@ -99,6 +109,8 @@ export const useFinanceiro = () => {
 
   const confirmarPagamento = useMutation({
     mutationFn: async (fiancaId: string) => {
+      console.log('Confirmando pagamento para fiança:', fiancaId);
+      
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({ 
