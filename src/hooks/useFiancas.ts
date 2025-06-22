@@ -40,7 +40,7 @@ export interface FiancaFormData {
   imovelPais: string;
 }
 
-export const useFiancas = () => {
+export const useFiancas = (imobiliariaId?: string, searchTerm?: string) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { registrarLog } = useHistoricoFiancas();
@@ -48,22 +48,29 @@ export const useFiancas = () => {
   const {
     data: fiancas = [],
     isLoading,
-    error
+    error,
+    refetch
   } = useQuery({
-    queryKey: ['fiancas', user?.id],
+    queryKey: ['fiancas', imobiliariaId || user?.id, searchTerm],
     queryFn: async () => {
-      if (!user?.id) return [];
+      const userId = imobiliariaId || user?.id;
+      if (!userId) return [];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('fiancas_locaticias')
         .select('*')
-        .eq('id_imobiliaria', user.id)
-        .order('data_criacao', { ascending: false });
+        .eq('id_imobiliaria', userId);
+      
+      if (searchTerm) {
+        query = query.or(`inquilino_nome_completo.ilike.%${searchTerm}%,inquilino_email.ilike.%${searchTerm}%,imovel_endereco.ilike.%${searchTerm}%`);
+      }
+      
+      const { data, error } = await query.order('data_criacao', { ascending: false });
 
       if (error) throw error;
       return data as Fianca[];
     },
-    enabled: !!user?.id
+    enabled: !!(imobiliariaId || user?.id)
   });
 
   const createFiancaMutation = useMutation({
@@ -119,7 +126,7 @@ export const useFiancas = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fiancas', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fiancas'] });
     }
   });
 
@@ -201,6 +208,8 @@ export const useFiancas = () => {
   return {
     fiancas,
     isLoading,
+    error,
+    refetch,
     createFianca: createFiancaMutation.mutate,
     isCreating: createFiancaMutation.isPending,
     createError: createFiancaMutation.error,
