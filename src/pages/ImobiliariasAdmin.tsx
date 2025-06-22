@@ -66,8 +66,8 @@ const ImobiliariasAdmin = () => {
   };
 
   const filteredImobiliarias = imobiliarias.filter(imobiliaria => {
-    const nomeEmpresa = imobiliaria.perfil_usuario?.[0]?.nome_empresa || '';
-    const cnpj = imobiliaria.perfil_usuario?.[0]?.cnpj || '';
+    const nomeEmpresa = imobiliaria.perfil_usuario?.nome_empresa || '';
+    const cnpj = imobiliaria.perfil_usuario?.cnpj || '';
     
     return (
       imobiliaria.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -174,10 +174,10 @@ const ImobiliariasAdmin = () => {
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <h4 className="font-medium text-lg">
-                          {imobiliaria.perfil_usuario?.[0]?.nome_empresa || imobiliaria.nome}
+                          {imobiliaria.perfil_usuario?.nome_empresa || imobiliaria.nome}
                         </h4>
                         <p className="text-sm text-gray-600">
-                          CNPJ: {imobiliaria.perfil_usuario?.[0]?.cnpj || 'Não informado'}
+                          CNPJ: {imobiliaria.perfil_usuario?.cnpj || 'Não informado'}
                         </p>
                       </div>
                       <Badge className={imobiliaria.ativo ? "bg-green-500" : "bg-red-500"}>
@@ -249,7 +249,7 @@ const ImobiliariasAdmin = () => {
                 </CardTitle>
                 <CardDescription>
                   Esta ação não pode ser desfeita. Tem certeza que deseja excluir a imobiliária{' '}
-                  <strong>{imobiliariaToDelete.perfil_usuario?.[0]?.nome_empresa || imobiliariaToDelete.nome}</strong>?
+                  <strong>{imobiliariaToDelete.perfil_usuario?.nome_empresa || imobiliariaToDelete.nome}</strong>?
                 </CardDescription>
               </CardHeader>
               <CardContent>

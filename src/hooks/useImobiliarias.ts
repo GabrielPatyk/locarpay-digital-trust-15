@@ -8,7 +8,7 @@ type Usuario = Tables<'usuarios'>;
 type PerfilUsuario = Tables<'perfil_usuario'>;
 
 export interface ImobiliariaCompleta extends Usuario {
-  perfil_usuario?: PerfilUsuario[];
+  perfil_usuario?: PerfilUsuario;
   _count?: {
     fiancas_ativas: number;
   };
