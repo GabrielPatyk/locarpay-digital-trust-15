@@ -9,16 +9,69 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      usuarios: {
+        Row: {
+          ativo: boolean | null
+          atualizado_em: string | null
+          cargo: string
+          criado_em: string | null
+          email: string
+          id: string
+          nome: string
+          senha: string
+          telefone: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          cargo: string
+          criado_em?: string | null
+          email: string
+          id?: string
+          nome: string
+          senha: string
+          telefone?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          cargo?: string
+          criado_em?: string | null
+          email?: string
+          id?: string
+          nome?: string
+          senha?: string
+          telefone?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      validar_login: {
+        Args: { email_input: string; senha_input: string }
+        Returns: {
+          id: string
+          email: string
+          nome: string
+          telefone: string
+          cargo: string
+          ativo: boolean
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      tipo_usuario:
+        | "inquilino"
+        | "analista"
+        | "juridico"
+        | "admin"
+        | "sdr"
+        | "executivo"
+        | "imobiliaria"
+        | "financeiro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +186,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      tipo_usuario: [
+        "inquilino",
+        "analista",
+        "juridico",
+        "admin",
+        "sdr",
+        "executivo",
+        "imobiliaria",
+        "financeiro",
+      ],
+    },
   },
 } as const
