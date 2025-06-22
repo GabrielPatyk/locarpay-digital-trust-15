@@ -36,6 +36,14 @@ const DetalheFianca = () => {
         return 'bg-green-500';
       case 'vencida':
         return 'bg-red-500';
+      case 'enviada_ao_financeiro':
+        return 'bg-purple-500';
+      case 'aguardando_geracao_pagamento':
+        return 'bg-yellow-500';
+      case 'pagamento_disponivel':
+        return 'bg-orange-500';
+      case 'comprovante_enviado':
+        return 'bg-blue-500';
       default:
         return 'bg-gray-500';
     }
@@ -53,6 +61,14 @@ const DetalheFianca = () => {
         return 'Ativa';
       case 'vencida':
         return 'Vencida';
+      case 'enviada_ao_financeiro':
+        return 'Enviada ao Financeiro';
+      case 'aguardando_geracao_pagamento':
+        return 'Aguardando Geração de Pagamento';
+      case 'pagamento_disponivel':
+        return 'Pagamento Disponível';
+      case 'comprovante_enviado':
+        return 'Comprovante Enviado';
       default:
         return status;
     }
