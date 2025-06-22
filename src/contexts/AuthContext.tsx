@@ -145,20 +145,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = async () => {
-    try {
-      // Invalidar sessão do Supabase se existir
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error('Erro ao fazer logout do Supabase:', error);
-    } finally {
-      // Limpar estado local independentemente de erros
-      setUser(null);
-      localStorage.removeItem('user');
-      
-      // Redirecionar para login
-      window.location.href = '/login';
-    }
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
   };
 
   const updateUser = (updatedUser: User) => {

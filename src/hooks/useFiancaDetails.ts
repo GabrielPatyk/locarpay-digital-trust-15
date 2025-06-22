@@ -8,9 +8,6 @@ export interface HistoricoItem {
   usuario_nome: string;
   detalhes: string | null;
   data_criacao: string;
-  analisado_por_usuario?: {
-    nome: string;
-  } | null;
 }
 
 export const useFiancaDetails = (fiancaId: string) => {
@@ -21,7 +18,7 @@ export const useFiancaDetails = (fiancaId: string) => {
         .from('fiancas_locaticias')
         .select(`
           *,
-          usuarios!fiancas_locaticias_criado_por_fkey(nome)
+          usuarios!criado_por(nome)
         `)
         .eq('id', fiancaId)
         .single();
@@ -37,10 +34,7 @@ export const useFiancaDetails = (fiancaId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('historico_fiancas')
-        .select(`
-          *,
-          analisado_por_usuario:usuarios!historico_fiancas_analisado_por_fkey(nome)
-        `)
+        .select('*')
         .eq('fianca_id', fiancaId)
         .order('data_criacao', { ascending: false });
 

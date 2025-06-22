@@ -42,10 +42,8 @@ export type Database = {
           inquilino_numero: string
           inquilino_pais: string
           inquilino_renda_mensal: number
-          inquilino_usuario_id: string | null
           inquilino_whatsapp: string
           motivo_reprovacao: string | null
-          observacoes_aprovacao: string | null
           score_credito: number | null
           status_fianca: Database["public"]["Enums"]["status_fianca"]
           taxa_aplicada: number | null
@@ -82,10 +80,8 @@ export type Database = {
           inquilino_numero: string
           inquilino_pais?: string
           inquilino_renda_mensal: number
-          inquilino_usuario_id?: string | null
           inquilino_whatsapp: string
           motivo_reprovacao?: string | null
-          observacoes_aprovacao?: string | null
           score_credito?: number | null
           status_fianca?: Database["public"]["Enums"]["status_fianca"]
           taxa_aplicada?: number | null
@@ -122,10 +118,8 @@ export type Database = {
           inquilino_numero?: string
           inquilino_pais?: string
           inquilino_renda_mensal?: number
-          inquilino_usuario_id?: string | null
           inquilino_whatsapp?: string
           motivo_reprovacao?: string | null
-          observacoes_aprovacao?: string | null
           score_credito?: number | null
           status_fianca?: Database["public"]["Enums"]["status_fianca"]
           taxa_aplicada?: number | null
@@ -152,19 +146,11 @@ export type Database = {
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fiancas_locaticias_inquilino_usuario_id_fkey"
-            columns: ["inquilino_usuario_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
         ]
       }
       historico_fiancas: {
         Row: {
           acao: string
-          analisado_por: string | null
           data_criacao: string
           detalhes: string | null
           fianca_id: string
@@ -174,7 +160,6 @@ export type Database = {
         }
         Insert: {
           acao: string
-          analisado_por?: string | null
           data_criacao?: string
           detalhes?: string | null
           fianca_id: string
@@ -184,7 +169,6 @@ export type Database = {
         }
         Update: {
           acao?: string
-          analisado_por?: string | null
           data_criacao?: string
           detalhes?: string | null
           fianca_id?: string
@@ -193,13 +177,6 @@ export type Database = {
           usuario_nome?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "historico_fiancas_analisado_por_fkey"
-            columns: ["analisado_por"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "historico_fiancas_fianca_id_fkey"
             columns: ["fianca_id"]
@@ -277,7 +254,6 @@ export type Database = {
           ativo: boolean | null
           atualizado_em: string | null
           cargo: string
-          cpf: string | null
           criado_em: string | null
           criado_por: string | null
           email: string
@@ -294,7 +270,6 @@ export type Database = {
           ativo?: boolean | null
           atualizado_em?: string | null
           cargo: string
-          cpf?: string | null
           criado_em?: string | null
           criado_por?: string | null
           email: string
@@ -311,7 +286,6 @@ export type Database = {
           ativo?: boolean | null
           atualizado_em?: string | null
           cargo?: string
-          cpf?: string | null
           criado_em?: string | null
           criado_por?: string | null
           email?: string
@@ -444,10 +418,6 @@ export type Database = {
         | "ativa"
         | "vencida"
         | "cancelada"
-        | "enviada_ao_financeiro"
-        | "aguardando_geracao_pagamento"
-        | "pagamento_disponivel"
-        | "comprovante_enviado"
       tipo_usuario:
         | "inquilino"
         | "analista"
@@ -579,10 +549,6 @@ export const Constants = {
         "ativa",
         "vencida",
         "cancelada",
-        "enviada_ao_financeiro",
-        "aguardando_geracao_pagamento",
-        "pagamento_disponivel",
-        "comprovante_enviado",
       ],
       tipo_usuario: [
         "inquilino",
