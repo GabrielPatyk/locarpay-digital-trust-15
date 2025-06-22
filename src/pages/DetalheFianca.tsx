@@ -337,18 +337,26 @@ const DetalheFianca = () => {
                 <h4 className="font-semibold text-gray-800 mb-3">Detalhes do Pagamento</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-gray-600"><strong>Método:</strong> Transferência Bancária</p>
-                    <p className="text-gray-600"><strong>Prazo:</strong> Até 2 dias úteis</p>
+                    <p className="text-gray-600"><strong>Método:</strong> {fianca.metodo_pagamento || 'Não informado'}</p>
+                    <p className="text-gray-600"><strong>Prazo:</strong> {fianca.prazo_pagamento || 'Não informado'}</p>
                   </div>
                   <div>
                     <p className="text-gray-600"><strong>Situação:</strong> 
-                      {fianca.status_fianca === 'pagamento_disponivel' && ' Aguardando Pagamento'}
+                      {fianca.status_fianca === 'pagamento_disponivel' && ' Link Disponível'}
                       {fianca.status_fianca === 'comprovante_enviado' && ' Comprovante Enviado'}
                       {fianca.status_fianca === 'ativa' && ' Pagamento Confirmado'}
                     </p>
-                    <p className="text-gray-600"><strong>Atualizado em:</strong> {new Date(fianca.data_atualizacao).toLocaleDateString('pt-BR')}</p>
+                    <p className="text-gray-600"><strong>Atualizado em:</strong> {new Date(fianca.data_atualizacao_pagamento || fianca.data_atualizacao).toLocaleDateString('pt-BR')}</p>
                   </div>
                 </div>
+                
+                {fianca.link_pagamento && fianca.status_fianca === 'pagamento_disponivel' && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                    <p className="text-blue-800 text-sm">
+                      <strong>Link disponível:</strong> Inquilino pode realizar o pagamento
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

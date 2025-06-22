@@ -78,13 +78,29 @@ export const useFinanceiro = () => {
   });
 
   const anexarLinkPagamento = useMutation({
-    mutationFn: async ({ fiancaId, linkPagamento }: { fiancaId: string; linkPagamento: string }) => {
+    mutationFn: async ({ 
+      fiancaId, 
+      linkPagamento, 
+      metodoPagamento, 
+      prazoPagamento 
+    }: { 
+      fiancaId: string; 
+      linkPagamento: string;
+      metodoPagamento: string;
+      prazoPagamento: string;
+    }) => {
       console.log('Anexando link de pagamento para fiança:', fiancaId);
       
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({ 
           status_fianca: 'pagamento_disponivel',
+          link_pagamento: linkPagamento,
+          metodo_pagamento: metodoPagamento,
+          prazo_pagamento: prazoPagamento,
+          situacao_pagamento: 'link_disponivel',
+          data_envio_link: new Date().toISOString(),
+          data_atualizacao_pagamento: new Date().toISOString(),
           data_atualizacao: new Date().toISOString()
         })
         .eq('id', fiancaId);
@@ -94,7 +110,7 @@ export const useFinanceiro = () => {
       await registrarLog({
         fiancaId,
         acao: 'Link de pagamento anexado',
-        detalhes: `Link: ${linkPagamento}`
+        detalhes: `Link: ${linkPagamento} | Método: ${metodoPagamento} | Prazo: ${prazoPagamento}`
       });
 
       return fiancaId;
@@ -112,6 +128,8 @@ export const useFinanceiro = () => {
         .from('fiancas_locaticias')
         .update({ 
           status_fianca: 'ativa',
+          situacao_pagamento: 'confirmado',
+          data_atualizacao_pagamento: new Date().toISOString(),
           data_atualizacao: new Date().toISOString()
         })
         .eq('id', fiancaId);

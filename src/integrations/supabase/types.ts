@@ -15,6 +15,7 @@ export type Database = {
           criado_por: string | null
           data_analise: string | null
           data_atualizacao: string
+          data_atualizacao_pagamento: string | null
           data_comprovante: string | null
           data_criacao: string
           data_envio_link: string | null
@@ -48,9 +49,12 @@ export type Database = {
           inquilino_usuario_id: string | null
           inquilino_whatsapp: string
           link_pagamento: string | null
+          metodo_pagamento: string | null
           motivo_reprovacao: string | null
           observacoes_aprovacao: string | null
+          prazo_pagamento: string | null
           score_credito: number | null
+          situacao_pagamento: string | null
           status_fianca: Database["public"]["Enums"]["status_fianca"]
           taxa_aplicada: number | null
         }
@@ -59,6 +63,7 @@ export type Database = {
           criado_por?: string | null
           data_analise?: string | null
           data_atualizacao?: string
+          data_atualizacao_pagamento?: string | null
           data_comprovante?: string | null
           data_criacao?: string
           data_envio_link?: string | null
@@ -92,9 +97,12 @@ export type Database = {
           inquilino_usuario_id?: string | null
           inquilino_whatsapp: string
           link_pagamento?: string | null
+          metodo_pagamento?: string | null
           motivo_reprovacao?: string | null
           observacoes_aprovacao?: string | null
+          prazo_pagamento?: string | null
           score_credito?: number | null
+          situacao_pagamento?: string | null
           status_fianca?: Database["public"]["Enums"]["status_fianca"]
           taxa_aplicada?: number | null
         }
@@ -103,6 +111,7 @@ export type Database = {
           criado_por?: string | null
           data_analise?: string | null
           data_atualizacao?: string
+          data_atualizacao_pagamento?: string | null
           data_comprovante?: string | null
           data_criacao?: string
           data_envio_link?: string | null
@@ -136,9 +145,12 @@ export type Database = {
           inquilino_usuario_id?: string | null
           inquilino_whatsapp?: string
           link_pagamento?: string | null
+          metodo_pagamento?: string | null
           motivo_reprovacao?: string | null
           observacoes_aprovacao?: string | null
+          prazo_pagamento?: string | null
           score_credito?: number | null
+          situacao_pagamento?: string | null
           status_fianca?: Database["public"]["Enums"]["status_fianca"]
           taxa_aplicada?: number | null
         }

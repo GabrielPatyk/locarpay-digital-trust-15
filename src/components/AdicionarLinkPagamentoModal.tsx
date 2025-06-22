@@ -1,144 +1,202 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useFinanceiro } from '@/hooks/useFinanceiro';
+import { Loader2, LinkIcon, CreditCard, Clock, AlertCircle } from 'lucide-react';
 
 interface AdicionarLinkPagamentoModalProps {
   isOpen: boolean;
   onClose: () => void;
   fiancaId: string;
-  onSuccess?: () => void;
+  inquilinoNome: string;
+  valorFianca: number;
 }
 
-const AdicionarLinkPagamentoModal: React.FC<AdicionarLinkPagamentoModalProps> = ({
+const AdicionarLinkPagamentoModal = ({
   isOpen,
   onClose,
   fiancaId,
-  onSuccess
-}) => {
-  const [formData, setFormData] = useState({
-    link_pagamento: '',
-    metodo_pagamento: '',
-    prazo_pagamento: '',
-    observacoes: ''
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  inquilinoNome,
+  valorFianca
+}: AdicionarLinkPagamentoModalProps) => {
   const { toast } = useToast();
+  const { anexarLinkPagamento, isAttachingLink } = useFinanceiro();
+  
+  const [linkPagamento, setLinkPagamento] = useState('');
+  const [metodoPagamento, setMetodoPagamento] = useState('');
+  const [prazoPagamento, setPrazoPagamento] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from('fiancas_locaticias')
-        .update({
-          link_pagamento: formData.link_pagamento,
-          data_envio_link: new Date().toISOString(),
-          status_fianca: 'pagamento_disponivel'
-        })
-        .eq('id', fiancaId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Link de pagamento adicionado!",
-        description: "O inquilino poderá acessar o link para realizar o pagamento.",
-      });
-
-      onSuccess?.();
-      onClose();
-      setFormData({
-        link_pagamento: '',
-        metodo_pagamento: '',
-        prazo_pagamento: '',
-        observacoes: ''
-      });
-    } catch (error: any) {
+  const handleSubmit = () => {
+    if (!linkPagamento.trim()) {
       toast({
         title: "Erro",
-        description: "Erro ao adicionar link de pagamento: " + error.message,
-        variant: "destructive",
+        description: "Por favor, insira um link de pagamento válido.",
+        variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
+      return;
     }
+
+    if (!metodoPagamento.trim()) {
+      toast({
+        title: "Erro",
+        description: "Por favor, informe o método de pagamento.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!prazoPagamento.trim()) {
+      toast({
+        title: "Erro",
+        description: "Por favor, informe o prazo de pagamento.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    anexarLinkPagamento.mutate({
+      fiancaId,
+      linkPagamento,
+      metodoPagamento,
+      prazoPagamento
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "Link anexado com sucesso!",
+          description: "Link de pagamento anexado e disponibilizado para o inquilino.",
+        });
+        setLinkPagamento('');
+        setMetodoPagamento('');
+        setPrazoPagamento('');
+        onClose();
+      },
+      onError: (error) => {
+        toast({
+          title: "Erro ao anexar link",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    });
+  };
+
+  const handleClose = () => {
+    setLinkPagamento('');
+    setMetodoPagamento('');
+    setPrazoPagamento('');
+    onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Adicionar Link de Pagamento</DialogTitle>
+          <DialogTitle className="flex items-center space-x-2">
+            <LinkIcon className="h-5 w-5 text-blue-600" />
+            <span>Anexar Link de Pagamento</span>
+          </DialogTitle>
+          <DialogDescription>
+            {inquilinoNome} - R$ {valorFianca.toLocaleString('pt-BR')}
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        
+        <div className="space-y-4">
           <div>
-            <Label htmlFor="link_pagamento">Link de Pagamento *</Label>
+            <Label htmlFor="linkPagamento" className="flex items-center space-x-2">
+              <LinkIcon className="h-4 w-4" />
+              <span>Link de Pagamento do Banco *</span>
+            </Label>
             <Input
-              id="link_pagamento"
-              type="url"
-              value={formData.link_pagamento}
-              onChange={(e) => setFormData(prev => ({ ...prev, link_pagamento: e.target.value }))}
-              placeholder="https://exemplo.com/pagamento"
-              required
+              id="linkPagamento"
+              placeholder="https://banco.com.br/pagamento/..."
+              value={linkPagamento}
+              onChange={(e) => setLinkPagamento(e.target.value)}
+              className="mt-1"
             />
           </div>
 
-          <div>
-            <Label htmlFor="metodo_pagamento">Método de Pagamento *</Label>
-            <Select 
-              value={formData.metodo_pagamento} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, metodo_pagamento: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o método" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="transferencia_bancaria">Transferência Bancária</SelectItem>
-                <SelectItem value="pix">PIX</SelectItem>
-                <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-                <SelectItem value="boleto">Boleto Bancário</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+            <h4 className="font-semibold text-gray-800 flex items-center space-x-2">
+              <CreditCard className="h-4 w-4" />
+              <span>Detalhes do Pagamento</span>
+            </h4>
+            
+            <div>
+              <Label htmlFor="metodoPagamento" className="flex items-center space-x-2">
+                <CreditCard className="h-4 w-4" />
+                <span>Método *</span>
+              </Label>
+              <Input
+                id="metodoPagamento"
+                placeholder="Ex: PIX, Transferência Bancária, Boleto..."
+                value={metodoPagamento}
+                onChange={(e) => setMetodoPagamento(e.target.value)}
+                className="mt-1"
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="prazo_pagamento">Prazo para Pagamento *</Label>
-            <Select 
-              value={formData.prazo_pagamento} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, prazo_pagamento: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o prazo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1_dia">Até 1 dia útil</SelectItem>
-                <SelectItem value="2_dias">Até 2 dias úteis</SelectItem>
-                <SelectItem value="3_dias">Até 3 dias úteis</SelectItem>
-                <SelectItem value="5_dias">Até 5 dias úteis</SelectItem>
-                <SelectItem value="7_dias">Até 7 dias úteis</SelectItem>
-              </SelectContent>
-            </Select>
+            <div>
+              <Label htmlFor="prazoPagamento" className="flex items-center space-x-2">
+                <Clock className="h-4 w-4" />
+                <span>Prazo *</span>
+              </Label>
+              <Input
+                id="prazoPagamento"
+                placeholder="Ex: Até 2 dias úteis, 24 horas, Imediato..."
+                value={prazoPagamento}
+                onChange={(e) => setPrazoPagamento(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+              <div>
+                <span className="font-medium">Situação:</span>
+                <div className="flex items-center space-x-1 mt-1">
+                  <AlertCircle className="h-3 w-3" />
+                  <span>Aguardando Link</span>
+                </div>
+              </div>
+              <div>
+                <span className="font-medium">Atualizado em:</span>
+                <div className="mt-1">
+                  {new Date().toLocaleDateString('pt-BR')}
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            <Button
+              onClick={handleSubmit}
+              className="flex-1"
+              disabled={isAttachingLink}
+            >
+              {isAttachingLink ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Anexando...
+                </>
+              ) : (
+                <>
+                  <LinkIcon className="mr-2 h-4 w-4" />
+                  Anexar Link
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleClose}
+              disabled={isAttachingLink}
+            >
               Cancelar
             </Button>
-            <Button 
-              type="submit" 
-              disabled={isLoading || !formData.link_pagamento || !formData.metodo_pagamento || !formData.prazo_pagamento}
-              className="flex-1"
-            >
-              {isLoading ? 'Salvando...' : 'Salvar'}
-            </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
