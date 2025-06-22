@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       fiancas_locaticias: {
         Row: {
+          data_analise: string | null
           data_atualizacao: string
           data_criacao: string
           data_vencimento: string | null
@@ -41,9 +42,13 @@ export type Database = {
           inquilino_pais: string
           inquilino_renda_mensal: number
           inquilino_whatsapp: string
+          motivo_reprovacao: string | null
+          score_credito: number | null
           status_fianca: Database["public"]["Enums"]["status_fianca"]
+          taxa_aplicada: number | null
         }
         Insert: {
+          data_analise?: string | null
           data_atualizacao?: string
           data_criacao?: string
           data_vencimento?: string | null
@@ -74,9 +79,13 @@ export type Database = {
           inquilino_pais?: string
           inquilino_renda_mensal: number
           inquilino_whatsapp: string
+          motivo_reprovacao?: string | null
+          score_credito?: number | null
           status_fianca?: Database["public"]["Enums"]["status_fianca"]
+          taxa_aplicada?: number | null
         }
         Update: {
+          data_analise?: string | null
           data_atualizacao?: string
           data_criacao?: string
           data_vencimento?: string | null
@@ -107,7 +116,10 @@ export type Database = {
           inquilino_pais?: string
           inquilino_renda_mensal?: number
           inquilino_whatsapp?: string
+          motivo_reprovacao?: string | null
+          score_credito?: number | null
           status_fianca?: Database["public"]["Enums"]["status_fianca"]
+          taxa_aplicada?: number | null
         }
         Relationships: [
           {
@@ -243,7 +255,63 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      fiancas_para_analise: {
+        Row: {
+          data_analise: string | null
+          data_atualizacao: string | null
+          data_criacao: string | null
+          data_vencimento: string | null
+          id: string | null
+          id_imobiliaria: string | null
+          imobiliaria_nome: string | null
+          imobiliaria_responsavel: string | null
+          imovel_area_metros: number | null
+          imovel_bairro: string | null
+          imovel_cidade: string | null
+          imovel_complemento: string | null
+          imovel_descricao: string | null
+          imovel_endereco: string | null
+          imovel_estado: string | null
+          imovel_numero: string | null
+          imovel_pais: string | null
+          imovel_tempo_locacao: number | null
+          imovel_tipo: string | null
+          imovel_tipo_locacao: string | null
+          imovel_valor_aluguel: number | null
+          inquilino_bairro: string | null
+          inquilino_cidade: string | null
+          inquilino_complemento: string | null
+          inquilino_cpf: string | null
+          inquilino_email: string | null
+          inquilino_endereco: string | null
+          inquilino_estado: string | null
+          inquilino_nome_completo: string | null
+          inquilino_numero: string | null
+          inquilino_pais: string | null
+          inquilino_renda_mensal: number | null
+          inquilino_whatsapp: string | null
+          motivo_reprovacao: string | null
+          score_credito: number | null
+          status_fianca: Database["public"]["Enums"]["status_fianca"] | null
+          taxa_aplicada: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiancas_locaticias_id_imobiliaria_fkey"
+            columns: ["id_imobiliaria"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiancas_locaticias_id_imobiliaria_idx"
+            columns: ["id_imobiliaria"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       atualizar_imagem_perfil: {
