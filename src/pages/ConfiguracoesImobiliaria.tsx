@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -277,12 +278,12 @@ const ConfiguracoesImobiliaria = () => {
                 <Input
                   id="cnpj"
                   value={formData.cnpj}
-                  onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
-                  placeholder="00.000.000/0000-00"
-                  disabled={true}
-                  className="bg-gray-100 cursor-not-allowed"
+                  onChange={(e) => handleInputChange('cnpj', e.target.value)}
+                  placeholder={profile?.cnpj ? formatCNPJ(profile.cnpj) : "00.000.000/0000-00"}
                 />
-                <p className="text-xs text-gray-500">Campo não editável</p>
+                {profile?.cnpj && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {formatCNPJ(profile.cnpj)}</p>
+                )}
               </div>
             </div>
             

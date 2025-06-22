@@ -11,13 +11,10 @@ export type Database = {
     Tables: {
       fiancas_locaticias: {
         Row: {
-          comprovante_pagamento: string | null
           criado_por: string | null
           data_analise: string | null
           data_atualizacao: string
-          data_comprovante: string | null
           data_criacao: string
-          data_envio_link: string | null
           data_vencimento: string | null
           id: string
           id_imobiliaria: string
@@ -45,9 +42,7 @@ export type Database = {
           inquilino_numero: string
           inquilino_pais: string
           inquilino_renda_mensal: number
-          inquilino_usuario_id: string | null
           inquilino_whatsapp: string
-          link_pagamento: string | null
           motivo_reprovacao: string | null
           observacoes_aprovacao: string | null
           score_credito: number | null
@@ -55,13 +50,10 @@ export type Database = {
           taxa_aplicada: number | null
         }
         Insert: {
-          comprovante_pagamento?: string | null
           criado_por?: string | null
           data_analise?: string | null
           data_atualizacao?: string
-          data_comprovante?: string | null
           data_criacao?: string
-          data_envio_link?: string | null
           data_vencimento?: string | null
           id?: string
           id_imobiliaria: string
@@ -89,9 +81,7 @@ export type Database = {
           inquilino_numero: string
           inquilino_pais?: string
           inquilino_renda_mensal: number
-          inquilino_usuario_id?: string | null
           inquilino_whatsapp: string
-          link_pagamento?: string | null
           motivo_reprovacao?: string | null
           observacoes_aprovacao?: string | null
           score_credito?: number | null
@@ -99,13 +89,10 @@ export type Database = {
           taxa_aplicada?: number | null
         }
         Update: {
-          comprovante_pagamento?: string | null
           criado_por?: string | null
           data_analise?: string | null
           data_atualizacao?: string
-          data_comprovante?: string | null
           data_criacao?: string
-          data_envio_link?: string | null
           data_vencimento?: string | null
           id?: string
           id_imobiliaria?: string
@@ -133,9 +120,7 @@ export type Database = {
           inquilino_numero?: string
           inquilino_pais?: string
           inquilino_renda_mensal?: number
-          inquilino_usuario_id?: string | null
           inquilino_whatsapp?: string
-          link_pagamento?: string | null
           motivo_reprovacao?: string | null
           observacoes_aprovacao?: string | null
           score_credito?: number | null
@@ -160,13 +145,6 @@ export type Database = {
           {
             foreignKeyName: "fiancas_locaticias_id_imobiliaria_idx"
             columns: ["id_imobiliaria"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fiancas_locaticias_inquilino_usuario_id_fkey"
-            columns: ["inquilino_usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
@@ -289,7 +267,6 @@ export type Database = {
           ativo: boolean | null
           atualizado_em: string | null
           cargo: string
-          cpf: string | null
           criado_em: string | null
           criado_por: string | null
           email: string
@@ -306,7 +283,6 @@ export type Database = {
           ativo?: boolean | null
           atualizado_em?: string | null
           cargo: string
-          cpf?: string | null
           criado_em?: string | null
           criado_por?: string | null
           email: string
@@ -323,7 +299,6 @@ export type Database = {
           ativo?: boolean | null
           atualizado_em?: string | null
           cargo?: string
-          cpf?: string | null
           criado_em?: string | null
           criado_por?: string | null
           email?: string
