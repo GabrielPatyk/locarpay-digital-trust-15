@@ -138,6 +138,51 @@ export type Database = {
           },
         ]
       }
+      historico_fiancas: {
+        Row: {
+          acao: string
+          data_criacao: string
+          detalhes: string | null
+          fianca_id: string
+          id: string
+          usuario_id: string | null
+          usuario_nome: string
+        }
+        Insert: {
+          acao: string
+          data_criacao?: string
+          detalhes?: string | null
+          fianca_id: string
+          id?: string
+          usuario_id?: string | null
+          usuario_nome: string
+        }
+        Update: {
+          acao?: string
+          data_criacao?: string
+          detalhes?: string | null
+          fianca_id?: string
+          id?: string
+          usuario_id?: string | null
+          usuario_nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_fiancas_fianca_id_fkey"
+            columns: ["fianca_id"]
+            isOneToOne: false
+            referencedRelation: "fiancas_locaticias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_fiancas_fianca_id_fkey"
+            columns: ["fianca_id"]
+            isOneToOne: false
+            referencedRelation: "fiancas_para_analise"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perfil_usuario: {
         Row: {
           atualizado_em: string

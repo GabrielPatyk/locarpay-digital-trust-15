@@ -20,12 +20,18 @@ const RejectedFiancaTooltip: React.FC<RejectedFiancaTooltipProps> = ({
   analystName,
 }) => {
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
-          {children}
+          <div className="inline-block">
+            {children}
+          </div>
         </TooltipTrigger>
-        <TooltipContent className="max-w-sm p-4 bg-white border border-red-200 shadow-lg">
+        <TooltipContent 
+          side="top" 
+          align="center"
+          className="max-w-sm p-4 bg-white border border-red-200 shadow-lg z-50"
+        >
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
               <AlertCircle className="h-4 w-4 text-red-500" />

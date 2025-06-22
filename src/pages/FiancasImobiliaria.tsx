@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -199,11 +200,43 @@ const FiancasImobiliaria = () => {
     const matchesSearch = fianca.inquilino_nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          `${fianca.imovel_endereco}, ${fianca.imovel_numero}`.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'todos' || fianca.status_fianca === statusFilter;
-    return matchesSearch && matchesStatus;
+    
+    // Filtro de data
+    let matchesDate = true;
+    if (startDate || endDate) {
+      const fiancaDate = new Date(fianca.data_criacao).toISOString().split('T')[0];
+      if (startDate && fiancaDate < startDate) matchesDate = false;
+      if (endDate && fiancaDate > endDate) matchesDate = false;
+    }
+    
+    return matchesSearch && matchesStatus && matchesDate;
   });
+
+  const getDashboardStats = () => {
+    const totalFiancas = filteredFiancas.length;
+    const fiancasPendentes = filteredFiancas.filter(f => f.status_fianca === 'em_analise').length;
+    const fiancasAtivas = filteredFiancas.filter(f => f.status_fianca === 'ativa').length;
+    const fiancasVencidas = filteredFiancas.filter(f => f.status_fianca === 'vencida').length;
+    const fiancasRejeitadas = filteredFiancas.filter(f => f.status_fianca === 'rejeitada').length;
+
+    return {
+      totalFiancas,
+      fiancasPendentes,
+      fiancasAtivas,
+      fiancasVencidas,
+      fiancasRejeitadas
+    };
+  };
+
+  const stats = getDashboardStats();
 
   const handleViewFianca = (fiancaId: string) => {
     navigate(`/detalhe-fianca/${fiancaId}`);
+  };
+
+  const applyDateFilter = () => {
+    // Força uma re-renderização para aplicar os filtros
+    setSearchTerm(searchTerm);
   };
 
   if (isLoading) {
@@ -259,7 +292,7 @@ const FiancasImobiliaria = () => {
                 />
               </div>
               <div className="flex items-end">
-                <Button className="w-full bg-primary hover:bg-primary/90">
+                <Button className="w-full bg-primary hover:bg-primary/90" onClick={applyDateFilter}>
                   Aplicar Filtros
                 </Button>
               </div>
@@ -268,14 +301,14 @@ const FiancasImobiliaria = () => {
         </Card>
 
         {/* Cards de métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Fianças</CardTitle>
               <FileText className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{dashboardData.totalFiancas}</div>
+              <div className="text-2xl font-bold text-primary">{stats.totalFiancas}</div>
             </CardContent>
           </Card>
 
@@ -285,7 +318,7 @@ const FiancasImobiliaria = () => {
               <Clock className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-warning">{dashboardData.fiancasPendentes}</div>
+              <div className="text-2xl font-bol text-warning">{stats.fiancasPendentes}</div>
             </CardContent>
           </Card>
 
@@ -295,7 +328,7 @@ const FiancasImobiliaria = () => {
               <CheckCircle className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">{dashboardData.fiancasAtivas}</div>
+              <div className="text-2xl font-bold text-success">{stats.fiancasAtivas}</div>
             </CardContent>
           </Card>
 
@@ -305,7 +338,17 @@ const FiancasImobiliaria = () => {
               <AlertCircle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-destructive">{dashboardData.fiancasVencidas}</div>
+              <div className="text-2xl font-bold text-destructive">{stats.fiancasVencidas}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-red-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Fianças Rejeitadas</CardTitle>
+              <AlertCircle className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-500">{stats.fiancasRejeitadas}</div>
             </CardContent>
           </Card>
         </div>
@@ -701,7 +744,7 @@ const FiancasImobiliaria = () => {
                           rejectionReason={fianca.motivo_reprovacao || 'Não informado'}
                           rejectionDate={fianca.data_analise || fianca.data_atualizacao}
                           score={fianca.score_credito}
-                          analystName="Ana Costa Oliveira"
+                          analystName="Analista Responsável"
                         >
                           <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
                             {getStatusLabel(fianca.status_fianca)}
@@ -742,7 +785,7 @@ const FiancasImobiliaria = () => {
                   Nenhuma fiança encontrada
                 </h3>
                 <p className="text-gray-600">
-                  {searchTerm || statusFilter !== 'todos' 
+                  {searchTerm || statusFilter !== 'todos' || startDate || endDate
                     ? 'Tente ajustar sua busca ou adicione uma nova fiança.'
                     : 'Adicione sua primeira fiança para começar.'
                   }
