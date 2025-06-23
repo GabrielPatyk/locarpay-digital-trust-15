@@ -1,6 +1,5 @@
 
 import React from 'react';
-import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,8 +25,17 @@ const Inquilino = () => {
     fiancaPagamento, 
     emailVerificado, 
     isLoading, 
-    enviarComprovante 
+    enviarComprovante,
+    errors
   } = useInquilinoData();
+
+  console.log('Dados do hook:', {
+    fiancaAtiva,
+    fiancaPagamento,
+    emailVerificado,
+    isLoading,
+    errors
+  });
 
   const baixarContrato = () => {
     toast({
@@ -69,10 +77,10 @@ const Inquilino = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ativa': return 'bg-success';
-      case 'pagamento_disponivel': return 'bg-warning';
+      case 'ativa': return 'bg-green-500';
+      case 'pagamento_disponivel': return 'bg-yellow-500';
       case 'comprovante_enviado': return 'bg-blue-500';
-      case 'pendente': return 'bg-warning';
+      case 'pendente': return 'bg-yellow-500';
       case 'vencido': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
@@ -89,24 +97,60 @@ const Inquilino = () => {
     }
   };
 
+  // Mostrar erro se houver problemas nas queries
+  if (errors.fiancaError || errors.pagamentoError || errors.emailError) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="h-6 w-6 text-red-500" />
+              <div>
+                <h3 className="font-semibold text-red-700">Erro ao carregar dados</h3>
+                <p className="text-red-600 text-sm mt-1">
+                  Ocorreu um erro ao carregar seus dados. Tente recarregar a página.
+                </p>
+                {errors.fiancaError && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Erro fiança: {errors.fiancaError.message}
+                  </p>
+                )}
+                {errors.pagamentoError && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Erro pagamento: {errors.pagamentoError.message}
+                  </p>
+                )}
+                {errors.emailError && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Erro email: {errors.emailError.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
-      <Layout title="Área do Inquilino">
+      <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
             <p>Carregando...</p>
           </div>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   return (
-    <Layout title="Área do Inquilino">
-      <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
+    <div className="container mx-auto px-4 py-8">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in">
         {/* Welcome Card */}
-        <Card className="bg-gradient-to-r from-primary to-success text-white">
+        <Card className="bg-gradient-to-r from-primary to-green-500 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
               <div className="flex-1">
@@ -151,7 +195,7 @@ const Inquilino = () => {
                     </div>
                     <div className="bg-gray-50 p-3 rounded-lg">
                       <h4 className="font-medium text-gray-900 text-sm">Taxa da Fiança</h4>
-                      <p className="text-lg sm:text-xl font-bold text-success">
+                      <p className="text-lg sm:text-xl font-bold text-green-600">
                         {fiancaAtiva.taxa_aplicada || 10}%
                       </p>
                     </div>
@@ -211,9 +255,9 @@ const Inquilino = () => {
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium text-gray-900 text-sm sm:text-base">Validação de E-mail</h4>
                   {emailVerificado ? (
-                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                   ) : (
-                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-warning" />
+                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
                   )}
                 </div>
                 <p className="text-xs sm:text-sm text-gray-600 mb-3">
@@ -226,7 +270,7 @@ const Inquilino = () => {
 
               {/* Payment Information */}
               {emailVerificado && fiancaPagamento ? (
-                <div className="p-3 sm:p-4 border rounded-lg bg-gradient-to-r from-primary/5 to-success/5">
+                <div className="p-3 sm:p-4 border rounded-lg bg-gradient-to-r from-primary/5 to-green-500/5">
                   <h4 className="font-medium text-gray-900 mb-3 text-sm sm:text-base">Fiança Disponível para Pagamento</h4>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 space-y-2 sm:space-y-0">
                     <span className="text-2xl sm:text-3xl font-bold text-primary">
@@ -250,7 +294,7 @@ const Inquilino = () => {
                     {fiancaPagamento.link_pagamento && fiancaPagamento.status_fianca === 'pagamento_disponivel' && (
                       <Button 
                         onClick={acessarLinkPagamento}
-                        className="w-full bg-success hover:bg-success/90"
+                        className="w-full bg-green-500 hover:bg-green-600"
                         size="lg"
                         disabled={!fiancaPagamento.link_pagamento}
                       >
@@ -287,7 +331,7 @@ const Inquilino = () => {
                 </div>
               ) : (
                 <div className="p-3 sm:p-4 border rounded-lg text-center">
-                  <Mail className="mx-auto h-6 w-6 sm:h-8 sm:w-8 text-warning mb-2" />
+                  <Mail className="mx-auto h-6 w-6 sm:h-8 sm:w-8 text-yellow-500 mb-2" />
                   <p className="text-gray-600 text-sm sm:text-base">Aguardando verificação do e-mail</p>
                   <p className="text-xs sm:text-sm text-gray-500">
                     Verifique sua caixa de entrada para validar seu e-mail.
@@ -336,7 +380,7 @@ const Inquilino = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </div>
   );
 };
 
