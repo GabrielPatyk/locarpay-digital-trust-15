@@ -33,14 +33,14 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-warning">
             <Mail className="h-5 w-5" />
-            E-mail não verificado
+            Validação de E-mail
           </DialogTitle>
           <DialogDescription className="text-left space-y-3 pt-2">
             <p>
-              Seu e-mail <strong>{userEmail}</strong> ainda não foi verificado.
+              Você precisa verificar seu e-mail <strong>{userEmail}</strong> antes de continuar.
             </p>
             <p>
-              Para acessar a plataforma LocarPay, é necessário verificar seu e-mail primeiro.
+              Clique no botão abaixo para reenviar as instruções de validação.
             </p>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
               <p className="text-sm text-yellow-800">
@@ -69,7 +69,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
             ) : (
               <>
                 <Mail className="mr-2 h-4 w-4" />
-                Reenviar e-mail de verificação
+                Reenviar E-mail de Verificação
               </>
             )}
           </Button>
