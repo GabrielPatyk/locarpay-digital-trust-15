@@ -1,8 +1,7 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -15,14 +14,21 @@ import {
   Mail, 
   Phone,
   Calendar,
-  CreditCard
+  CreditCard,
+  UserCheck,
+  UserX,
+  Clock
 } from 'lucide-react';
 import { useInquilinosImobiliaria } from '@/hooks/useInquilinosImobiliaria';
+import InquilinoDetalhesModal from '@/components/InquilinoDetalhesModal';
+import FiancasInquilinoModal from '@/components/FiancasInquilinoModal';
 
 const InquilinosImobiliaria = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
+  const [selectedInquilino, setSelectedInquilino] = useState(null);
+  const [isDetalhesModalOpen, setIsDetalhesModalOpen] = useState(false);
+  const [isFiancasModalOpen, setIsFiancasModalOpen] = useState(false);
   
   const {
     inquilinos,
@@ -32,21 +38,18 @@ const InquilinosImobiliaria = () => {
     getStatusColor,
     getStatusLabel,
     getVerificationColor,
-    getVerificationLabel
+    getVerificationLabel,
+    stats
   } = useInquilinosImobiliaria(searchTerm, statusFilter);
 
   const handleVisualizarInquilino = (inquilino: any) => {
-    // Navegar para página de detalhes do inquilino
-    navigate(`/inquilino-detalhes/${inquilino.id}`, { 
-      state: { inquilino } 
-    });
+    setSelectedInquilino(inquilino);
+    setIsDetalhesModalOpen(true);
   };
 
   const handleVerFiancas = (inquilino: any) => {
-    // Navegar para página de fianças do inquilino
-    navigate(`/fiancas-inquilino/${inquilino.id}`, { 
-      state: { inquilino } 
-    });
+    setSelectedInquilino(inquilino);
+    setIsFiancasModalOpen(true);
   };
 
   if (isLoading) {
@@ -80,6 +83,61 @@ const InquilinosImobiliaria = () => {
           </div>
         </div>
 
+        {/* Dashboard Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Inquilinos</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total}</div>
+              <p className="text-xs text-muted-foreground">
+                Inquilinos cadastrados
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Ativos</CardTitle>
+              <UserCheck className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{stats.ativos}</div>
+              <p className="text-xs text-muted-foreground">
+                Inquilinos ativos
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Inativos</CardTitle>
+              <UserX className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{stats.inativos}</div>
+              <p className="text-xs text-muted-foreground">
+                Inquilinos inativos
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Verificação Pendente</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">{stats.verificacaoPendente}</div>
+              <p className="text-xs text-muted-foreground">
+                Aguardando verificação
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Search and Filters */}
         <Card>
           <CardContent className="p-6">
@@ -87,7 +145,7 @@ const InquilinosImobiliaria = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Buscar inquilinos por nome ou email..."
+                  placeholder="Buscar por nome, email ou CPF..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -125,9 +183,10 @@ const InquilinosImobiliaria = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-lg">{inquilino.nome}</h3>
-                          <div className="flex gap-2 mt-1">
-                            <Badge className={getStatusColor(inquilino.statusFianca)}>
-                              {getStatusLabel(inquilino.statusFianca)}
+                          <p className="text-sm text-gray-600 mb-1">CPF: {inquilino.cpf}</p>
+                          <div className="flex gap-2">
+                            <Badge className={getStatusColor(inquilino.statusAtivo)}>
+                              {getStatusLabel(inquilino.statusAtivo)}
                             </Badge>
                             <Badge className={getVerificationColor(inquilino.statusVerificacao)}>
                               {getVerificationLabel(inquilino.statusVerificacao)}
@@ -214,6 +273,19 @@ const InquilinosImobiliaria = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Modals */}
+        <InquilinoDetalhesModal
+          isOpen={isDetalhesModalOpen}
+          onClose={() => setIsDetalhesModalOpen(false)}
+          inquilino={selectedInquilino}
+        />
+        
+        <FiancasInquilinoModal
+          isOpen={isFiancasModalOpen}
+          onClose={() => setIsFiancasModalOpen(false)}
+          inquilino={selectedInquilino}
+        />
       </div>
     </Layout>
   );

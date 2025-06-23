@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,12 +12,13 @@ export interface InquilinoFianca {
   email: string;
   telefone: string;
   cpf: string;
-  statusFianca: string;
+  statusAtivo: boolean;
   statusVerificacao: 'verificado' | 'pendente';
   valorAluguel: number;
   dataInicio: string;
   fiancaId: string;
   totalFiancas: number;
+  usuarioId?: string;
 }
 
 export const useInquilinosImobiliaria = (searchTerm: string = '', statusFilter: string = '') => {
@@ -43,11 +45,6 @@ export const useInquilinosImobiliaria = (searchTerm: string = '', statusFilter: 
         `)
         .eq('id_imobiliaria', user.id);
 
-      // Aplicar filtro de status se fornecido e válido
-      if (statusFilter && statusFilter !== 'todos') {
-        query = query.eq('status_fianca', statusFilter as StatusFianca);
-      }
-
       const { data: fiancas, error } = await query.order('data_criacao', { ascending: false });
 
       if (error) throw error;
@@ -65,24 +62,28 @@ export const useInquilinosImobiliaria = (searchTerm: string = '', statusFilter: 
           
           // Se a fiança atual é mais recente, atualizar os dados principais
           if (new Date(fianca.data_criacao) > new Date(inquilino.dataInicio)) {
-            inquilino.statusFianca = fianca.status_fianca;
             inquilino.valorAluguel = fianca.imovel_valor_aluguel;
             inquilino.dataInicio = fianca.data_criacao;
             inquilino.fiancaId = fianca.id;
           }
         } else {
-          // Verificar se o inquilino tem cadastro como usuário
+          // Buscar dados do usuário se existir
           let statusVerificacao: 'verificado' | 'pendente' = 'pendente';
+          let statusAtivo = false;
+          let usuarioId = '';
           
           if (fianca.inquilino_usuario_id) {
-            // Verificar se o usuário está verificado
             const { data: usuario } = await supabase
               .from('usuarios')
-              .select('verificado')
+              .select('verificado, ativo, id')
               .eq('id', fianca.inquilino_usuario_id)
               .single();
             
-            statusVerificacao = usuario?.verificado ? 'verificado' : 'pendente';
+            if (usuario) {
+              statusVerificacao = usuario.verificado ? 'verificado' : 'pendente';
+              statusAtivo = usuario.ativo;
+              usuarioId = usuario.id;
+            }
           }
 
           inquilinosMap.set(key, {
@@ -91,24 +92,44 @@ export const useInquilinosImobiliaria = (searchTerm: string = '', statusFilter: 
             email: fianca.inquilino_email || '',
             telefone: fianca.inquilino_whatsapp || '',
             cpf: fianca.inquilino_cpf,
-            statusFianca: fianca.status_fianca,
+            statusAtivo,
             statusVerificacao,
             valorAluguel: fianca.imovel_valor_aluguel,
             dataInicio: fianca.data_criacao,
             fiancaId: fianca.id,
-            totalFiancas: 1
+            totalFiancas: 1,
+            usuarioId
           });
         }
       }
 
       let inquilinosList = Array.from(inquilinosMap.values());
 
-      // Aplicar filtro de busca por nome
+      // Aplicar filtro de busca por nome, email ou CPF
       if (searchTerm) {
         inquilinosList = inquilinosList.filter(inquilino =>
           inquilino.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          inquilino.email.toLowerCase().includes(searchTerm.toLowerCase())
+          inquilino.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          inquilino.cpf.includes(searchTerm)
         );
+      }
+
+      // Aplicar filtro de status
+      if (statusFilter && statusFilter !== 'todos') {
+        inquilinosList = inquilinosList.filter(inquilino => {
+          switch (statusFilter) {
+            case 'verificado':
+              return inquilino.statusVerificacao === 'verificado';
+            case 'pendente':
+              return inquilino.statusVerificacao === 'pendente';
+            case 'ativo':
+              return inquilino.statusAtivo === true;
+            case 'inativo':
+              return inquilino.statusAtivo === false;
+            default:
+              return true;
+          }
+        });
       }
 
       return inquilinosList;
@@ -118,55 +139,20 @@ export const useInquilinosImobiliaria = (searchTerm: string = '', statusFilter: 
 
   const getStatusOptions = () => [
     { value: 'todos', label: 'Todos os Status' },
-    { value: 'em_analise', label: 'Em Análise' },
-    { value: 'enviada_ao_financeiro', label: 'Enviada ao Financeiro' },
-    { value: 'aprovada', label: 'Aprovada' },
-    { value: 'ativa', label: 'Ativa' },
-    { value: 'rejeitada', label: 'Rejeitada' },
-    { value: 'vencida', label: 'Vencida' },
-    { value: 'cancelada', label: 'Cancelada' }
+    { value: 'verificado', label: 'Verificado' },
+    { value: 'pendente', label: 'Verificação Pendente' },
+    { value: 'ativo', label: 'Ativo' },
+    { value: 'inativo', label: 'Inativo' }
   ];
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ativa':
-        return 'bg-green-100 text-green-800';
-      case 'aprovada':
-        return 'bg-blue-100 text-blue-800';
-      case 'em_analise':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'enviada_ao_financeiro':
-        return 'bg-purple-100 text-purple-800';
-      case 'rejeitada':
-        return 'bg-red-100 text-red-800';
-      case 'vencida':
-        return 'bg-gray-100 text-gray-800';
-      case 'cancelada':
-        return 'bg-orange-100 text-orange-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const getStatusColor = (ativo: boolean) => {
+    return ativo 
+      ? 'bg-green-100 text-green-800' 
+      : 'bg-red-100 text-red-800';
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'ativa':
-        return 'Ativa';
-      case 'aprovada':
-        return 'Aprovada';
-      case 'em_analise':
-        return 'Em Análise';
-      case 'enviada_ao_financeiro':
-        return 'Enviada ao Financeiro';
-      case 'rejeitada':
-        return 'Rejeitada';
-      case 'vencida':
-        return 'Vencida';
-      case 'cancelada':
-        return 'Cancelada';
-      default:
-        return status;
-    }
+  const getStatusLabel = (ativo: boolean) => {
+    return ativo ? 'Ativo' : 'Inativo';
   };
 
   const getVerificationColor = (status: 'verificado' | 'pendente') => {
@@ -179,6 +165,14 @@ export const useInquilinosImobiliaria = (searchTerm: string = '', statusFilter: 
     return status === 'verificado' ? 'Verificado' : 'Verificação Pendente';
   };
 
+  // Calcular estatísticas para o dashboard
+  const stats = {
+    total: inquilinos.length,
+    ativos: inquilinos.filter(i => i.statusAtivo).length,
+    inativos: inquilinos.filter(i => !i.statusAtivo).length,
+    verificacaoPendente: inquilinos.filter(i => i.statusVerificacao === 'pendente').length
+  };
+
   return {
     inquilinos,
     isLoading,
@@ -188,6 +182,7 @@ export const useInquilinosImobiliaria = (searchTerm: string = '', statusFilter: 
     getStatusColor,
     getStatusLabel,
     getVerificationColor,
-    getVerificationLabel
+    getVerificationLabel,
+    stats
   };
 };
