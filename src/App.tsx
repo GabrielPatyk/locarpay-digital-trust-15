@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import Dashboard from "./pages/Dashboard";
 import Fiancas from "./pages/Fiancas";
 import Contratos from "./pages/Contratos";
@@ -77,6 +78,7 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/redefinir-senha" element={<RedefinirSenha />} />
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     <Route path="*" element={<NotFound />} />
 

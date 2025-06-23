@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mail, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -23,16 +24,74 @@ const ForgotPassword = () => {
     setIsLoading(true);
     setError('');
 
+    if (!email.trim()) {
+      setError('Por favor, digite seu e-mail.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Simular envio de email de recuperação
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Buscar usuário na tabela usuarios (não auth.users)
+      const { data: usuario, error: userError } = await supabase
+        .from('usuarios')
+        .select('id, email')
+        .eq('email', email.trim())
+        .maybeSingle();
+
+      if (userError) {
+        console.error('Erro ao buscar usuário:', userError);
+        throw new Error('Erro interno do servidor');
+      }
+
+      if (usuario) {
+        // Gerar token seguro
+        const token = crypto.randomUUID();
+
+        // Salvar token na tabela tokens_redefinicao_senha
+        const { error: tokenError } = await supabase
+          .from('tokens_redefinicao_senha')
+          .insert({
+            usuario_id: usuario.id,
+            token: token
+          });
+
+        if (tokenError) {
+          console.error('Erro ao salvar token:', tokenError);
+          throw new Error('Erro ao processar solicitação');
+        }
+
+        // Enviar webhook
+        try {
+          const webhookData = {
+            email: usuario.email,
+            token: token,
+            usuario_id: usuario.id,
+            link: `${window.location.origin}/redefinir-senha?token=${token}`
+          };
+
+          await fetch('https://webhook.lesenechal.com.br/webhook/Esqueci-A-Minha-Senha-LocarPay-Webhook', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookData)
+          });
+        } catch (webhookError) {
+          console.error('Erro ao enviar webhook:', webhookError);
+          // Não falhar se o webhook não funcionar
+        }
+      }
+
+      // Sempre mostrar a mesma mensagem, independente se o email existe ou não
       setSuccess(true);
       toast({
-        title: "Email enviado!",
-        description: "Verifique sua caixa de entrada para redefinir sua senha.",
+        title: "Instruções enviadas!",
+        description: "Se o e-mail informado estiver cadastrado, você receberá instruções de redefinição.",
       });
-    } catch (err) {
-      setError('Erro ao enviar email de recuperação. Tente novamente.');
+
+    } catch (err: any) {
+      console.error('Erro no processo:', err);
+      setError('Erro ao processar solicitação. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -119,9 +178,9 @@ const ForgotPassword = () => {
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Mail className="h-8 w-8 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-[#0C1C2E] mb-2">Email enviado!</h3>
+                  <h3 className="text-lg font-semibold text-[#0C1C2E] mb-2">Instruções enviadas!</h3>
                   <p className="text-sm text-[#0C1C2E]/70">
-                    Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.
+                    Se o e-mail informado estiver cadastrado, você receberá instruções de redefinição.
                   </p>
                 </div>
               )}
