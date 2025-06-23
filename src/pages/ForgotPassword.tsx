@@ -20,19 +20,44 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email.trim()) {
+      setError('Por favor, digite seu e-mail.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
     try {
-      // Simular envio de email de recuperação
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setSuccess(true);
-      toast({
-        title: "Email enviado!",
-        description: "Verifique sua caixa de entrada para redefinir sua senha.",
+      // Enviar webhook para o endpoint externo
+      const webhookResponse = await fetch('https://webhook.lesenechal.com.br/webhook/Esqueci-A-Minha-Senha-LocarPay-Webhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email
+        }),
       });
+
+      if (webhookResponse.ok) {
+        setSuccess(true);
+        toast({
+          title: "Instruções enviadas!",
+          description: "Se o e-mail informado estiver cadastrado, você receberá as instruções para redefinir sua senha.",
+        });
+      } else {
+        throw new Error('Falha ao enviar webhook');
+      }
     } catch (err) {
-      setError('Erro ao enviar email de recuperação. Tente novamente.');
+      console.error('Erro ao enviar webhook:', err);
+      setError('Erro ao enviar instruções. Tente novamente mais tarde.');
+      toast({
+        title: "Erro",
+        description: "Erro ao enviar instruções. Tente novamente mais tarde.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -119,9 +144,9 @@ const ForgotPassword = () => {
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Mail className="h-8 w-8 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-[#0C1C2E] mb-2">Email enviado!</h3>
+                  <h3 className="text-lg font-semibold text-[#0C1C2E] mb-2">Instruções enviadas!</h3>
                   <p className="text-sm text-[#0C1C2E]/70">
-                    Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.
+                    Se o e-mail informado estiver cadastrado, você receberá as instruções para redefinir sua senha.
                   </p>
                 </div>
               )}
