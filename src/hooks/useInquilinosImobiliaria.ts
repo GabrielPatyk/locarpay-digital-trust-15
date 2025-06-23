@@ -1,7 +1,9 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Database } from '@/integrations/supabase/types';
+
+type StatusFianca = Database['public']['Enums']['status_fianca'];
 
 export interface InquilinoFianca {
   id: string;
@@ -41,9 +43,9 @@ export const useInquilinosImobiliaria = (searchTerm: string = '', statusFilter: 
         `)
         .eq('id_imobiliaria', user.id);
 
-      // Aplicar filtro de status se fornecido
+      // Aplicar filtro de status se fornecido e válido
       if (statusFilter && statusFilter !== 'todos') {
-        query = query.eq('status_fianca', statusFilter);
+        query = query.eq('status_fianca', statusFilter as StatusFianca);
       }
 
       const { data: fiancas, error } = await query.order('data_criacao', { ascending: false });
