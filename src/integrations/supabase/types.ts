@@ -296,6 +296,38 @@ export type Database = {
           },
         ]
       }
+      tokens_redefinicao_senha: {
+        Row: {
+          criado_em: string
+          id: string
+          token: string
+          usado: boolean
+          usuario_id: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          token: string
+          usado?: boolean
+          usuario_id: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          token?: string
+          usado?: boolean
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tokens_redefinicao_senha_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usuarios: {
         Row: {
           ativo: boolean | null
