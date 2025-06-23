@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -47,7 +46,7 @@ const VerificarEmail = () => {
         throw new Error('Erro interno do servidor');
       }
 
-      const response = data as VerificarEmailResponse;
+      const response = data as unknown as VerificarEmailResponse;
 
       if (response.success) {
         setSuccess(true);
