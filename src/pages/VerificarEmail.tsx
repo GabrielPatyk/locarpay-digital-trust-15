@@ -7,6 +7,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
+interface VerificarEmailResponse {
+  success: boolean;
+  message: string;
+  user_email?: string;
+  user_name?: string;
+}
+
 const VerificarEmail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -40,14 +47,16 @@ const VerificarEmail = () => {
         throw new Error('Erro interno do servidor');
       }
 
-      if (data.success) {
+      const response = data as VerificarEmailResponse;
+
+      if (response.success) {
         setSuccess(true);
         setUserInfo({
-          email: data.user_email,
-          name: data.user_name
+          email: response.user_email || '',
+          name: response.user_name || ''
         });
       } else {
-        setError(data.message);
+        setError(response.message);
       }
     } catch (err: any) {
       console.error('Erro na verificação:', err);
