@@ -10,12 +10,10 @@ export const useInquilinoData = () => {
   const queryClient = useQueryClient();
 
   // Buscar fiança ativa do inquilino
-  const { data: fiancaAtiva, isLoading: isLoadingFianca, error: errorFianca } = useQuery({
+  const { data: fiancaAtiva, isLoading: isLoadingFianca } = useQuery({
     queryKey: ['fianca-ativa', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-
-      console.log('Buscando fiança ativa para usuário:', user.id);
 
       const { data, error } = await supabase
         .from('fiancas_locaticias')
@@ -26,52 +24,38 @@ export const useInquilinoData = () => {
         .limit(1)
         .maybeSingle();
 
-      if (error) {
-        console.error('Erro ao buscar fiança ativa:', error);
-        throw error;
-      }
-      
-      console.log('Fiança ativa encontrada:', data);
+      if (error) throw error;
       return data;
     },
     enabled: !!user?.id
   });
 
   // Buscar fiança com pagamento disponível
-  const { data: fiancaPagamento, isLoading: isLoadingPagamento, error: errorPagamento } = useQuery({
+  const { data: fiancaPagamento, isLoading: isLoadingPagamento } = useQuery({
     queryKey: ['fianca-pagamento', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-
-      console.log('Buscando fiança com pagamento disponível para usuário:', user.id);
 
       const { data, error } = await supabase
         .from('fiancas_locaticias')
         .select('*')
         .eq('inquilino_usuario_id', user.id)
-        .in('status_fianca', ['pagamento_disponivel', 'comprovante_enviado'])
+        .eq('status_fianca', 'pagamento_disponivel')
         .order('data_criacao', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (error) {
-        console.error('Erro ao buscar fiança pagamento:', error);
-        throw error;
-      }
-      
-      console.log('Fiança pagamento encontrada:', data);
+      if (error) throw error;
       return data;
     },
     enabled: !!user?.id
   });
 
   // Verificar se o email do usuário está verificado
-  const { data: emailVerificado, error: errorEmail } = useQuery({
+  const { data: emailVerificado } = useQuery({
     queryKey: ['email-verificado', user?.id],
     queryFn: async () => {
       if (!user?.id) return false;
-
-      console.log('Verificando email para usuário:', user.id);
 
       const { data, error } = await supabase
         .from('usuarios')
@@ -79,13 +63,8 @@ export const useInquilinoData = () => {
         .eq('id', user.id)
         .single();
 
-      if (error) {
-        console.error('Erro ao verificar email:', error);
-        throw error;
-      }
-      
-      console.log('Status de verificação do email:', data?.verificado);
-      return data?.verificado || false;
+      if (error) throw error;
+      return data.verificado || false;
     },
     enabled: !!user?.id
   });
@@ -93,8 +72,6 @@ export const useInquilinoData = () => {
   // Mutation para enviar comprovante
   const enviarComprovante = useMutation({
     mutationFn: async ({ fiancaId, comprovantePath }: { fiancaId: string; comprovantePath: string }) => {
-      console.log('Enviando comprovante para fiança:', fiancaId);
-      
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({
@@ -104,10 +81,7 @@ export const useInquilinoData = () => {
         })
         .eq('id', fiancaId);
 
-      if (error) {
-        console.error('Erro ao enviar comprovante:', error);
-        throw error;
-      }
+      if (error) throw error;
     },
     onSuccess: () => {
       toast({
@@ -117,7 +91,6 @@ export const useInquilinoData = () => {
       queryClient.invalidateQueries({ queryKey: ['fianca-pagamento'] });
     },
     onError: (error: any) => {
-      console.error('Erro na mutation:', error);
       toast({
         title: "Erro",
         description: "Erro ao enviar comprovante: " + error.message,
@@ -126,21 +99,11 @@ export const useInquilinoData = () => {
     }
   });
 
-  // Log de erros para debug
-  if (errorFianca) console.error('Erro na query fiança ativa:', errorFianca);
-  if (errorPagamento) console.error('Erro na query fiança pagamento:', errorPagamento);
-  if (errorEmail) console.error('Erro na query email verificado:', errorEmail);
-
   return {
     fiancaAtiva,
     fiancaPagamento,
     emailVerificado,
     isLoading: isLoadingFianca || isLoadingPagamento,
-    enviarComprovante,
-    errors: {
-      fiancaError: errorFianca,
-      pagamentoError: errorPagamento,
-      emailError: errorEmail
-    }
+    enviarComprovante
   };
 };

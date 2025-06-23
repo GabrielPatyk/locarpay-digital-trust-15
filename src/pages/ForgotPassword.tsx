@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mail, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -21,77 +20,19 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email.trim()) {
-      setError('Por favor, digite seu e-mail.');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
 
     try {
-      // Verificar se o usuário existe na base de dados
-      const { data: usuario, error: usuarioError } = await supabase
-        .from('usuarios')
-        .select('id, email, nome')
-        .eq('email', email.trim().toLowerCase())
-        .single();
-
-      if (usuarioError && usuarioError.code !== 'PGRST116') {
-        throw new Error('Erro ao verificar usuário');
-      }
-
-      if (usuario) {
-        // Gerar token único
-        const token = crypto.randomUUID();
-        
-        // Salvar token na base de dados
-        const { error: tokenError } = await supabase
-          .from('tokens_redefinicao_senha')
-          .insert({
-            usuario_id: usuario.id,
-            token: token
-          });
-
-        if (tokenError) {
-          throw new Error('Erro ao gerar token de redefinição');
-        }
-
-        // Enviar webhook com todos os dados necessários
-        const webhookResponse = await fetch('https://webhook.lesenechal.com.br/webhook/Esqueci-A-Minha-Senha-LocarPay-Webhook', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: usuario.email,
-            token: token,
-            usuario_id: usuario.id,
-            link: `${window.location.origin}/redefinir-senha?token=${token}`
-          }),
-        });
-
-        if (!webhookResponse.ok) {
-          throw new Error('Falha ao enviar webhook');
-        }
-      }
-
-      // Sempre mostrar mensagem de sucesso por segurança (não revelar se email existe)
+      // Simular envio de email de recuperação
+      await new Promise(resolve => setTimeout(resolve, 1500));
       setSuccess(true);
       toast({
-        title: "Instruções enviadas!",
-        description: "Se o e-mail informado estiver cadastrado, você receberá as instruções para redefinir sua senha.",
+        title: "Email enviado!",
+        description: "Verifique sua caixa de entrada para redefinir sua senha.",
       });
-
     } catch (err) {
-      console.error('Erro ao processar redefinição:', err);
-      setError('Erro ao enviar instruções. Tente novamente mais tarde.');
-      toast({
-        title: "Erro",
-        description: "Erro ao enviar instruções. Tente novamente mais tarde.",
-        variant: "destructive",
-      });
+      setError('Erro ao enviar email de recuperação. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -178,9 +119,9 @@ const ForgotPassword = () => {
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Mail className="h-8 w-8 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-[#0C1C2E] mb-2">Instruções enviadas!</h3>
+                  <h3 className="text-lg font-semibold text-[#0C1C2E] mb-2">Email enviado!</h3>
                   <p className="text-sm text-[#0C1C2E]/70">
-                    Se o e-mail informado estiver cadastrado, você receberá as instruções para redefinir sua senha.
+                    Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.
                   </p>
                 </div>
               )}
