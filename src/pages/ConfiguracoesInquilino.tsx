@@ -51,7 +51,7 @@ type PasswordForm = z.infer<typeof passwordSchema>;
 const ConfiguracoesInquilino = () => {
   const { toast } = useToast();
   const { user, updateUser } = useAuth();
-  const { profile, updateProfile, isLoading } = useUserProfile();
+  const { profile, updateProfile, loading } = useUserProfile();
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [currentImage, setCurrentImage] = useState(user?.imagem_perfil || '');
 
@@ -178,7 +178,7 @@ const ConfiguracoesInquilino = () => {
     setCurrentImage(imageUrl);
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <Layout title="Configurações">
         <div className="flex items-center justify-center h-64">
@@ -265,7 +265,7 @@ const ConfiguracoesInquilino = () => {
                     <div className="space-y-2">
                       <Label>CPF</Label>
                       <Input
-                        value={user?.cpf || 'Não informado'}
+                        value={(user as any)?.cpf || 'Não informado'}
                         disabled
                         className="bg-gray-100"
                       />
