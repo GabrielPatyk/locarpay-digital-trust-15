@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -67,6 +66,11 @@ const AppSidebar = () => {
           title: 'Pagamentos',
           url: '/pagamentos',
           icon: DollarSign,
+        },
+        {
+          title: 'Configurações',
+          url: '/configuracoes-inquilino',
+          icon: Settings,
         },
       ];
     }
