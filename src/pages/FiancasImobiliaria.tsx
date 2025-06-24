@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -284,7 +283,7 @@ const FiancasImobiliaria = () => {
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] rounded-lg p-6 text-[#0C1C2E]">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold mb-2">Gestão de Fianças</h1>
               <p className="opacity-90">Gerencie e acompanhe todas as suas fianças</p>
@@ -303,7 +302,7 @@ const FiancasImobiliaria = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="startDate">Data de Início</Label>
                 <Input
                   id="startDate"
@@ -312,7 +311,7 @@ const FiancasImobiliaria = () => {
                   onChange={(e) => setStartDate(e.target.value)}
                 />
               </div>
-              <div className="space-y-2">
+              <div>
                 <Label htmlFor="endDate">Data de Fim</Label>
                 <Input
                   id="endDate"
@@ -331,7 +330,7 @@ const FiancasImobiliaria = () => {
         </Card>
 
         {/* Cards de métricas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Fianças</CardTitle>
@@ -390,7 +389,7 @@ const FiancasImobiliaria = () => {
               <CardTitle>Lista de Fianças</CardTitle>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90 w-full lg:w-auto">
+                  <Button className="bg-primary hover:bg-primary/90">
                     <Plus className="mr-2 h-4 w-4" />
                     Gerar Fiança
                   </Button>
@@ -734,26 +733,24 @@ const FiancasImobiliaria = () => {
                   />
                 </div>
               </div>
-              <div className="w-full lg:w-48">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <Filter className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="Filtrar por status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos os Status</SelectItem>
-                    <SelectItem value="em_analise">Em Análise</SelectItem>
-                    <SelectItem value="aprovada">Aprovadas</SelectItem>
-                    <SelectItem value="ativa">Ativas</SelectItem>
-                    <SelectItem value="vencida">Vencidas</SelectItem>
-                    <SelectItem value="rejeitada">Rejeitadas</SelectItem>
-                    <SelectItem value="cancelada">Canceladas</SelectItem>
-                    <SelectItem value="enviada_ao_financeiro">Enviada ao Financeiro</SelectItem>
-                    <SelectItem value="pagamento_disponivel">Aguardando Pagamento</SelectItem>
-                    <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full lg:w-48">
+                  <Filter className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Filtrar por status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Status</SelectItem>
+                  <SelectItem value="em_analise">Em Análise</SelectItem>
+                  <SelectItem value="aprovada">Aprovadas</SelectItem>
+                  <SelectItem value="ativa">Ativas</SelectItem>
+                  <SelectItem value="vencida">Vencidas</SelectItem>
+                  <SelectItem value="rejeitada">Rejeitadas</SelectItem>
+                  <SelectItem value="cancelada">Canceladas</SelectItem>
+                  <SelectItem value="enviada_ao_financeiro">Enviada ao Financeiro</SelectItem>
+                  <SelectItem value="pagamento_disponivel">Aguardando Pagamento</SelectItem>
+                  <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="overflow-x-auto">
@@ -761,31 +758,19 @@ const FiancasImobiliaria = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Inquilino</TableHead>
-                    <TableHead>Imóvel</TableHead>
+                    <TableHead className="min-w-[200px]">Imóvel</TableHead>
                     <TableHead>Valor</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="hidden lg:table-cell">Data Criação</TableHead>
+                    <TableHead>Data Criação</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredFiancas.map((fianca) => (
                     <TableRow key={fianca.id}>
-                      <TableCell className="font-medium">
-                        <div className="min-w-0">
-                          <p className="truncate">{fianca.inquilino_nome_completo}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="min-w-0 max-w-xs">
-                          <p className="truncate">
-                            {`${fianca.imovel_endereco}, ${fianca.imovel_numero} - ${fianca.imovel_bairro}`}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}
-                      </TableCell>
+                      <TableCell className="font-medium">{fianca.inquilino_nome_completo}</TableCell>
+                      <TableCell>{`${fianca.imovel_endereco}, ${fianca.imovel_numero} - ${fianca.imovel_bairro}`}</TableCell>
+                      <TableCell>R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}</TableCell>
                       <TableCell>
                         {fianca.status_fianca === 'rejeitada' ? (
                           <RejectedFiancaTooltip
@@ -826,31 +811,28 @@ const FiancasImobiliaria = () => {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="hidden lg:table-cell whitespace-nowrap">
-                        {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}
-                      </TableCell>
+                      <TableCell>{new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}</TableCell>
                       <TableCell>
-                        <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex gap-2">
                           <Button 
                             variant="outline" 
                             size="sm"
                             onClick={() => handleViewFianca(fianca.id)}
-                            className="whitespace-nowrap"
                           >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Ver
+                            <Eye className="h-4 w-4" />
                           </Button>
                           {fianca.status_fianca === 'aprovada' ? (
                             <Button 
                               size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white whitespace-nowrap"
+                              className="bg-green-600 hover:bg-green-700 text-white"
                               onClick={() => handleAcceptFianca(fianca.id)}
                               disabled={isAccepting}
                             >
                               {isAccepting ? (
-                                <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                              ) : null}
-                              Aceitar
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                'Aceitar'
+                              )}
                             </Button>
                           ) : null}
                         </div>
