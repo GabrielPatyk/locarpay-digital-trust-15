@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -38,6 +39,7 @@ import ConfiguracoesFinanceiro from "./pages/ConfiguracoesFinanceiro";
 import ConfiguracoesJuridico from "./pages/ConfiguracoesJuridico";
 import FiancasAdmin from "./pages/FiancasAdmin";
 import FiancasImobiliaria from "./pages/FiancasImobiliaria";
+import FiancasImobiliariaCopia from "./pages/FiancasImobiliariaCopia";
 import ImobiliariasAdmin from "./pages/ImobiliariasAdmin";
 import ImobiliariasExecutivo from "./pages/ImobiliariasExecutivo";
 import ExecutivosAdmin from "./pages/ExecutivosAdmin";
@@ -269,6 +271,12 @@ function App() {
                       <ProtectedRoute allowedRoles={['imobiliaria']}>
                         <AppSidebar />
                         <FiancasImobiliaria />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/fiancas-imobiliaria-copia" element={
+                      <ProtectedRoute allowedRoles={['imobiliaria']}>
+                        <AppSidebar />
+                        <FiancasImobiliariaCopia />
                       </ProtectedRoute>
                     } />
                     <Route path="/contratos-imobiliaria" element={
