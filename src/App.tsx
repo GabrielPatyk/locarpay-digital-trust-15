@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -60,7 +61,6 @@ import PerformanceExecutivo from "./pages/PerformanceExecutivo";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import DetalheFianca from './pages/DetalheFianca';
-import ConfiguracoesInquilino from "./pages/ConfiguracoesInquilino";
 
 const queryClient = new QueryClient();
 
@@ -297,12 +297,6 @@ function App() {
                       <ProtectedRoute allowedRoles={['inquilino']}>
                         <AppSidebar />
                         <Inquilino />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/configuracoes-inquilino" element={
-                      <ProtectedRoute allowedRoles={['inquilino']}>
-                        <AppSidebar />
-                        <ConfiguracoesInquilino />
                       </ProtectedRoute>
                     } />
 
