@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useImobiliariasExecutivo, type NovaImobiliariaData } from '@/hooks/useImobiliariasExecutivo';
+import { useImobiliariasExecutivo, type NovaImobiliariaData, type ImobiliariaComPerfil } from '@/hooks/useImobiliariasExecutivo';
+import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import { toast } from '@/hooks/use-toast';
 import { 
   Building, 
@@ -19,17 +20,20 @@ import {
   User,
   FileText,
   Eye,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 
 const ImobiliariasExecutivo = () => {
   const [showNewForm, setShowNewForm] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedImobiliaria, setSelectedImobiliaria] = useState<ImobiliariaComPerfil | null>(null);
   const [formData, setFormData] = useState<NovaImobiliariaData>({
     nome: '',
     cnpj: '',
     contato: '',
     email: '',
-    telefone: '',
+    telefone: '+55 ',
     endereco: '',
     numero: '',
     complemento: '',
@@ -40,6 +44,7 @@ const ImobiliariasExecutivo = () => {
     observacoes: ''
   });
 
+  const { formatPhone, formatCNPJ, unformatPhone, unformatCNPJ } = usePhoneFormatter();
   const { imobiliarias, stats, isLoading, criarImobiliaria, isCreating } = useImobiliariasExecutivo();
 
   const getStatusColor = (ativo: boolean) => {
@@ -51,21 +56,36 @@ const ImobiliariasExecutivo = () => {
   };
 
   const handleInputChange = (field: keyof NovaImobiliariaData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'telefone') {
+      const formatted = formatPhone(value);
+      setFormData(prev => ({ ...prev, [field]: formatted }));
+    } else if (field === 'cnpj') {
+      const formatted = formatCNPJ(value);
+      setFormData(prev => ({ ...prev, [field]: formatted }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Desformatar telefone e CNPJ antes de enviar
+    const dadosFormatados = {
+      ...formData,
+      telefone: unformatPhone(formData.telefone),
+      cnpj: unformatCNPJ(formData.cnpj)
+    };
+    
     try {
-      await criarImobiliaria.mutateAsync(formData);
+      await criarImobiliaria.mutateAsync(dadosFormatados);
       setShowNewForm(false);
       setFormData({
         nome: '',
         cnpj: '',
         contato: '',
         email: '',
-        telefone: '',
+        telefone: '+55 ',
         endereco: '',
         numero: '',
         complemento: '',
@@ -104,11 +124,21 @@ const ImobiliariasExecutivo = () => {
     }
   };
 
-  const handleVerDetalhes = (imobiliaria: any) => {
-    toast({
-      title: "Detalhes da Imobiliária",
-      description: `${imobiliaria.nome} - ${imobiliaria.totalFiancas} fianças ativas`,
-    });
+  const handleVerDetalhes = (imobiliaria: ImobiliariaComPerfil) => {
+    setSelectedImobiliaria(imobiliaria);
+    setShowDetailModal(true);
+  };
+
+  const formatPhoneForDisplay = (phone: string) => {
+    if (!phone) return 'Não informado';
+    const formatted = formatPhone(phone);
+    return formatted;
+  };
+
+  const formatCNPJForDisplay = (cnpj: string) => {
+    if (!cnpj) return 'Não informado';
+    const formatted = formatCNPJ(cnpj);
+    return formatted;
   };
 
   if (isLoading) {
@@ -186,7 +216,7 @@ const ImobiliariasExecutivo = () => {
                       id="telefone"
                       value={formData.telefone}
                       onChange={(e) => handleInputChange('telefone', e.target.value)}
-                      placeholder="(11) 99999-9999"
+                      placeholder="+55 (11) 9 9999-9999"
                       className="text-sm"
                       required
                     />
@@ -397,7 +427,7 @@ const ImobiliariasExecutivo = () => {
                       <div>
                         <h4 className="font-medium text-gray-900 text-sm sm:text-base">{imobiliaria.nome}</h4>
                         <p className="text-xs sm:text-sm text-gray-600">
-                          CNPJ: {imobiliaria.perfil_usuario?.cnpj || 'Não informado'}
+                          CNPJ: {formatCNPJForDisplay(imobiliaria.perfil_usuario?.cnpj || '')}
                         </p>
                         <p className="text-xs sm:text-sm text-gray-600">
                           Contato: {imobiliaria.nome}
@@ -415,7 +445,7 @@ const ImobiliariasExecutivo = () => {
                       </div>
                       <div>
                         <p className="text-xs sm:text-sm text-gray-500">Telefone</p>
-                        <p className="text-xs sm:text-sm font-medium">{imobiliaria.telefone || 'Não informado'}</p>
+                        <p className="text-xs sm:text-sm font-medium">{formatPhoneForDisplay(imobiliaria.telefone || '')}</p>
                       </div>
                       <div>
                         <p className="text-xs sm:text-sm text-gray-500">Total Fianças</p>
@@ -477,6 +507,171 @@ const ImobiliariasExecutivo = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Modal de Detalhes da Imobiliária */}
+        <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between">
+                <span>Detalhes da Imobiliária</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDetailModal(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedImobiliaria && (
+              <div className="space-y-6">
+                {/* Informações Básicas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center">
+                        <Building className="mr-2 h-5 w-5" />
+                        Informações Básicas
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Nome da Imobiliária</Label>
+                        <p className="text-sm font-medium">{selectedImobiliaria.nome}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">CNPJ</Label>
+                        <p className="text-sm font-medium">{formatCNPJForDisplay(selectedImobiliaria.perfil_usuario?.cnpj || '')}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Status</Label>
+                        <Badge className={`${getStatusColor(selectedImobiliaria.ativo)} text-white text-xs ml-2`}>
+                          {getStatusText(selectedImobiliaria.ativo)}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center">
+                        <User className="mr-2 h-5 w-5" />
+                        Contato
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Nome do Contato</Label>
+                        <p className="text-sm font-medium">{selectedImobiliaria.nome}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">E-mail</Label>
+                        <p className="text-sm font-medium">{selectedImobiliaria.email}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Telefone</Label>
+                        <p className="text-sm font-medium">{formatPhoneForDisplay(selectedImobiliaria.telefone || '')}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Endereço */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <MapPin className="mr-2 h-5 w-5" />
+                      Endereço
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {selectedImobiliaria.perfil_usuario ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Logradouro</Label>
+                          <p className="text-sm font-medium">{selectedImobiliaria.perfil_usuario.endereco}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Número</Label>
+                          <p className="text-sm font-medium">{selectedImobiliaria.perfil_usuario.numero}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Complemento</Label>
+                          <p className="text-sm font-medium">{selectedImobiliaria.perfil_usuario.complemento || 'Não informado'}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Bairro</Label>
+                          <p className="text-sm font-medium">{selectedImobiliaria.perfil_usuario.bairro}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Cidade</Label>
+                          <p className="text-sm font-medium">{selectedImobiliaria.perfil_usuario.cidade}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Estado</Label>
+                          <p className="text-sm font-medium">{selectedImobiliaria.perfil_usuario.estado}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">País</Label>
+                          <p className="text-sm font-medium">{selectedImobiliaria.perfil_usuario.pais}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">Endereço não informado</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Estatísticas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center">
+                        <FileText className="mr-2 h-5 w-5" />
+                        Estatísticas
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Total de Fianças</Label>
+                        <p className="text-2xl font-bold text-primary">{selectedImobiliaria.totalFiancas || 0}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Valor Total</Label>
+                        <p className="text-2xl font-bold text-success">R$ {(selectedImobiliaria.valorTotal || 0).toLocaleString()}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Ações Rápidas</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <Button 
+                        onClick={() => handleLigar(selectedImobiliaria.telefone || '')}
+                        className="w-full"
+                        variant="outline"
+                      >
+                        <Phone className="mr-2 h-4 w-4" />
+                        Ligar
+                      </Button>
+                      <Button 
+                        onClick={() => handleEmail(selectedImobiliaria.email)}
+                        className="w-full"
+                        variant="outline"
+                      >
+                        <Mail className="mr-2 h-4 w-4" />
+                        Enviar E-mail
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

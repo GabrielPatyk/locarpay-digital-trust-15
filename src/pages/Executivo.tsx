@@ -1,478 +1,336 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import Layout from '@/components/Layout';
-import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useDashboardExecutivo } from '@/hooks/useDashboardExecutivo';
+import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
+import { toast } from '@/hooks/use-toast';
 import { 
   Building, 
-  TrendingUp, 
   Users, 
+  FileText, 
   DollarSign,
-  Calendar,
-  Phone,
-  Mail,
-  FileText,
-  Eye
+  Phone, 
+  Mail, 
+  Eye,
+  Loader2,
+  TrendingUp,
+  UserCheck
 } from 'lucide-react';
 
-interface Imobiliaria {
-  id: string;
-  nome: string;
-  contato: string;
-  email: string;
-  telefone: string;
-  endereco: string;
-  status: 'ativa' | 'inativa' | 'pendente';
-  totalFiancas: number;
-  valorTotal: number;
-  dataVinculo: string;
-}
-
-interface Negociacao {
-  id: string;
-  imobiliaria: string;
-  cliente: string;
-  valor: number;
-  status: 'negociacao' | 'proposta' | 'fechado' | 'perdido';
-  dataInicio: string;
-  proximaAtividade: string;
-  observacoes: string;
-}
-
-interface Fianca {
-  id: string;
-  imobiliaria: string;
-  inquilino: string;
-  valor: number;
-  taxa: number;
-  status: 'ativa' | 'paga' | 'vencida';
-  dataInicio: string;
-}
-
 const Executivo = () => {
-  const { user } = useAuth();
-  const [selectedTab, setSelectedTab] = useState('imobiliarias');
+  const { dashboardData, isLoading } = useDashboardExecutivo();
+  const { formatPhone, formatCNPJ } = usePhoneFormatter();
 
-  // Mock data
-  const imobiliarias: Imobiliaria[] = [
-    {
-      id: '1',
-      nome: 'Imobiliária Prime',
-      contato: 'Roberto Silva',
-      email: 'roberto@prime.com',
-      telefone: '(11) 99999-9999',
-      endereco: 'Av. Paulista, 1000 - São Paulo',
-      status: 'ativa',
-      totalFiancas: 15,
-      valorTotal: 37500,
-      dataVinculo: '2023-06-15'
-    },
-    {
-      id: '2',
-      nome: 'Imobiliária Central',
-      contato: 'Sandra Costa',
-      email: 'sandra@central.com',
-      telefone: '(11) 88888-8888',
-      endereco: 'Rua Augusta, 500 - São Paulo',
-      status: 'ativa',
-      totalFiancas: 22,
-      valorTotal: 68000,
-      dataVinculo: '2023-08-20'
-    },
-    {
-      id: '3',
-      nome: 'Imobiliária Novo Horizonte',
-      contato: 'Carlos Mendes',
-      email: 'carlos@horizonte.com',
-      telefone: '(11) 77777-7777',
-      endereco: 'Av. Faria Lima, 200 - São Paulo',
-      status: 'pendente',
-      totalFiancas: 0,
-      valorTotal: 0,
-      dataVinculo: '2024-01-10'
-    }
-  ];
-
-  const negociacoes: Negociacao[] = [
-    {
-      id: '1',
-      imobiliaria: 'Imobiliária Top Vendas',
-      cliente: 'João Apartments',
-      valor: 150000,
-      status: 'negociacao',
-      dataInicio: '2024-01-10',
-      proximaAtividade: '2024-01-17',
-      observacoes: 'Cliente interessado em pacote de 50 unidades'
-    },
-    {
-      id: '2',
-      imobiliaria: 'Imobiliária Elite',
-      cliente: 'Marina Residencial',
-      valor: 85000,
-      status: 'proposta',
-      dataInicio: '2024-01-08',
-      proximaAtividade: '2024-01-16',
-      observacoes: 'Proposta enviada aguardando retorno'
-    }
-  ];
-
-  const fiancas: Fianca[] = [
-    {
-      id: '1',
-      imobiliaria: 'Imobiliária Prime',
-      inquilino: 'Ana Silva',
-      valor: 2500,
-      taxa: 10,
-      status: 'ativa',
-      dataInicio: '2024-01-01'
-    },
-    {
-      id: '2',
-      imobiliaria: 'Imobiliária Central',
-      inquilino: 'Pedro Santos',
-      valor: 3200,
-      taxa: 8,
-      status: 'paga',
-      dataInicio: '2023-12-15'
-    }
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ativa':
-      case 'paga':
-      case 'fechado':
-        return 'bg-success';
-      case 'inativa':
-      case 'vencida':
-      case 'perdido':
-        return 'bg-red-500';
-      case 'pendente':
-      case 'negociacao':
-        return 'bg-warning';
-      case 'proposta':
-        return 'bg-blue-500';
-      default:
-        return 'bg-gray-500';
+  const handleLigar = (telefone: string) => {
+    if (telefone) {
+      window.open(`tel:${telefone}`, '_self');
+    } else {
+      toast({
+        title: "Telefone não disponível",
+        description: "Esta imobiliária não possui telefone cadastrado.",
+        variant: "destructive",
+      });
     }
   };
 
-  const getStatusText = (status: string, context: string) => {
-    const statusMap: { [key: string]: { [key: string]: string } } = {
-      imobiliaria: {
-        'ativa': 'Ativa',
-        'inativa': 'Inativa',
-        'pendente': 'Pendente'
-      },
-      negociacao: {
-        'negociacao': 'Em Negociação',
-        'proposta': 'Proposta Enviada',
-        'fechado': 'Fechado',
-        'perdido': 'Perdido'
-      },
-      fianca: {
-        'ativa': 'Ativa',
-        'paga': 'Paga',
-        'vencida': 'Vencida'
-      }
-    };
-    return statusMap[context]?.[status] || status;
+  const handleEmail = (email: string) => {
+    if (email) {
+      window.open(`mailto:${email}`, '_blank');
+    } else {
+      toast({
+        title: "E-mail não disponível",
+        description: "Esta imobiliária não possui e-mail cadastrado.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const totalImobiliarias = imobiliarias.length;
-  const imobiliariasAtivas = imobiliarias.filter(i => i.status === 'ativa').length;
-  const totalFiancas = imobiliarias.reduce((acc, i) => acc + i.totalFiancas, 0);
-  const valorTotalFiancas = imobiliarias.reduce((acc, i) => acc + i.valorTotal, 0);
+  const handleVerDetalhes = (imobiliaria: any) => {
+    toast({
+      title: "Detalhes da Imobiliária",
+      description: `${imobiliaria.nome} - ${imobiliaria.totalFiancas} fianças ativas`,
+    });
+  };
+
+  const getStatusColor = (ativo: boolean) => {
+    return ativo ? 'bg-success' : 'bg-red-500';
+  };
+
+  const getStatusText = (ativo: boolean) => {
+    return ativo ? 'Ativa' : 'Inativa';
+  };
+
+  const formatPhoneForDisplay = (phone: string) => {
+    if (!phone) return 'Não informado';
+    return formatPhone(phone);
+  };
+
+  const formatCNPJForDisplay = (cnpj: string) => {
+    if (!cnpj) return 'Não informado';
+    return formatCNPJ(cnpj);
+  };
+
+  if (isLoading) {
+    return (
+      <Layout title="Dashboard Executivo">
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </Layout>
+    );
+  }
+
+  const stats = dashboardData?.stats || {
+    totalImobiliarias: 0,
+    imobiliariasAtivas: 0,
+    totalFiancas: 0,
+    valorTotalFiancas: 0
+  };
+
+  const imobiliarias = dashboardData?.imobiliarias || [];
 
   return (
-    <Layout title="Executivo de Contas">
-      <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
-        {/* Golden Banner */}
-        <div className="bg-gradient-to-r from-[#F4D573] via-[#E6C46E] to-[#BC942C] rounded-lg p-4 sm:p-6 shadow-lg relative overflow-hidden">
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#FFD700]/20 via-transparent to-[#B8860B]/20"></div>
-            <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-tl from-[#DAA520]/20 via-transparent to-[#CD853F]/20"></div>
-          </div>
-          <div className="relative">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#0C1C2E] mb-2">
-              Olá, {user?.name}! 👋
-            </h1>
-            <p className="text-[#0C1C2E]/80 text-sm sm:text-lg">
-              Bem-vindo ao seu painel executivo. Gerencie suas imobiliárias e negociações.
-            </p>
-          </div>
+    <Layout title="Dashboard Executivo">
+      <div className="space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard Executivo</h1>
+          <p className="text-gray-600">Visão geral do seu desempenho e imobiliárias</p>
         </div>
 
-        {/* Header Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
-            <CardContent className="p-3 sm:p-4">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Imobiliárias</p>
-                  <p className="text-lg sm:text-2xl font-bold text-primary">{totalImobiliarias}</p>
+                  <p className="text-sm font-medium text-gray-600">Total Imobiliárias</p>
+                  <p className="text-2xl font-bold text-primary">{stats.totalImobiliarias}</p>
                 </div>
-                <Building className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                <Building className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-3 sm:p-4">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Ativas</p>
-                  <p className="text-lg sm:text-2xl font-bold text-success">{imobiliariasAtivas}</p>
+                  <p className="text-sm font-medium text-gray-600">Imobiliárias Ativas</p>
+                  <p className="text-2xl font-bold text-success">{stats.imobiliariasAtivas}</p>
                 </div>
-                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
+                <UserCheck className="h-8 w-8 text-success" />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-3 sm:p-4">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Fianças</p>
-                  <p className="text-lg sm:text-2xl font-bold text-warning">{totalFiancas}</p>
+                  <p className="text-sm font-medium text-gray-600">Total de Fianças</p>
+                  <p className="text-2xl font-bold text-warning">{stats.totalFiancas}</p>
                 </div>
-                <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-warning" />
+                <FileText className="h-8 w-8 text-warning" />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-3 sm:p-4">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Valor Total</p>
-                  <p className="text-lg sm:text-2xl font-bold text-success">
-                    R$ {(valorTotalFiancas / 1000).toFixed(0)}K
-                  </p>
+                  <p className="text-sm font-medium text-gray-600">Valor Total Fianças</p>
+                  <p className="text-2xl font-bold text-success">R$ {stats.valorTotalFiancas.toLocaleString()}</p>
                 </div>
-                <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
+                <DollarSign className="h-8 w-8 text-success" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="imobiliarias" className="text-xs sm:text-sm">Imobiliárias</TabsTrigger>
-            <TabsTrigger value="negociacoes" className="text-xs sm:text-sm">CRM</TabsTrigger>
-            <TabsTrigger value="fiancas" className="text-xs sm:text-sm">Fianças</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="imobiliarias" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg sm:text-xl">
-                  <Building className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  Minhas Imobiliárias
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  Imobiliárias associadas ao seu portfólio
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 sm:space-y-4">
-                  {imobiliarias.map((imobiliaria) => (
-                    <div
-                      key={imobiliaria.id}
-                      className="p-3 sm:p-4 rounded-lg border hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2 sm:gap-0">
-                        <div>
-                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">{imobiliaria.nome}</h4>
-                          <p className="text-xs sm:text-sm text-gray-600">Contato: {imobiliaria.contato}</p>
-                          <p className="text-xs sm:text-sm text-gray-600">{imobiliaria.endereco}</p>
-                        </div>
-                        <Badge className={`${getStatusColor(imobiliaria.status)} text-white text-xs`}>
-                          {getStatusText(imobiliaria.status, 'imobiliaria')}
-                        </Badge>
+        {/* Minhas Imobiliárias */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Building className="mr-2 h-5 w-5" />
+              Minhas Imobiliárias
+            </CardTitle>
+            <CardDescription>
+              Lista de imobiliárias parceiras cadastradas por você
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {imobiliarias.length === 0 ? (
+              <div className="text-center py-8">
+                <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma imobiliária cadastrada</h3>
+                <p className="text-gray-600 mb-4">Comece cadastrando sua primeira imobiliária parceira.</p>
+                <Button className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] hover:from-[#E6C46E] hover:to-[#B48534] text-[#0C1C2E]">
+                  Cadastrar Imobiliária
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {imobiliarias.slice(0, 5).map((imobiliaria: any) => (
+                  <div
+                    key={imobiliaria.id}
+                    className="p-4 rounded-lg border hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2 sm:gap-0">
+                      <div>
+                        <h4 className="font-medium text-gray-900">{imobiliaria.nome}</h4>
+                        <p className="text-sm text-gray-600">
+                          CNPJ: {formatCNPJForDisplay(imobiliaria.perfil_usuario?.cnpj || '')}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Contato: {imobiliaria.nome}
+                        </p>
                       </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-3">
-                        <div>
-                          <p className="text-xs sm:text-sm text-gray-500">E-mail</p>
-                          <p className="text-xs sm:text-sm font-medium truncate">{imobiliaria.email}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs sm:text-sm text-gray-500">Telefone</p>
-                          <p className="text-xs sm:text-sm font-medium">{imobiliaria.telefone}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs sm:text-sm text-gray-500">Total Fianças</p>
-                          <p className="text-xs sm:text-sm font-medium">{imobiliaria.totalFiancas}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs sm:text-sm text-gray-500">Valor Total</p>
-                          <p className="text-xs sm:text-sm font-medium text-success">
-                            R$ {imobiliaria.valorTotal.toLocaleString()}
-                          </p>
-                        </div>
+                      <Badge className={`${getStatusColor(imobiliaria.ativo)} text-white`}>
+                        {getStatusText(imobiliaria.ativo)}
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-3">
+                      <div>
+                        <p className="text-sm text-gray-500">E-mail</p>
+                        <p className="text-sm font-medium truncate">{imobiliaria.email}</p>
                       </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        <Button variant="outline" size="sm" className="text-xs">
-                          <Eye className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                          <span className="hidden sm:inline">Ver Detalhes</span>
-                          <span className="sm:hidden">Detalhes</span>
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-xs">
-                          <Phone className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                          <span className="hidden sm:inline">Ligar</span>
-                          <span className="sm:hidden">Ligar</span>
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-xs">
-                          <Mail className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                          <span className="hidden sm:inline">E-mail</span>
-                          <span className="sm:hidden">Email</span>
-                        </Button>
+                      <div>
+                        <p className="text-sm text-gray-500">Telefone</p>
+                        <p className="text-sm font-medium">{formatPhoneForDisplay(imobiliaria.telefone || '')}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Total Fianças</p>
+                        <p className="text-sm font-medium">{imobiliaria.totalFiancas || 0}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Valor Total</p>
+                        <p className="text-sm font-medium text-success">
+                          R$ {(imobiliaria.valorTotal || 0).toLocaleString()}
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          <TabsContent value="negociacoes" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg sm:text-xl">
-                  <TrendingUp className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  CRM - Negociações
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  Acompanhe suas negociações em andamento
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 sm:space-y-4">
-                  {negociacoes.map((negociacao) => (
-                    <div
-                      key={negociacao.id}
-                      className="p-3 sm:p-4 rounded-lg border hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2 sm:gap-0">
-                        <div>
-                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">{negociacao.imobiliaria}</h4>
-                          <p className="text-xs sm:text-sm text-gray-600">Cliente: {negociacao.cliente}</p>
-                        </div>
-                        <Badge className={`${getStatusColor(negociacao.status)} text-white text-xs`}>
-                          {getStatusText(negociacao.status, 'negociacao')}
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-3">
-                        <div>
-                          <p className="text-xs sm:text-sm text-gray-500">Valor da Negociação</p>
-                          <p className="text-base sm:text-lg font-bold text-primary">
-                            R$ {negociacao.valor.toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs sm:text-sm text-gray-500">Data de Início</p>
-                          <p className="text-xs sm:text-sm font-medium">
-                            {new Date(negociacao.dataInicio).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs sm:text-sm text-gray-500">Próxima Atividade</p>
-                          <p className="text-xs sm:text-sm font-medium">
-                            {new Date(negociacao.proximaAtividade).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mb-3">
-                        <p className="text-xs sm:text-sm text-gray-500">Observações</p>
-                        <p className="text-xs sm:text-sm text-gray-900">{negociacao.observacoes}</p>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        <Button variant="outline" size="sm" className="text-xs">
-                          <Eye className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                          <span className="hidden sm:inline">Ver Detalhes</span>
-                          <span className="sm:hidden">Detalhes</span>
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-xs">
-                          <Calendar className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                          <span className="hidden sm:inline">Agendar</span>
-                          <span className="sm:hidden">Agendar</span>
-                        </Button>
-                      </div>
+                    <div className="mb-2">
+                      <p className="text-sm text-gray-500">Endereço</p>
+                      <p className="text-sm text-gray-900">
+                        {imobiliaria.perfil_usuario ? 
+                          `${imobiliaria.perfil_usuario.endereco}, ${imobiliaria.perfil_usuario.numero} - ${imobiliaria.perfil_usuario.bairro}, ${imobiliaria.perfil_usuario.cidade}/${imobiliaria.perfil_usuario.estado}` 
+                          : 'Endereço não informado'
+                        }
+                      </p>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          <TabsContent value="fiancas" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg sm:text-xl">
-                  <FileText className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  Histórico de Fianças
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  Fianças processadas pelas suas imobiliárias
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 sm:space-y-4">
-                  {fiancas.map((fianca) => (
-                    <div
-                      key={fianca.id}
-                      className="p-3 sm:p-4 rounded-lg border hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2 sm:gap-0">
-                        <div>
-                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">{fianca.inquilino}</h4>
-                          <p className="text-xs sm:text-sm text-gray-600">{fianca.imobiliaria}</p>
-                        </div>
-                        <Badge className={`${getStatusColor(fianca.status)} text-white text-xs`}>
-                          {getStatusText(fianca.status, 'fianca')}
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-3">
-                        <div>
-                          <p className="text-xs sm:text-sm text-gray-500">Valor do Aluguel</p>
-                          <p className="text-xs sm:text-sm font-medium">
-                            R$ {fianca.valor.toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs sm:text-sm text-gray-500">Taxa</p>
-                          <p className="text-xs sm:text-sm font-medium">{fianca.taxa}%</p>
-                        </div>
-                        <div>
-                          <p className="text-xs sm:text-sm text-gray-500">Data de Início</p>
-                          <p className="text-xs sm:text-sm font-medium">
-                            {new Date(fianca.dataInicio).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      <Button variant="outline" size="sm" className="text-xs">
-                        <Eye className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                        <span className="hidden sm:inline">Ver Contrato</span>
-                        <span className="sm:hidden">Contrato</span>
+                    <div className="flex flex-wrap gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleVerDetalhes(imobiliaria)}
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        Ver Detalhes
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleLigar(imobiliaria.telefone || '')}
+                      >
+                        <Phone className="mr-2 h-4 w-4" />
+                        Ligar
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEmail(imobiliaria.email)}
+                      >
+                        <Mail className="mr-2 h-4 w-4" />
+                        E-mail
                       </Button>
                     </div>
-                  ))}
+                  </div>
+                ))}
+                
+                {imobiliarias.length > 5 && (
+                  <div className="text-center pt-4">
+                    <Button variant="outline">
+                      Ver Todas as Imobiliárias ({imobiliarias.length})
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Performance Overview */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <TrendingUp className="mr-2 h-5 w-5" />
+                Performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Taxa de Ativação</span>
+                  <span className="font-medium">
+                    {stats.totalImobiliarias > 0 
+                      ? Math.round((stats.imobiliariasAtivas / stats.totalImobiliarias) * 100)
+                      : 0
+                    }%
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Média Fianças/Imobiliária</span>
+                  <span className="font-medium">
+                    {stats.totalImobiliarias > 0 
+                      ? Math.round(stats.totalFiancas / stats.totalImobiliarias)
+                      : 0
+                    }
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Valor Médio/Fiança</span>
+                  <span className="font-medium">
+                    R$ {stats.totalFiancas > 0 
+                      ? Math.round(stats.valorTotalFiancas / stats.totalFiancas).toLocaleString()
+                      : 0
+                    }
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Ações Rápidas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <Button className="w-full justify-start bg-gradient-to-r from-[#F4D573] to-[#BC942C] hover:from-[#E6C46E] hover:to-[#B48534] text-[#0C1C2E]">
+                  <Building className="mr-2 h-4 w-4" />
+                  Cadastrar Nova Imobiliária
+                </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <FileText className="mr-2 h-4 w-4" />
+                  Ver Relatórios
+                </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <Users className="mr-2 h-4 w-4" />
+                  Gerenciar Parcerias
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </Layout>
   );
