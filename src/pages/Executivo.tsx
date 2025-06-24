@@ -268,69 +268,45 @@ const Executivo = () => {
         </Card>
 
         {/* Performance Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <TrendingUp className="mr-2 h-5 w-5" />
-                Performance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Taxa de Ativação</span>
-                  <span className="font-medium">
-                    {stats.totalImobiliarias > 0 
-                      ? Math.round((stats.imobiliariasAtivas / stats.totalImobiliarias) * 100)
-                      : 0
-                    }%
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Média Fianças/Imobiliária</span>
-                  <span className="font-medium">
-                    {stats.totalImobiliarias > 0 
-                      ? Math.round(stats.totalFiancas / stats.totalImobiliarias)
-                      : 0
-                    }
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Valor Médio/Fiança</span>
-                  <span className="font-medium">
-                    R$ {stats.totalFiancas > 0 
-                      ? Math.round(stats.valorTotalFiancas / stats.totalFiancas).toLocaleString()
-                      : 0
-                    }
-                  </span>
-                </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <TrendingUp className="mr-2 h-5 w-5" />
+              Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Taxa de Ativação</span>
+                <span className="font-medium">
+                  {stats.totalImobiliarias > 0 
+                    ? Math.round((stats.imobiliariasAtivas / stats.totalImobiliarias) * 100)
+                    : 0
+                  }%
+                </span>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Ações Rápidas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <Button className="w-full justify-start bg-gradient-to-r from-[#F4D573] to-[#BC942C] hover:from-[#E6C46E] hover:to-[#B48534] text-[#0C1C2E]">
-                  <Building className="mr-2 h-4 w-4" />
-                  Cadastrar Nova Imobiliária
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Ver Relatórios
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Users className="mr-2 h-4 w-4" />
-                  Gerenciar Parcerias
-                </Button>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Média Fianças/Imobiliária</span>
+                <span className="font-medium">
+                  {stats.totalImobiliarias > 0 
+                    ? Math.round(stats.totalFiancas / stats.totalImobiliarias)
+                    : 0
+                  }
+                </span>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Valor Médio/Fiança</span>
+                <span className="font-medium">
+                  R$ {stats.totalFiancas > 0 
+                    ? Math.round(stats.valorTotalFiancas / stats.totalFiancas).toLocaleString()
+                    : 0
+                  }
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

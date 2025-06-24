@@ -1,397 +1,616 @@
 
-import React, { useState } from 'react';
-import Layout from '@/components/Layout';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
+import Layout from '@/components/Layout';
+import ImageUpload from '@/components/ImageUpload';
+import ConfirmationModal from '@/components/ConfirmationModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 import { 
-  Settings, 
+  Building, 
   User, 
   Bell, 
   Shield, 
-  Eye,
   Save,
-  Camera
+  Eye,
+  EyeOff,
+  AlertTriangle
 } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useToast } from '@/hooks/use-toast';
 
 const ConfiguracoesExecutivo = () => {
   const { user, updateUser } = useAuth();
+  const { profile, updateProfile, updateUserData, updatePassword, loading } = useUserProfile();
+  const { formatPhone, formatCNPJ, unformatPhone, unformatCNPJ, isValidPhone } = usePhoneFormatter();
   const { toast } = useToast();
   
+  const [showPassword, setShowPassword] = useState(false);
+  const [showCompanyConfirmation, setShowCompanyConfirmation] = useState(false);
+  const [showPersonalConfirmation, setShowPersonalConfirmation] = useState(false);
+  const [pendingCompanyChanges, setPendingCompanyChanges] = useState<Record<string, string>>({});
+  const [pendingPersonalChanges, setPendingPersonalChanges] = useState<Record<string, string>>({});
+  
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    telefone: '(11) 99999-9999',
-    empresa: 'LocarPay',
-    cargo: 'Executivo de Contas',
-    bio: 'Executivo especializado em relacionamento com imobiliárias e desenvolvimento de novos negócios.',
-    meta_mensal: '20',
-    comissao: '5',
-    regiao: 'São Paulo',
+    // Dados da empresa - campos vazios para edição
+    nome_empresa: '',
+    cnpj: '',
+    endereco: '',
+    numero: '',
+    complemento: '',
+    bairro: '',
+    cidade: '',
+    estado: '',
+    pais: 'Brasil',
+    
+    // Dados pessoais - campos vazios para edição
+    nome: '',
+    email: '',
+    telefone: '',
+    imagem_perfil: user?.imagem_perfil || '',
+    
+    // Segurança
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    
+    // Notificações
+    emailNotifications: true,
+    smsNotifications: false,
+    weeklyReports: true,
+    monthlyReports: true
   });
 
-  const [notifications, setNotifications] = useState({
-    email_vendas: true,
-    email_metas: true,
-    push_negociacoes: true,
-    sms_urgentes: false,
-  });
-
-  const [privacy, setPrivacy] = useState({
-    perfil_publico: true,
-    mostrar_performance: true,
-    compartilhar_dados: false,
-  });
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: string, value: string | boolean) => {
+    if (field === 'telefone') {
+      setFormData(prev => ({
+        ...prev,
+        [field]: formatPhone(value as string)
+      }));
+    } else if (field === 'cnpj') {
+      setFormData(prev => ({
+        ...prev,
+        [field]: formatCNPJ(value as string)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
-  const handleNotificationChange = (field: string, value: boolean) => {
-    setNotifications(prev => ({ ...prev, [field]: value }));
+  const handleSaveCompanyData = async () => {
+    // Preparar dados para confirmação
+    const changes = {
+      'Nome da Empresa': formData.nome_empresa || '(não alterado)',
+      'CNPJ': formData.cnpj || '(não alterado)',
+      'Endereço': formData.endereco || '(não alterado)',
+      'Número': formData.numero || '(não alterado)',
+      'Complemento': formData.complemento || '(não alterado)',
+      'Bairro': formData.bairro || '(não alterado)',
+      'Cidade': formData.cidade || '(não alterado)',
+      'Estado': formData.estado || '(não alterado)',
+      'País': formData.pais || 'Brasil'
+    };
+
+    setPendingCompanyChanges(changes);
+    setShowCompanyConfirmation(true);
   };
 
-  const handlePrivacyChange = (field: string, value: boolean) => {
-    setPrivacy(prev => ({ ...prev, [field]: value }));
+  const confirmCompanyChanges = async () => {
+    // Filtrar apenas campos preenchidos
+    const updateData: any = {};
+    
+    if (formData.nome_empresa.trim()) updateData.nome_empresa = formData.nome_empresa;
+    if (formData.cnpj.trim()) updateData.cnpj = unformatCNPJ(formData.cnpj);
+    if (formData.endereco.trim()) updateData.endereco = formData.endereco;
+    if (formData.numero.trim()) updateData.numero = formData.numero;
+    if (formData.complemento.trim()) updateData.complemento = formData.complemento;
+    if (formData.bairro.trim()) updateData.bairro = formData.bairro;
+    if (formData.cidade.trim()) updateData.cidade = formData.cidade;
+    if (formData.estado.trim()) updateData.estado = formData.estado;
+    if (formData.pais.trim()) updateData.pais = formData.pais;
+
+    const success = await updateProfile(updateData);
+
+    if (success) {
+      toast({
+        title: "Dados da empresa atualizados!",
+        description: "As informações da empresa foram salvas com sucesso.",
+      });
+      setShowCompanyConfirmation(false);
+      // Limpar os campos após salvar
+      setFormData(prev => ({
+        ...prev,
+        nome_empresa: '',
+        cnpj: '',
+        endereco: '',
+        numero: '',
+        complemento: '',
+        bairro: '',
+        cidade: '',
+        estado: ''
+      }));
+    }
   };
 
-  const handleSave = () => {
-    // Aqui você implementaria a lógica para salvar as configurações
-    toast({
-      title: "Configurações salvas",
-      description: "Suas configurações foram atualizadas com sucesso.",
-    });
+  const handleSavePersonalData = async () => {
+    // Preparar dados para confirmação
+    const changes = {
+      'Nome Completo': formData.nome || '(não alterado)',
+      'E-mail': formData.email || '(não alterado)',
+      'Telefone': formData.telefone || '(não alterado)'
+    };
+
+    setPendingPersonalChanges(changes);
+    setShowPersonalConfirmation(true);
   };
 
-  const handlePasswordChange = () => {
-    // Implementar mudança de senha
-    toast({
-      title: "Senha alterada",
-      description: "Sua senha foi alterada com sucesso.",
-    });
+  const confirmPersonalChanges = async () => {
+    // Filtrar apenas campos preenchidos
+    const updateData: any = {};
+    
+    if (formData.nome.trim()) updateData.nome = formData.nome;
+    if (formData.email.trim()) updateData.email = formData.email;
+    if (formData.telefone.trim()) {
+      if (!isValidPhone(formData.telefone)) {
+        toast({
+          title: "Telefone inválido",
+          description: "O telefone deve ter 13 dígitos e começar com +55.",
+          variant: "destructive",
+        });
+        return;
+      }
+      updateData.telefone = unformatPhone(formData.telefone);
+    }
+
+    const success = await updateUserData(updateData);
+
+    if (success && user) {
+      // Atualizar o contexto do usuário
+      updateUser({
+        ...user,
+        name: updateData.nome || user.name,
+        email: updateData.email || user.email,
+        telefone: updateData.telefone || user.telefone
+      });
+      setShowPersonalConfirmation(false);
+      // Limpar os campos após salvar
+      setFormData(prev => ({
+        ...prev,
+        nome: '',
+        email: '',
+        telefone: ''
+      }));
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast({
+        title: "Erro ao alterar senha",
+        description: "As senhas não coincidem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.newPassword.length < 6) {
+      toast({
+        title: "Senha muito curta",
+        description: "A senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const success = await updatePassword(formData.currentPassword, formData.newPassword);
+    
+    if (success) {
+      setFormData(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }));
+    }
+  };
+
+  const handleImageChange = async (imageUrl: string) => {
+    setFormData(prev => ({ ...prev, imagem_perfil: imageUrl }));
   };
 
   return (
     <Layout title="Configurações">
       <div className="space-y-6 animate-fade-in">
-        {/* Golden Banner */}
-        <div className="bg-gradient-to-r from-[#F4D573] via-[#E6C46E] to-[#BC942C] rounded-lg p-6 shadow-lg">
-          <div className="flex items-center space-x-3">
-            <Settings className="h-8 w-8 text-[#0C1C2E]" />
-            <div>
-              <h1 className="text-2xl font-bold text-[#0C1C2E]">Configurações da Conta</h1>
-              <p className="text-[#0C1C2E]/80">Gerencie suas informações pessoais e preferências</p>
+        {/* Profile Image */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <User className="mr-2 h-5 w-5 text-primary" />
+              Foto de Perfil
+            </CardTitle>
+            <CardDescription>
+              Atualize sua foto de perfil
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ImageUpload
+              currentImage={formData.imagem_perfil}
+              onImageChange={handleImageChange}
+              userName={user?.name || 'Usuário'}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Company Profile */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Building className="mr-2 h-5 w-5 text-primary" />
+              Dados da Empresa
+            </CardTitle>
+            <CardDescription>
+              Informações básicas da sua empresa
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="nome_empresa">Nome da Empresa</Label>
+                <Input
+                  id="nome_empresa"
+                  value={formData.nome_empresa}
+                  onChange={(e) => handleInputChange('nome_empresa', e.target.value)}
+                  placeholder={profile?.nome_empresa || "Digite o nome da sua empresa"}
+                />
+                {profile?.nome_empresa && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.nome_empresa}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="cnpj">CNPJ</Label>
+                <Input
+                  id="cnpj"
+                  value={formData.cnpj}
+                  onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
+                  placeholder="00.000.000/0000-00"
+                  disabled={true}
+                  className="bg-gray-100 cursor-not-allowed"
+                />
+                <p className="text-xs text-gray-500">Campo não editável</p>
+              </div>
             </div>
-          </div>
-        </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <Label htmlFor="endereco">Endereço</Label>
+                <Input
+                  id="endereco"
+                  value={formData.endereco}
+                  onChange={(e) => handleInputChange('endereco', e.target.value)}
+                  placeholder={profile?.endereco || "Rua, Avenida, etc."}
+                />
+                {profile?.endereco && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.endereco}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="numero">Número</Label>
+                <Input
+                  id="numero"
+                  value={formData.numero}
+                  onChange={(e) => handleInputChange('numero', e.target.value)}
+                  placeholder={profile?.numero || "123"}
+                />
+                {profile?.numero && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.numero}</p>
+                )}
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Perfil */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <User className="mr-2 h-5 w-5" />
-                  Informações Pessoais
-                </CardTitle>
-                <CardDescription>
-                  Atualize suas informações básicas
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="name">Nome Completo</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">E-mail</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                    />
-                  </div>
-                </div>
+            <div>
+              <Label htmlFor="complemento">Complemento</Label>
+              <Input
+                id="complemento"
+                value={formData.complemento}
+                onChange={(e) => handleInputChange('complemento', e.target.value)}
+                placeholder={profile?.complemento || "Sala, Andar, etc."}
+              />
+              {profile?.complemento && (
+                <p className="text-xs text-gray-500 mt-1">Atual: {profile.complemento}</p>
+              )}
+            </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="telefone">Telefone</Label>
-                    <Input
-                      id="telefone"
-                      value={formData.telefone}
-                      onChange={(e) => handleInputChange('telefone', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="regiao">Região de Atuação</Label>
-                    <Select value={formData.regiao} onValueChange={(value) => handleInputChange('regiao', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="São Paulo">São Paulo</SelectItem>
-                        <SelectItem value="Rio de Janeiro">Rio de Janeiro</SelectItem>
-                        <SelectItem value="Belo Horizonte">Belo Horizonte</SelectItem>
-                        <SelectItem value="Salvador">Salvador</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="bairro">Bairro</Label>
+                <Input
+                  id="bairro"
+                  value={formData.bairro}
+                  onChange={(e) => handleInputChange('bairro', e.target.value)}
+                  placeholder={profile?.bairro || "Centro"}
+                />
+                {profile?.bairro && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.bairro}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="cidade">Cidade</Label>
+                <Input
+                  id="cidade"
+                  value={formData.cidade}
+                  onChange={(e) => handleInputChange('cidade', e.target.value)}
+                  placeholder={profile?.cidade || "São Paulo"}
+                />
+                {profile?.cidade && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.cidade}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="estado">Estado</Label>
+                <Input
+                  id="estado"
+                  value={formData.estado}
+                  onChange={(e) => handleInputChange('estado', e.target.value)}
+                  placeholder={profile?.estado || "SP"}
+                />
+                {profile?.estado && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.estado}</p>
+                )}
+              </div>
+            </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="empresa">Empresa</Label>
-                    <Input
-                      id="empresa"
-                      value={formData.empresa}
-                      disabled
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cargo">Cargo</Label>
-                    <Input
-                      id="cargo"
-                      value={formData.cargo}
-                      disabled
-                    />
-                  </div>
-                </div>
+            <div>
+              <Label htmlFor="pais">País</Label>
+              <Input
+                id="pais"
+                value={formData.pais}
+                onChange={(e) => handleInputChange('pais', e.target.value)}
+                placeholder="Brasil"
+              />
+            </div>
+            
+            <Button 
+              onClick={handleSaveCompanyData} 
+              disabled={loading}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {loading ? 'Salvando...' : 'Salvar Dados da Empresa'}
+            </Button>
+          </CardContent>
+        </Card>
 
-                <div>
-                  <Label htmlFor="bio">Biografia</Label>
-                  <Textarea
-                    id="bio"
-                    value={formData.bio}
-                    onChange={(e) => handleInputChange('bio', e.target.value)}
-                    placeholder="Conte um pouco sobre sua experiência..."
-                  />
-                </div>
+        {/* Personal Profile */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <User className="mr-2 h-5 w-5 text-success" />
+              Dados Pessoais
+            </CardTitle>
+            <CardDescription>
+              Informações do responsável pela conta
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="nome">Nome Completo</Label>
+                <Input
+                  id="nome"
+                  value={formData.nome}
+                  onChange={(e) => handleInputChange('nome', e.target.value)}
+                  placeholder={user?.name || "Seu nome completo"}
+                />
+                {user?.name && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {user.name}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="email">E-mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder={user?.email || "seu@email.com"}
+                />
+                {user?.email && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {user.email}</p>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="telefone">Telefone</Label>
+              <Input
+                id="telefone"
+                value={formData.telefone}
+                onChange={(e) => handleInputChange('telefone', e.target.value)}
+                placeholder={user?.telefone ? formatPhone(user.telefone) : "+55 (11) 9 9999-9999"}
+              />
+              {user?.telefone && (
+                <p className="text-xs text-gray-500 mt-1">Atual: {formatPhone(user.telefone)}</p>
+              )}
+            </div>
+            
+            <Button 
+              onClick={handleSavePersonalData} 
+              disabled={loading}
+              className="bg-success hover:bg-success/90"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {loading ? 'Salvando...' : 'Salvar Dados Pessoais'}
+            </Button>
+          </CardContent>
+        </Card>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="meta_mensal">Meta Mensal (Fianças)</Label>
-                    <Input
-                      id="meta_mensal"
-                      type="number"
-                      value={formData.meta_mensal}
-                      onChange={(e) => handleInputChange('meta_mensal', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="comissao">Comissão (%)</Label>
-                    <Input
-                      id="comissao"
-                      type="number"
-                      value={formData.comissao}
-                      disabled
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Notificações */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Bell className="mr-2 h-5 w-5" />
-                  Notificações
-                </CardTitle>
-                <CardDescription>
-                  Configure como deseja receber notificações
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>E-mail sobre vendas</Label>
-                    <p className="text-sm text-gray-600">Receba notificações sobre novas vendas</p>
-                  </div>
-                  <Switch
-                    checked={notifications.email_vendas}
-                    onCheckedChange={(checked) => handleNotificationChange('email_vendas', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>E-mail sobre metas</Label>
-                    <p className="text-sm text-gray-600">Relatórios mensais de performance</p>
-                  </div>
-                  <Switch
-                    checked={notifications.email_metas}
-                    onCheckedChange={(checked) => handleNotificationChange('email_metas', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Push sobre negociações</Label>
-                    <p className="text-sm text-gray-600">Notificações push sobre negociações</p>
-                  </div>
-                  <Switch
-                    checked={notifications.push_negociacoes}
-                    onCheckedChange={(checked) => handleNotificationChange('push_negociacoes', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>SMS urgentes</Label>
-                    <p className="text-sm text-gray-600">SMS para situações urgentes</p>
-                  </div>
-                  <Switch
-                    checked={notifications.sms_urgentes}
-                    onCheckedChange={(checked) => handleNotificationChange('sms_urgentes', checked)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Privacidade */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Shield className="mr-2 h-5 w-5" />
-                  Privacidade
-                </CardTitle>
-                <CardDescription>
-                  Controle a visibilidade das suas informações
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Perfil público</Label>
-                    <p className="text-sm text-gray-600">Permitir que outros vejam seu perfil</p>
-                  </div>
-                  <Switch
-                    checked={privacy.perfil_publico}
-                    onCheckedChange={(checked) => handlePrivacyChange('perfil_publico', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Mostrar performance</Label>
-                    <p className="text-sm text-gray-600">Exibir suas métricas de performance</p>
-                  </div>
-                  <Switch
-                    checked={privacy.mostrar_performance}
-                    onCheckedChange={(checked) => handlePrivacyChange('mostrar_performance', checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Compartilhar dados</Label>
-                    <p className="text-sm text-gray-600">Permitir uso de dados para análises</p>
-                  </div>
-                  <Switch
-                    checked={privacy.compartilhar_dados}
-                    onCheckedChange={(checked) => handlePrivacyChange('compartilhar_dados', checked)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Avatar */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center space-y-4">
-                  <Avatar className="h-24 w-24">
-                    <AvatarFallback className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E] text-2xl font-bold">
-                      {user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button variant="outline" size="sm">
-                    <Camera className="mr-2 h-4 w-4" />
-                    Alterar Foto
-                  </Button>
-                  <div className="text-center">
-                    <p className="font-medium">{user?.name}</p>
-                    <p className="text-sm text-gray-600">Executivo de Contas</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Ações Rápidas */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Ações Rápidas</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={handleSave}
+        {/* Security */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Shield className="mr-2 h-5 w-5 text-warning" />
+              Segurança
+            </CardTitle>
+            <CardDescription>
+              Altere sua senha de acesso
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="currentPassword">Senha Atual</Label>
+              <div className="relative">
+                <Input
+                  id="currentPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.currentPassword}
+                  onChange={(e) => handleInputChange('currentPassword', e.target.value)}
+                  placeholder="Digite sua senha atual"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar Configurações
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={handlePasswordChange}
-                >
-                  <Shield className="mr-2 h-4 w-4" />
-                  Alterar Senha
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  Visualizar Perfil
-                </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="newPassword">Nova Senha</Label>
+                <Input
+                  id="newPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.newPassword}
+                  onChange={(e) => handleInputChange('newPassword', e.target.value)}
+                  placeholder="Digite sua nova senha"
+                />
+              </div>
+              <div>
+                <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                <Input
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  placeholder="Confirme sua nova senha"
+                />
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleChangePassword} 
+              disabled={loading}
+              className="bg-warning hover:bg-warning/90 text-white"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {loading ? 'Alterando...' : 'Alterar Senha'}
+            </Button>
+          </CardContent>
+        </Card>
 
-            {/* Estatísticas Rápidas */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Estatísticas Rápidas</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Imobiliárias</span>
-                  <span className="font-medium">4</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Fianças do Mês</span>
-                  <span className="font-medium">25</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Meta Atingida</span>
-                  <span className="font-medium text-success">125%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Receita Mensal</span>
-                  <span className="font-medium">R$ 174K</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        {/* Notifications - Bloqueada */}
+        <Card className="opacity-60">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Bell className="mr-2 h-5 w-5" style={{ color: '#BC942C' }} />
+              Notificações
+              <AlertTriangle className="ml-2 h-4 w-4 text-red-500" />
+            </CardTitle>
+            <CardDescription>
+              <span className="text-red-600 font-medium">Esta opção ainda está em desenvolvimento</span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 pointer-events-none">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Notificações por E-mail</p>
+                <p className="text-sm text-gray-600">Receber notificações importantes por e-mail</p>
+              </div>
+              <Switch
+                checked={formData.emailNotifications}
+                disabled
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Notificações por SMS</p>
+                <p className="text-sm text-gray-600">Receber alertas urgentes por SMS</p>
+              </div>
+              <Switch
+                checked={formData.smsNotifications}
+                disabled
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Relatórios Semanais</p>
+                <p className="text-sm text-gray-600">Receber resumo semanal de atividades</p>
+              </div>
+              <Switch
+                checked={formData.weeklyReports}
+                disabled
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Relatórios Mensais</p>
+                <p className="text-sm text-gray-600">Receber relatório mensal detalhado</p>
+              </div>
+              <Switch
+                checked={formData.monthlyReports}
+                disabled
+              />
+            </div>
+            
+            <Button 
+              disabled
+              style={{ backgroundColor: '#BC942C' }} 
+              className="hover:opacity-90 text-white opacity-50"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              Salvar Preferências
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Modais de Confirmação */}
+        <ConfirmationModal
+          isOpen={showCompanyConfirmation}
+          onClose={() => setShowCompanyConfirmation(false)}
+          onConfirm={confirmCompanyChanges}
+          title="Confirmar Alterações - Dados da Empresa"
+          description="Você está prestes a alterar os dados da empresa. Confirme as informações abaixo:"
+          changes={pendingCompanyChanges}
+          isLoading={loading}
+        />
+
+        <ConfirmationModal
+          isOpen={showPersonalConfirmation}
+          onClose={() => setShowPersonalConfirmation(false)}
+          onConfirm={confirmPersonalChanges}
+          title="Confirmar Alterações - Dados Pessoais"
+          description="Você está prestes a alterar seus dados pessoais. Confirme as informações abaixo:"
+          changes={pendingPersonalChanges}
+          isLoading={loading}
+        />
       </div>
     </Layout>
   );
