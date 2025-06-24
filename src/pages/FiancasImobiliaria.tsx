@@ -280,48 +280,50 @@ const FiancasImobiliaria = () => {
 
   return (
     <Layout title="Fianças">
-      <div className="space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] rounded-lg p-6 text-[#0C1C2E]">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in max-w-full overflow-hidden px-2 sm:px-0">
+        {/* Header - Responsive */}
+        <div className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] rounded-lg p-4 sm:p-6 text-[#0C1C2E]">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">Gestão de Fianças</h1>
-              <p className="opacity-90">Gerencie e acompanhe todas as suas fianças</p>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold mb-2 break-words">Gestão de Fianças</h1>
+              <p className="opacity-90 text-sm sm:text-base">Gerencie e acompanhe todas as suas fianças</p>
             </div>
-            <FileText className="h-12 w-12 opacity-50" />
+            <FileText className="h-8 w-8 sm:h-12 sm:w-12 opacity-50 flex-shrink-0" />
           </div>
         </div>
 
-        {/* Filtros de Data */}
+        {/* Filtros de Data - Responsive */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-primary" />
-              Filtros por Período
+            <CardTitle className="flex items-center text-sm sm:text-base">
+              <Calendar className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+              <span className="break-words">Filtros por Período</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="startDate">Data de Início</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startDate" className="text-xs sm:text-sm">Data de Início</Label>
                 <Input
                   id="startDate"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full text-xs sm:text-sm"
                 />
               </div>
-              <div>
-                <Label htmlFor="endDate">Data de Fim</Label>
+              <div className="space-y-2">
+                <Label htmlFor="endDate" className="text-xs sm:text-sm">Data de Fim</Label>
                 <Input
                   id="endDate"
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full text-xs sm:text-sm"
                 />
               </div>
               <div className="flex items-end">
-                <Button className="w-full bg-primary hover:bg-primary/90" onClick={applyDateFilter}>
+                <Button className="w-full bg-primary hover:bg-primary/90 text-xs sm:text-sm px-3 py-2" onClick={applyDateFilter}>
                   Aplicar Filtros
                 </Button>
               </div>
@@ -329,72 +331,72 @@ const FiancasImobiliaria = () => {
           </CardContent>
         </Card>
 
-        {/* Cards de métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        {/* Cards de métricas - Responsive Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Fianças</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
+              <CardTitle className="text-xs sm:text-sm font-medium break-words">Total de Fianças</CardTitle>
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats.totalFiancas}</div>
+              <div className="text-lg sm:text-2xl font-bold text-primary">{stats.totalFiancas}</div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-warning">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Pendentes</CardTitle>
-              <Clock className="h-4 w-4 text-warning" />
+              <CardTitle className="text-xs sm:text-sm font-medium break-words">Fianças Pendentes</CardTitle>
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-warning flex-shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-warning">{stats.fiancasPendentes}</div>
+              <div className="text-lg sm:text-2xl font-bold text-warning">{stats.fiancasPendentes}</div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-success">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Ativas</CardTitle>
-              <CheckCircle className="h-4 w-4 text-success" />
+              <CardTitle className="text-xs sm:text-sm font-medium break-words">Fianças Ativas</CardTitle>
+              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-success flex-shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">{stats.fiancasAtivas}</div>
+              <div className="text-lg sm:text-2xl font-bold text-success">{stats.fiancasAtivas}</div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-destructive">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Vencidas</CardTitle>
-              <AlertCircle className="h-4 w-4 text-destructive" />
+              <CardTitle className="text-xs sm:text-sm font-medium break-words">Fianças Vencidas</CardTitle>
+              <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-destructive flex-shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-destructive">{stats.fiancasVencidas}</div>
+              <div className="text-lg sm:text-2xl font-bold text-destructive">{stats.fiancasVencidas}</div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-red-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Rejeitadas</CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-500" />
+              <CardTitle className="text-xs sm:text-sm font-medium break-words">Fianças Rejeitadas</CardTitle>
+              <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500 flex-shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-500">{stats.fiancasRejeitadas}</div>
+              <div className="text-lg sm:text-2xl font-bold text-red-500">{stats.fiancasRejeitadas}</div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Ações e Lista de Fianças */}
-        <Card>
+        {/* Ações e Lista de Fianças - Responsive */}
+        <Card className="max-w-full overflow-hidden">
           <CardHeader>
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-              <CardTitle>Lista de Fianças</CardTitle>
+            <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0 gap-4">
+              <CardTitle className="text-base sm:text-lg break-words">Lista de Fianças</CardTitle>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90">
-                    <Plus className="mr-2 h-4 w-4" />
+                  <Button className="bg-primary hover:bg-primary/90 text-xs sm:text-sm px-3 py-2 w-full sm:w-auto">
+                    <Plus className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     Gerar Fiança
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Nova Fiança</DialogTitle>
                     <DialogDescription>
@@ -720,136 +722,152 @@ const FiancasImobiliaria = () => {
               </Dialog>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-col lg:flex-row gap-4 mb-4">
-              <div className="flex-1">
+          <CardContent className="overflow-hidden">
+            <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 gap-4 mb-4">
+              <div className="flex-1 min-w-0">
                 <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-2 top-2.5 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                   <Input
                     placeholder="Pesquisar por inquilino ou imóvel..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
+                    className="pl-8 text-xs sm:text-sm w-full"
                   />
                 </div>
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full lg:w-48">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Filtrar por status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os Status</SelectItem>
-                  <SelectItem value="em_analise">Em Análise</SelectItem>
-                  <SelectItem value="aprovada">Aprovadas</SelectItem>
-                  <SelectItem value="ativa">Ativas</SelectItem>
-                  <SelectItem value="vencida">Vencidas</SelectItem>
-                  <SelectItem value="rejeitada">Rejeitadas</SelectItem>
-                  <SelectItem value="cancelada">Canceladas</SelectItem>
-                  <SelectItem value="enviada_ao_financeiro">Enviada ao Financeiro</SelectItem>
-                  <SelectItem value="pagamento_disponivel">Aguardando Pagamento</SelectItem>
-                  <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="w-full lg:w-48">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full text-xs sm:text-sm">
+                    <Filter className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    <SelectValue placeholder="Filtrar por status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os Status</SelectItem>
+                    <SelectItem value="em_analise">Em Análise</SelectItem>
+                    <SelectItem value="aprovada">Aprovadas</SelectItem>
+                    <SelectItem value="ativa">Ativas</SelectItem>
+                    <SelectItem value="vencida">Vencidas</SelectItem>
+                    <SelectItem value="rejeitada">Rejeitadas</SelectItem>
+                    <SelectItem value="cancelada">Canceladas</SelectItem>
+                    <SelectItem value="enviada_ao_financeiro">Enviada ao Financeiro</SelectItem>
+                    <SelectItem value="pagamento_disponivel">Aguardando Pagamento</SelectItem>
+                    <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Inquilino</TableHead>
-                    <TableHead className="min-w-[200px]">Imóvel</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data Criação</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredFiancas.map((fianca) => (
-                    <TableRow key={fianca.id}>
-                      <TableCell className="font-medium">{fianca.inquilino_nome_completo}</TableCell>
-                      <TableCell>{`${fianca.imovel_endereco}, ${fianca.imovel_numero} - ${fianca.imovel_bairro}`}</TableCell>
-                      <TableCell>R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}</TableCell>
-                      <TableCell>
-                        {fianca.status_fianca === 'rejeitada' ? (
-                          <RejectedFiancaTooltip
-                            rejectionReason={fianca.motivo_reprovacao || 'Não informado'}
-                            rejectionDate={fianca.data_analise || fianca.data_atualizacao}
-                            score={fianca.score_credito}
-                            analystName="Analista Responsável"
-                          >
-                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
-                              {getStatusLabel(fianca.status_fianca)}
-                            </Badge>
-                          </RejectedFiancaTooltip>
-                        ) : fianca.status_fianca === 'aprovada' ? (
-                          <ApprovedFiancaTooltip
-                            approvalDate={fianca.data_analise || fianca.data_atualizacao}
-                            score={fianca.score_credito}
-                            rate={fianca.taxa_aplicada}
-                            analystName="Analista Responsável"
-                            observations={fianca.observacoes_aprovacao}
-                          >
-                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
-                              {getStatusLabel(fianca.status_fianca)}
-                            </Badge>
-                          </ApprovedFiancaTooltip>
-                        ) : fianca.status_fianca === 'pagamento_disponivel' ? (
-                          <AguardandoPagamentoTooltip
-                            valorFianca={fianca.imovel_valor_aluguel}
-                            nomeInquilino={fianca.inquilino_nome_completo}
-                            dataEnvio={fianca.data_atualizacao}
-                          >
-                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
-                              {getStatusLabel(fianca.status_fianca)}
-                            </Badge>
-                          </AguardandoPagamentoTooltip>
-                        ) : (
-                          <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
-                            {getStatusLabel(fianca.status_fianca)}
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>{new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleViewFianca(fianca.id)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {fianca.status_fianca === 'aprovada' ? (
-                            <Button 
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                              onClick={() => handleAcceptFianca(fianca.id)}
-                              disabled={isAccepting}
-                            >
-                              {isAccepting ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                'Aceitar'
-                              )}
-                            </Button>
-                          ) : null}
-                        </div>
-                      </TableCell>
+            <div className="overflow-x-auto -mx-2 sm:mx-0">
+              <div className="min-w-full inline-block align-middle">
+                <Table className="w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">Inquilino</TableHead>
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4 min-w-[200px]">Imóvel</TableHead>
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">Valor</TableHead>
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">Status</TableHead>
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden sm:table-cell">Data Criação</TableHead>
+                      <TableHead className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredFiancas.map((fianca) => (
+                      <TableRow key={fianca.id}>
+                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4 font-medium break-words max-w-[150px]">
+                          {fianca.inquilino_nome_completo}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4 break-words max-w-[200px]">
+                          {`${fianca.imovel_endereco}, ${fianca.imovel_numero} - ${fianca.imovel_bairro}`}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">
+                          R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">
+                          {fianca.status_fianca === 'rejeitada' ? (
+                            <RejectedFiancaTooltip
+                              rejectionReason={fianca.motivo_reprovacao || 'Não informado'}
+                              rejectionDate={fianca.data_analise || fianca.data_atualizacao}
+                              score={fianca.score_credito}
+                              analystName="Analista Responsável"
+                            >
+                              <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help text-xs`}>
+                                {getStatusLabel(fianca.status_fianca)}
+                              </Badge>
+                            </RejectedFiancaTooltip>
+                          ) : fianca.status_fianca === 'aprovada' ? (
+                            <ApprovedFiancaTooltip
+                              approvalDate={fianca.data_analise || fianca.data_atualizacao}
+                              score={fianca.score_credito}
+                              rate={fianca.taxa_aplicada}
+                              analystName="Analista Responsável"
+                              observations={fianca.observacoes_aprovacao}
+                            >
+                              <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help text-xs`}>
+                                {getStatusLabel(fianca.status_fianca)}
+                              </Badge>
+                            </ApprovedFiancaTooltip>
+                          ) : fianca.status_fianca === 'pagamento_disponivel' ? (
+                            <AguardandoPagamentoTooltip
+                              valorFianca={fianca.imovel_valor_aluguel}
+                              nomeInquilino={fianca.inquilino_nome_completo}
+                              dataEnvio={fianca.data_atualizacao}
+                            >
+                              <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help text-xs`}>
+                                {getStatusLabel(fianca.status_fianca)}
+                              </Badge>
+                            </AguardandoPagamentoTooltip>
+                          ) : (
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white text-xs`}>
+                              {getStatusLabel(fianca.status_fianca)}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden sm:table-cell">
+                          {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4">
+                          <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewFianca(fianca.id)}
+                              className="text-xs px-2 py-1 w-full sm:w-auto"
+                            >
+                              <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                              <span className="ml-1 sm:hidden">Ver</span>
+                            </Button>
+                            {fianca.status_fianca === 'aprovada' ? (
+                              <Button 
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 w-full sm:w-auto"
+                                onClick={() => handleAcceptFianca(fianca.id)}
+                                disabled={isAccepting}
+                              >
+                                {isAccepting ? (
+                                  <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <span>Aceitar</span>
+                                  </>
+                                )}
+                              </Button>
+                            ) : null}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
 
             {filteredFiancas.length === 0 && (
               <div className="text-center py-8">
-                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <FileText className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mb-4" />
+                <h3 className="text-sm sm:text-lg font-medium text-gray-900 mb-2">
                   Nenhuma fiança encontrada
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-xs sm:text-base text-gray-600 px-4">
                   {searchTerm || statusFilter !== 'todos' || startDate || endDate
                     ? 'Tente ajustar sua busca ou adicione uma nova fiança.'
                     : 'Adicione sua primeira fiança para começar.'
