@@ -1,10 +1,15 @@
+
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useInquilinosImobiliaria } from '@/hooks/useInquilinosImobiliaria';
+import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { 
   Building, 
@@ -14,14 +19,21 @@ import {
   TrendingUp,
   AlertCircle,
   CheckCircle,
-  Plus,
   Eye,
   Edit,
-  Calendar
+  Calendar,
+  Phone,
+  Mail,
+  Search,
+  Filter,
+  User,
+  Loader2
 } from 'lucide-react';
 
 const Imobiliaria = () => {
   const { user } = useAuth();
+  const { formatPhone } = usePhoneFormatter();
+  const { inquilinos, isLoading: inquilinosLoading, getStatusColor, getStatusLabel, getVerificationColor, getVerificationLabel } = useInquilinosImobiliaria();
 
   // Dados mock para demonstração
   const dashboardData = {
@@ -59,7 +71,7 @@ const Imobiliaria = () => {
     }
   ];
 
-  const getStatusColor = (status: string) => {
+  const getStatusColorContrato = (status: string) => {
     const colors: { [key: string]: string } = {
       'aguardando_assinatura': 'bg-yellow-500',
       'analise_credito': 'bg-blue-500',
@@ -69,7 +81,7 @@ const Imobiliaria = () => {
     return colors[status] || 'bg-gray-500';
   };
 
-  const getStatusLabel = (status: string) => {
+  const getStatusLabelContrato = (status: string) => {
     const labels: { [key: string]: string } = {
       'aguardando_assinatura': 'Aguardando Assinatura',
       'analise_credito': 'Análise de Crédito',
@@ -77,6 +89,18 @@ const Imobiliaria = () => {
       'reprovado': 'Reprovado'
     };
     return labels[status] || status;
+  };
+
+  const handleLigar = (telefone: string) => {
+    if (telefone) {
+      window.open(`tel:${telefone}`, '_self');
+    }
+  };
+
+  const handleEmail = (email: string) => {
+    if (email) {
+      window.open(`mailto:${email}`, '_blank');
+    }
   };
 
   return (
@@ -220,10 +244,6 @@ const Imobiliaria = () => {
           <TabsContent value="contracts" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium">Contratos Pendentes</h3>
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Contrato
-              </Button>
             </div>
 
             <div className="space-y-4">
@@ -235,8 +255,8 @@ const Imobiliaria = () => {
                         <h4 className="font-medium text-gray-900">{contrato.inquilino}</h4>
                         <p className="text-sm text-gray-600">{contrato.imovel}</p>
                       </div>
-                      <Badge className={`${getStatusColor(contrato.status)} text-white`}>
-                        {getStatusLabel(contrato.status)}
+                      <Badge className={`${getStatusColorContrato(contrato.status)} text-white`}>
+                        {getStatusLabelContrato(contrato.status)}
                       </Badge>
                     </div>
                     
@@ -270,10 +290,6 @@ const Imobiliaria = () => {
           <TabsContent value="properties" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium">Lista de Imóveis</h3>
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Imóvel
-              </Button>
             </div>
             <Card>
               <CardContent>
@@ -285,16 +301,99 @@ const Imobiliaria = () => {
           <TabsContent value="tenants" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium">Lista de Inquilinos</h3>
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Inquilino
-              </Button>
             </div>
-            <Card>
-              <CardContent>
-                <p>Em breve, a listagem completa dos seus inquilinos estará disponível aqui.</p>
-              </CardContent>
-            </Card>
+            
+            {inquilinosLoading ? (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-6">
+                  {inquilinos.length === 0 ? (
+                    <div className="text-center py-8">
+                      <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum inquilino encontrado</h3>
+                      <p className="text-gray-600">
+                        Ainda não há inquilinos cadastrados para sua imobiliária.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {inquilinos.map((inquilino) => (
+                        <div
+                          key={inquilino.id}
+                          className="p-4 rounded-lg border hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2 sm:gap-0">
+                            <div>
+                              <h4 className="font-medium text-gray-900">{inquilino.nome}</h4>
+                              <p className="text-sm text-gray-600">CPF: {inquilino.cpf}</p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Badge className={`${getStatusColor(inquilino.statusAtivo)} text-white`}>
+                                {getStatusLabel(inquilino.statusAtivo)}
+                              </Badge>
+                              <Badge className={`${getVerificationColor(inquilino.statusVerificacao)} text-white`}>
+                                {getVerificationLabel(inquilino.statusVerificacao)}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-3">
+                            <div>
+                              <p className="text-sm text-gray-500">E-mail</p>
+                              <p className="text-sm font-medium truncate">{inquilino.email || 'Não informado'}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Telefone</p>
+                              <p className="text-sm font-medium">{inquilino.telefone ? formatPhone(inquilino.telefone) : 'Não informado'}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Total Fianças</p>
+                              <p className="text-sm font-medium">{inquilino.totalFiancas}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Valor Aluguel</p>
+                              <p className="text-sm font-medium text-success">
+                                R$ {inquilino.valorAluguel.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            <Button variant="outline" size="sm">
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver Detalhes
+                            </Button>
+                            {inquilino.telefone && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleLigar(inquilino.telefone)}
+                              >
+                                <Phone className="mr-2 h-4 w-4" />
+                                Ligar
+                              </Button>
+                            )}
+                            {inquilino.email && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleEmail(inquilino.email)}
+                              >
+                                <Mail className="mr-2 h-4 w-4" />
+                                E-mail
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </div>

@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
+import { useImobiliariaData } from '@/hooks/useImobiliariaData';
 import Layout from '@/components/Layout';
 import ImageUpload from '@/components/ImageUpload';
 import ConfirmationModal from '@/components/ConfirmationModal';
@@ -26,6 +28,7 @@ const ConfiguracoesImobiliaria = () => {
   const { user, updateUser } = useAuth();
   const { profile, updateProfile, updateUserData, updatePassword, loading } = useUserProfile();
   const { formatPhone, formatCNPJ, unformatPhone, unformatCNPJ, isValidPhone } = usePhoneFormatter();
+  const { cnpj: currentCnpj, isLoading: cnpjLoading } = useImobiliariaData();
   const { toast } = useToast();
   
   const [showPassword, setShowPassword] = useState(false);
@@ -255,18 +258,18 @@ const ConfiguracoesImobiliaria = () => {
               Dados da Empresa
             </CardTitle>
             <CardDescription>
-              Informações básicas da sua imobiliária
+              Informações básicas da sua empresa
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="nome_empresa">Nome da Empresa/Imobiliária</Label>
+                <Label htmlFor="nome_empresa">Nome da Empresa</Label>
                 <Input
                   id="nome_empresa"
                   value={formData.nome_empresa}
                   onChange={(e) => handleInputChange('nome_empresa', e.target.value)}
-                  placeholder={profile?.nome_empresa || "Digite o nome da sua imobiliária"}
+                  placeholder={profile?.nome_empresa || "Digite o nome da sua empresa"}
                 />
                 {profile?.nome_empresa && (
                   <p className="text-xs text-gray-500 mt-1">Atual: {profile.nome_empresa}</p>
@@ -278,7 +281,7 @@ const ConfiguracoesImobiliaria = () => {
                   id="cnpj"
                   value={formData.cnpj}
                   onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
-                  placeholder="00.000.000/0000-00"
+                  placeholder={currentCnpj ? formatCNPJ(currentCnpj) : "00.000.000/0000-00"}
                   disabled={true}
                   className="bg-gray-100 cursor-not-allowed"
                 />

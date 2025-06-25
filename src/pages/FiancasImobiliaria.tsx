@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -280,44 +281,46 @@ const FiancasImobiliaria = () => {
 
   return (
     <Layout title="Fianças">
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] rounded-lg p-6 text-[#0C1C2E]">
+        <div className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] rounded-lg p-4 sm:p-6 text-[#0C1C2E]">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold mb-2">Gestão de Fianças</h1>
-              <p className="opacity-90">Gerencie e acompanhe todas as suas fianças</p>
+              <h1 className="text-xl sm:text-2xl font-bold mb-2">Gestão de Fianças</h1>
+              <p className="opacity-90 text-sm sm:text-base">Gerencie e acompanhe todas as suas fianças</p>
             </div>
-            <FileText className="h-12 w-12 opacity-50" />
+            <FileText className="h-8 w-8 sm:h-12 sm:w-12 opacity-50" />
           </div>
         </div>
 
         {/* Filtros de Data */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-primary" />
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-base sm:text-lg">
+              <Calendar className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Filtros por Período
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="startDate">Data de Início</Label>
+                <Label htmlFor="startDate" className="text-sm">Data de Início</Label>
                 <Input
                   id="startDate"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="endDate">Data de Fim</Label>
+                <Label htmlFor="endDate" className="text-sm">Data de Fim</Label>
                 <Input
                   id="endDate"
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
+                  className="mt-1"
                 />
               </div>
               <div className="flex items-end">
@@ -330,54 +333,54 @@ const FiancasImobiliaria = () => {
         </Card>
 
         {/* Cards de métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6">
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Fianças</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">Total de Fianças</CardTitle>
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats.totalFiancas}</div>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-lg sm:text-2xl font-bold text-primary">{stats.totalFiancas}</div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-warning">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Pendentes</CardTitle>
-              <Clock className="h-4 w-4 text-warning" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">Fianças Pendentes</CardTitle>
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-warning" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-warning">{stats.fiancasPendentes}</div>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-lg sm:text-2xl font-bold text-warning">{stats.fiancasPendentes}</div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-success">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Ativas</CardTitle>
-              <CheckCircle className="h-4 w-4 text-success" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">Fianças Ativas</CardTitle>
+              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-success" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-success">{stats.fiancasAtivas}</div>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-lg sm:text-2xl font-bold text-success">{stats.fiancasAtivas}</div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-destructive">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Vencidas</CardTitle>
-              <AlertCircle className="h-4 w-4 text-destructive" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">Fianças Vencidas</CardTitle>
+              <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-destructive" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-destructive">{stats.fiancasVencidas}</div>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-lg sm:text-2xl font-bold text-destructive">{stats.fiancasVencidas}</div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-red-500">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fianças Rejeitadas</CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-500" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+              <CardTitle className="text-xs sm:text-sm font-medium">Fianças Rejeitadas</CardTitle>
+              <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-500">{stats.fiancasRejeitadas}</div>
+            <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+              <div className="text-lg sm:text-2xl font-bold text-red-500">{stats.fiancasRejeitadas}</div>
             </CardContent>
           </Card>
         </div>
@@ -386,15 +389,15 @@ const FiancasImobiliaria = () => {
         <Card>
           <CardHeader>
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-              <CardTitle>Lista de Fianças</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Lista de Fianças</CardTitle>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90">
+                  <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
                     <Plus className="mr-2 h-4 w-4" />
                     Gerar Fiança
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
                   <DialogHeader>
                     <DialogTitle>Nova Fiança</DialogTitle>
                     <DialogDescription>
@@ -721,7 +724,7 @@ const FiancasImobiliaria = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col lg:flex-row gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -734,7 +737,7 @@ const FiancasImobiliaria = () => {
                 </div>
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full lg:w-48">
+                <SelectTrigger className="w-full sm:w-48">
                   <Filter className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
@@ -757,12 +760,12 @@ const FiancasImobiliaria = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Inquilino</TableHead>
+                    <TableHead className="min-w-[120px]">Inquilino</TableHead>
                     <TableHead className="min-w-[200px]">Imóvel</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data Criação</TableHead>
-                    <TableHead>Ações</TableHead>
+                    <TableHead className="min-w-[100px]">Valor</TableHead>
+                    <TableHead className="min-w-[120px]">Status</TableHead>
+                    <TableHead className="min-w-[100px]">Data Criação</TableHead>
+                    <TableHead className="min-w-[100px]">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
