@@ -2,295 +2,323 @@
 import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { 
-  FileText, 
-  CheckCircle, 
-  ExternalLink,
-  Mail,
-  Download,
-  CreditCard,
-  Shield,
-  Calendar,
-  AlertCircle
-} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useInquilinoData } from '@/hooks/useInquilinoData';
-import ComprovanteUpload from '@/components/ComprovanteUpload';
+import { useAuth } from '@/contexts/AuthContext';
+import UploadComprovanteModal from '@/components/UploadComprovanteModal';
+import { 
+  DollarSign, 
+  CreditCard, 
+  FileText, 
+  Upload,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  User,
+  Mail,
+  Phone,
+  MapPin
+} from 'lucide-react';
+import { useState } from 'react';
 
 const Inquilino = () => {
-  const { toast } = useToast();
-  const { 
-    fiancaAtiva, 
-    fiancaPagamento, 
-    emailVerificado, 
-    isLoading, 
-    enviarComprovante 
-  } = useInquilinoData();
-
-  const baixarContrato = () => {
-    toast({
-      title: "Download iniciado",
-      description: "O contrato está sendo baixado em formato PDF.",
-    });
-  };
-
-  const acessarLinkPagamento = () => {
-    if (fiancaPagamento?.link_pagamento) {
-      window.open(fiancaPagamento.link_pagamento, '_blank');
-    } else {
-      toast({
-        title: "Link indisponível",
-        description: "O link de pagamento ainda não está disponível.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleComprovanteUpload = async (filePath: string) => {
-    if (fiancaPagamento?.id) {
-      try {
-        await enviarComprovante.mutateAsync({
-          fiancaId: fiancaPagamento.id,
-          comprovantePath: filePath
-        });
-      } catch (error) {
-        console.error('Erro ao enviar comprovante:', error);
-      }
-    } else {
-      toast({
-        title: "Erro",
-        description: "Não foi possível identificar a fiança para envio do comprovante.",
-        variant: "destructive"
-      });
-    }
-  };
+  const { user } = useAuth();
+  const { fiancaAtiva, fiancaPagamento, emailVerificado, isLoading } = useInquilinoData();
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ativa': return 'bg-success';
-      case 'pagamento_disponivel': return 'bg-warning';
-      case 'comprovante_enviado': return 'bg-blue-500';
-      case 'pendente': return 'bg-warning';
-      case 'vencido': return 'bg-red-500';
+      case 'pagamento_disponivel': return 'bg-blue-500';
+      case 'comprovante_enviado': return 'bg-green-600';
+      case 'aprovada': return 'bg-orange-500';
+      case 'em_analise': return 'bg-warning';
+      case 'rejeitada': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'ativa': return 'Ativo';
+      case 'ativa': return 'Ativa';
       case 'pagamento_disponivel': return 'Pagamento Disponível';
       case 'comprovante_enviado': return 'Comprovante Enviado';
-      case 'pendente': return 'Pendente';
-      case 'vencido': return 'Vencido';
+      case 'aprovada': return 'Aprovada';
+      case 'em_analise': return 'Em Análise';
+      case 'rejeitada': return 'Rejeitada';
       default: return status;
     }
   };
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
   if (isLoading) {
     return (
-      <Layout title="Área do Inquilino">
+      <Layout title="Dashboard - Inquilino">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-            <p>Carregando...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-2 text-gray-600">Carregando dados...</p>
           </div>
         </div>
       </Layout>
     );
   }
 
+  const fiancaParaExibir = fiancaAtiva || fiancaPagamento;
+
   return (
-    <Layout title="Área do Inquilino">
-      <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
-        {/* Welcome Card */}
-        <Card className="bg-gradient-to-r from-primary to-success text-white">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
-              <div className="flex-1">
-                <h2 className="text-xl sm:text-2xl font-bold mb-2">Bem-vindo à sua área!</h2>
-                <p className="opacity-90 text-sm sm:text-base">
-                  Aqui você pode acompanhar seu contrato, validar sua conta e realizar pagamentos.
-                </p>
-              </div>
-              <Shield className="h-12 w-12 sm:h-16 sm:w-16 opacity-80 flex-shrink-0" />
-            </div>
-          </CardContent>
-        </Card>
+    <Layout title="Dashboard - Inquilino">
+      <div className="space-y-6 animate-fade-in">
+        {/* Welcome Container */}
+        <div className="relative overflow-hidden rounded-xl p-6" style={{
+          background: 'linear-gradient(135deg, #F4D573, #BC942C)',
+        }}>
+          <div className="relative z-10">
+            <h1 className="text-2xl font-bold text-[#0C1C2E] mb-2">
+              Olá, {user?.name}! 👋
+            </h1>
+            <p className="text-[#0C1C2E]/80">
+              Bem-vindo ao seu painel do inquilino. Aqui você pode acompanhar o status da sua fiança locatícia.
+            </p>
+          </div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          {/* Contract Information */}
-          <Card className="order-1">
-            <CardHeader className="pb-3 sm:pb-4">
-              <CardTitle className="flex items-center text-lg sm:text-xl">
-                <FileText className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                Meu Contrato
-              </CardTitle>
-              <CardDescription className="text-sm">
-                Informações do seu contrato de fiança locatícia
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
-              {fiancaAtiva ? (
-                <>
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">Imóvel</h4>
-                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                      {fiancaAtiva.imovel_tipo} - {fiancaAtiva.imovel_endereco}, {fiancaAtiva.imovel_numero}, {fiancaAtiva.imovel_bairro}, {fiancaAtiva.imovel_cidade} - {fiancaAtiva.imovel_estado}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <h4 className="font-medium text-gray-900 text-sm">Valor do Aluguel</h4>
-                      <p className="text-lg sm:text-xl font-bold text-primary">
-                        R$ {fiancaAtiva.imovel_valor_aluguel?.toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <h4 className="font-medium text-gray-900 text-sm">Taxa da Fiança</h4>
-                      <p className="text-lg sm:text-xl font-bold text-success">
-                        {fiancaAtiva.taxa_aplicada || 10}%
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <h4 className="font-medium text-gray-900 text-sm">Data de Criação</h4>
-                      <p className="text-sm text-gray-600">
-                        {new Date(fiancaAtiva.data_criacao).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900 text-sm">Status</h4>
-                      <Badge className={`${getStatusColor(fiancaAtiva.status_fianca)} text-white mt-1`}>
-                        {getStatusText(fiancaAtiva.status_fianca)}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <Button 
-                    onClick={baixarContrato}
-                    variant="outline" 
-                    className="w-full mt-4"
-                    size="lg"
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Baixar Contrato PDF
-                  </Button>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-600">Ainda não existem contratos ativos.</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Quando sua fiança for aprovada, as informações aparecerão aqui.
+        {/* Email Verification Alert */}
+        {!emailVerificado && (
+          <Card className="border-orange-200 bg-orange-50">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="h-5 w-5 text-orange-600" />
+                <div>
+                  <p className="font-medium text-orange-800">E-mail não verificado</p>
+                  <p className="text-sm text-orange-700">
+                    Verifique seu e-mail para ter acesso completo às funcionalidades.
                   </p>
                 </div>
-              )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Status Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Status da Fiança</p>
+                  {fiancaParaExibir ? (
+                    <Badge className={`${getStatusColor(fiancaParaExibir.status_fianca)} text-white mt-1`}>
+                      {getStatusText(fiancaParaExibir.status_fianca)}
+                    </Badge>
+                  ) : (
+                    <p className="text-sm text-gray-500">Nenhuma fiança ativa</p>
+                  )}
+                </div>
+                <FileText className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Valor da Fiança</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {fiancaParaExibir ? formatCurrency(Number(fiancaParaExibir.valor_fianca || 0)) : 'R$ 0,00'}
+                  </p>
+                </div>
+                <DollarSign className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">E-mail</p>
+                  <div className="flex items-center space-x-2">
+                    {emailVerificado ? (
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-warning" />
+                    )}
+                    <span className="text-sm">
+                      {emailVerificado ? 'Verificado' : 'Não verificado'}
+                    </span>
+                  </div>
+                </div>
+                <Mail className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Dados Pessoais */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <User className="mr-2 h-5 w-5 text-blue-600" />
+                Meus Dados
+              </CardTitle>
+              <CardDescription>
+                Informações da sua conta
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <User className="h-4 w-4 text-gray-400" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Nome</p>
+                    <p className="text-base">{user?.name}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <Mail className="h-4 w-4 text-gray-400" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">E-mail</p>
+                    <p className="text-base">{user?.email}</p>
+                  </div>
+                </div>
+                
+                {user?.telefone && (
+                  <div className="flex items-center space-x-3">
+                    <Phone className="h-4 w-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Telefone</p>
+                      <p className="text-base">{user.telefone}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
-          {/* Account Validation & Payment */}
-          <Card className="order-2">
-            <CardHeader className="pb-3 sm:pb-4">
-              <CardTitle className="flex items-center text-lg sm:text-xl">
-                <CreditCard className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                Pagamento da Fiança
+          {/* Status da Fiança */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <FileText className="mr-2 h-5 w-5 text-green-600" />
+                Status da Fiança
               </CardTitle>
-              <CardDescription className="text-sm">
-                Validação da conta e pagamento
+              <CardDescription>
+                Acompanhe o progresso da sua solicitação
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
-              {/* Email Validation */}
-              <div className="p-3 sm:p-4 border rounded-lg bg-gray-50">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-gray-900 text-sm sm:text-base">Validação de E-mail</h4>
-                  {emailVerificado ? (
-                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
-                  ) : (
-                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-warning" />
-                  )}
-                </div>
-                <p className="text-xs sm:text-sm text-gray-600 mb-3">
-                  {emailVerificado 
-                    ? 'Sua conta foi validada com sucesso!' 
-                    : 'Aguardando validação do e-mail'
-                  }
-                </p>
-              </div>
-
-              {/* Payment Information */}
-              {emailVerificado && fiancaPagamento ? (
-                <div className="p-3 sm:p-4 border rounded-lg bg-gradient-to-r from-primary/5 to-success/5">
-                  <h4 className="font-medium text-gray-900 mb-3 text-sm sm:text-base">Fiança Disponível para Pagamento</h4>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 space-y-2 sm:space-y-0">
-                    <span className="text-2xl sm:text-3xl font-bold text-primary">
-                      R$ {((fiancaPagamento.imovel_valor_aluguel || 0) * (fiancaPagamento.taxa_aplicada || 10) / 100).toLocaleString()}
-                    </span>
-                    <Badge className={`${getStatusColor(fiancaPagamento.status_fianca)} text-white text-xs sm:text-sm`}>
-                      {getStatusText(fiancaPagamento.status_fianca)}
+            <CardContent>
+              {fiancaParaExibir ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Status Atual:</span>
+                    <Badge className={`${getStatusColor(fiancaParaExibir.status_fianca)} text-white`}>
+                      {getStatusText(fiancaParaExibir.status_fianca)}
                     </Badge>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-3">
-                    Taxa de {fiancaPagamento.taxa_aplicada || 10}% sobre o valor do aluguel
-                  </p>
-                  {fiancaPagamento.data_envio_link && (
-                    <div className="flex items-center text-xs sm:text-sm text-gray-600 mb-3">
-                      <Calendar className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                      Link disponível desde: {new Date(fiancaPagamento.data_envio_link).toLocaleDateString()}
+
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Valor do Aluguel</p>
+                      <p className="text-lg font-semibold">
+                        {formatCurrency(Number(fiancaParaExibir.imovel_valor_aluguel || 0))}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Valor da Fiança</p>
+                      <p className="text-lg font-semibold text-primary">
+                        {formatCurrency(Number(fiancaParaExibir.valor_fianca || 0))}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Tempo de Locação</p>
+                      <p className="text-base">{fiancaParaExibir.imovel_tempo_locacao} meses</p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Endereço do Imóvel</p>
+                      <p className="text-sm text-gray-700">
+                        {fiancaParaExibir.imovel_endereco}, {fiancaParaExibir.imovel_numero} - {fiancaParaExibir.imovel_bairro}, {fiancaParaExibir.imovel_cidade}/{fiancaParaExibir.imovel_estado}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Data de Criação</p>
+                      <p className="text-base">
+                        {new Date(fiancaParaExibir.data_criacao).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Ação para upload de comprovante */}
+                  {fiancaParaExibir.status_fianca === 'pagamento_disponivel' && (
+                    <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-blue-900">Pagamento Disponível</p>
+                          <p className="text-sm text-blue-700">
+                            Realize o pagamento e envie o comprovante
+                          </p>
+                        </div>
+                        <Button
+                          onClick={() => setShowUploadModal(true)}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          Enviar Comprovante
+                        </Button>
+                      </div>
                     </div>
                   )}
 
-                  <div className="space-y-2">
-                    {fiancaPagamento.link_pagamento && fiancaPagamento.status_fianca === 'pagamento_disponivel' && (
-                      <Button 
-                        onClick={acessarLinkPagamento}
-                        className="w-full bg-success hover:bg-success/90"
-                        size="lg"
-                        disabled={!fiancaPagamento.link_pagamento}
-                      >
-                        <ExternalLink className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                        Acessar Link de Pagamento
-                      </Button>
-                    )}
-
-                    {fiancaPagamento.link_pagamento && (
-                      <ComprovanteUpload 
-                        onUploadSuccess={handleComprovanteUpload}
-                        disabled={fiancaPagamento.status_fianca === 'comprovante_enviado' || enviarComprovante.isPending}
-                      />
-                    )}
-
-                    {fiancaPagamento.status_fianca === 'comprovante_enviado' && (
-                      <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
-                        <CheckCircle className="mx-auto h-6 w-6 sm:h-8 sm:w-8 text-blue-500 mb-2" />
-                        <p className="font-medium text-blue-700 text-sm sm:text-base">Comprovante Enviado!</p>
-                        <p className="text-xs sm:text-sm text-blue-600">
-                          Aguardando verificação do pagamento.
-                        </p>
+                  {fiancaParaExibir.status_fianca === 'comprovante_enviado' && (
+                    <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                        <div>
+                          <p className="font-medium text-green-900">Comprovante Enviado</p>
+                          <p className="text-sm text-green-700">
+                            Aguardando confirmação do pagamento
+                          </p>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              ) : emailVerificado && !fiancaPagamento ? (
-                <div className="p-3 sm:p-4 border rounded-lg text-center">
-                  <AlertCircle className="mx-auto h-6 w-6 sm:h-8 sm:w-8 text-gray-400 mb-2" />
-                  <p className="text-gray-600 text-sm sm:text-base">Nenhuma fiança disponível para pagamento</p>
-                  <p className="text-xs sm:text-sm text-gray-500">
-                    Aguarde a liberação do pagamento pelo financeiro.
-                  </p>
+                    </div>
+                  )}
+
+                  {fiancaParaExibir.status_fianca === 'ativa' && (
+                    <div className="mt-4 p-4 bg-green-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                        <div>
+                          <p className="font-medium text-green-900">Fiança Ativa</p>
+                          <p className="text-sm text-green-700">
+                            Sua fiança está ativa e válida
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="p-3 sm:p-4 border rounded-lg text-center">
-                  <Mail className="mx-auto h-6 w-6 sm:h-8 sm:w-8 text-warning mb-2" />
-                  <p className="text-gray-600 text-sm sm:text-base">Aguardando verificação do e-mail</p>
-                  <p className="text-xs sm:text-sm text-gray-500">
-                    Verifique sua caixa de entrada para validar seu e-mail.
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">
+                    Você não possui nenhuma fiança ativa no momento.
                   </p>
                 </div>
               )}
@@ -298,43 +326,12 @@ const Inquilino = () => {
           </Card>
         </div>
 
-        {/* Payment History */}
-        <Card className="order-3">
-          <CardHeader className="pb-3 sm:pb-4">
-            <CardTitle className="text-lg sm:text-xl">Histórico de Pagamentos</CardTitle>
-            <CardDescription className="text-sm">
-              Acompanhe todos os seus pagamentos realizados
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {fiancaPagamento ? (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border rounded-lg bg-gray-50 space-y-2 sm:space-y-0">
-                  <div className="flex-1">
-                    <p className="font-medium text-sm sm:text-base">Fiança Locatícia</p>
-                    <p className="text-xs sm:text-sm text-gray-600 flex items-center">
-                      <Calendar className="mr-1 h-3 w-3" />
-                      {fiancaPagamento.data_envio_link ? new Date(fiancaPagamento.data_envio_link).toLocaleDateString() : 'Data não disponível'}
-                    </p>
-                  </div>
-                  <div className="text-left sm:text-right">
-                    <p className="font-medium text-sm sm:text-base">
-                      R$ {((fiancaPagamento.imovel_valor_aluguel || 0) * (fiancaPagamento.taxa_aplicada || 10) / 100).toLocaleString()}
-                    </p>
-                    <Badge className={`${getStatusColor(fiancaPagamento.status_fianca)} text-white text-xs mt-1`}>
-                      {getStatusText(fiancaPagamento.status_fianca)}
-                    </Badge>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-600">Nenhum histórico de pagamento disponível</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Upload Modal */}
+        <UploadComprovanteModal
+          isOpen={showUploadModal}
+          onClose={() => setShowUploadModal(false)}
+          fiancaId={fiancaPagamento?.id || ''}
+        />
       </div>
     </Layout>
   );

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -316,7 +317,7 @@ const DetalheFianca = () => {
                 <DollarSign className="h-8 w-8 mx-auto mb-2 text-green-600" />
                 <p className="text-sm font-medium text-gray-500">Valor da Fiança</p>
                 <p className="text-xl font-bold text-green-600">
-                  R$ {Number(fianca.imovel_valor_aluguel).toLocaleString('pt-BR')}
+                  R$ {Number(fianca.valor_fianca || 0).toLocaleString('pt-BR')}
                 </p>
               </div>
 

@@ -108,6 +108,30 @@ const Financeiro = () => {
     return matchesSearch && matchesStatus;
   });
 
+  // Calcular estatísticas com valores de fiança
+  const calcularStats = () => {
+    const totalFiancas = fiancas.length;
+    const aguardandoLink = fiancas.filter(f => f.status_fianca === 'enviada_ao_financeiro').length;
+    const linkEnviado = fiancas.filter(f => f.status_fianca === 'pagamento_disponivel').length;
+    const pagos = fiancas.filter(f => f.status_fianca === 'comprovante_enviado').length;
+    
+    const valorTotal = fiancas.reduce((acc, f) => acc + (f.valor_fianca || 0), 0);
+    const valorPago = fiancas
+      .filter(f => ['comprovante_enviado', 'ativa'].includes(f.status_fianca))
+      .reduce((acc, f) => acc + (f.valor_fianca || 0), 0);
+
+    return {
+      totalFiancas,
+      aguardandoLink,
+      linkEnviado,
+      pagos,
+      valorTotal,
+      valorPago
+    };
+  };
+
+  const statsComValorFianca = calcularStats();
+
   if (isLoading) {
     return (
       <Layout title="Departamento Financeiro">
@@ -159,7 +183,7 @@ const Financeiro = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm text-gray-600">Total Fianças</p>
-                  <p className="text-lg sm:text-2xl font-bold">{stats.totalFiancas}</p>
+                  <p className="text-lg sm:text-2xl font-bold">{statsComValorFianca.totalFiancas}</p>
                 </div>
                 <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </div>
@@ -171,7 +195,7 @@ const Financeiro = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm text-gray-600">Aguardando</p>
-                  <p className="text-lg sm:text-2xl font-bold text-warning">{stats.aguardandoLink}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-warning">{statsComValorFianca.aguardandoLink}</p>
                 </div>
                 <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-warning" />
               </div>
@@ -183,7 +207,7 @@ const Financeiro = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm text-gray-600">Enviados</p>
-                  <p className="text-lg sm:text-2xl font-bold text-blue-500">{stats.linkEnviado}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-blue-500">{statsComValorFianca.linkEnviado}</p>
                 </div>
                 <Send className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
               </div>
@@ -195,7 +219,7 @@ const Financeiro = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm text-gray-600">Pagos</p>
-                  <p className="text-lg sm:text-2xl font-bold text-success">{stats.pagos}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-success">{statsComValorFianca.pagos}</p>
                 </div>
                 <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
               </div>
@@ -207,7 +231,7 @@ const Financeiro = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm text-gray-600">Valor Total</p>
-                  <p className="text-lg sm:text-2xl font-bold">R$ {stats.valorTotal.toLocaleString()}</p>
+                  <p className="text-lg sm:text-2xl font-bold">R$ {statsComValorFianca.valorTotal.toLocaleString()}</p>
                 </div>
                 <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-[#BC942C]" />
               </div>
@@ -219,7 +243,7 @@ const Financeiro = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm text-gray-600">Recebido</p>
-                  <p className="text-lg sm:text-2xl font-bold text-success">R$ {stats.valorPago.toLocaleString()}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-success">R$ {statsComValorFianca.valorPago.toLocaleString()}</p>
                 </div>
                 <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
               </div>
@@ -303,11 +327,11 @@ const Financeiro = () => {
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="text-2xl font-bold text-gray-900">
-                              R$ {Number(fianca.imovel_valor_aluguel).toLocaleString()}
+                              R$ {Number(fianca.valor_fianca || 0).toLocaleString()}
                             </span>
                             {fianca.status_fianca === 'pagamento_disponivel' ? (
                               <AguardandoPagamentoTooltip
-                                valorFianca={Number(fianca.imovel_valor_aluguel)}
+                                valorFianca={Number(fianca.valor_fianca || 0)}
                                 nomeInquilino={fianca.inquilino_nome_completo}
                                 dataEnvio={fianca.data_envio_link}
                               >

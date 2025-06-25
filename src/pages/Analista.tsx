@@ -248,6 +248,18 @@ const Analista = () => {
     });
   };
 
+  // Calcular valor total e valor da fiança
+  const calcularValorTotal = () => {
+    if (!selectedFianca) return 0;
+    return (selectedFianca.imovel_valor_aluguel || 0) * (selectedFianca.imovel_tempo_locacao || 0);
+  };
+
+  const calcularValorFianca = () => {
+    if (!selectedFianca || !currentTaxa) return 0;
+    const valorTotal = calcularValorTotal();
+    return (valorTotal * currentTaxa) / 100;
+  };
+
   if (isLoadingFiancas || isLoadingStats) {
     return (
       <Layout title="Dashboard - Analista">
@@ -466,6 +478,10 @@ const Analista = () => {
                         <p className="text-sm text-gray-900">{formatCurrency(selectedFianca.imovel_valor_aluguel || 0)}</p>
                       </div>
                       <div>
+                        <Label className="text-sm font-medium">Valor Total</Label>
+                        <p className="text-sm text-gray-900 font-semibold text-blue-600">{formatCurrency(calcularValorTotal())}</p>
+                      </div>
+                      <div>
                         <Label className="text-sm font-medium">Área (m²)</Label>
                         <p className="text-sm text-gray-900">{selectedFianca.imovel_area_metros || 'Não informado'}</p>
                       </div>
@@ -520,7 +536,8 @@ const Analista = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <strong>Score de Crédito:</strong> {currentScore} pontos<br />
-                            <strong>Taxa Aplicada:</strong> {currentTaxa}%
+                            <strong>Taxa Aplicada:</strong> {currentTaxa}%<br />
+                            <strong>Valor da Fiança:</strong> {formatCurrency(calcularValorFianca())}
                           </div>
                           <Button
                             variant="outline"
