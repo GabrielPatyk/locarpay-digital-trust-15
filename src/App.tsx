@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -28,7 +29,7 @@ function App() {
             <Route 
               path="/imobiliaria" 
               element={
-                <ProtectedRoute allowedTypes={['imobiliaria']}>
+                <ProtectedRoute allowedRoles={['imobiliaria']}>
                   <Imobiliaria />
                 </ProtectedRoute>
               } 
@@ -36,7 +37,7 @@ function App() {
             <Route 
               path="/analista" 
               element={
-                <ProtectedRoute allowedTypes={['analista']}>
+                <ProtectedRoute allowedRoles={['analista']}>
                   <Analista />
                 </ProtectedRoute>
               } 
@@ -44,7 +45,7 @@ function App() {
             <Route 
               path="/financeiro" 
               element={
-                <ProtectedRoute allowedTypes={['financeiro']}>
+                <ProtectedRoute allowedRoles={['financeiro']}>
                   <Financeiro />
                 </ProtectedRoute>
               } 
@@ -52,7 +53,7 @@ function App() {
             <Route 
               path="/inquilino" 
               element={
-                <ProtectedRoute allowedTypes={['inquilino']}>
+                <ProtectedRoute allowedRoles={['inquilino']}>
                   <Inquilino />
                 </ProtectedRoute>
               } 
@@ -60,7 +61,7 @@ function App() {
             <Route 
               path="/admin" 
               element={
-                <ProtectedRoute allowedTypes={['admin']}>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <Admin />
                 </ProtectedRoute>
               } 
@@ -68,7 +69,7 @@ function App() {
             <Route 
               path="/inquilinos-imobiliaria" 
               element={
-                <ProtectedRoute allowedTypes={['imobiliaria']}>
+                <ProtectedRoute allowedRoles={['imobiliaria']}>
                   <InquilinosImobiliaria />
                 </ProtectedRoute>
               } 
@@ -76,7 +77,7 @@ function App() {
             <Route 
               path="/configuracoes-imobiliaria" 
               element={
-                <ProtectedRoute allowedTypes={['imobiliaria']}>
+                <ProtectedRoute allowedRoles={['imobiliaria']}>
                   <ConfiguracoesImobiliaria />
                 </ProtectedRoute>
               } 
@@ -84,7 +85,7 @@ function App() {
             <Route 
               path="/configuracoes-analista" 
               element={
-                <ProtectedRoute allowedTypes={['analista']}>
+                <ProtectedRoute allowedRoles={['analista']}>
                   <ConfiguracoesAnalista />
                 </ProtectedRoute>
               } 
@@ -92,7 +93,7 @@ function App() {
             <Route 
               path="/configuracoes-inquilino" 
               element={
-                <ProtectedRoute allowedTypes={['inquilino']}>
+                <ProtectedRoute allowedRoles={['inquilino']}>
                   <ConfiguracoesInquilino />
                 </ProtectedRoute>
               } 
