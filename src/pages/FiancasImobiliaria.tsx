@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -597,12 +596,12 @@ const FiancasImobiliaria = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="tempoLocacao">Tempo de Locação (anos) *</Label>
+                          <Label htmlFor="tempoLocacao">Tempo de Locação (meses) *</Label>
                           <Input
                             id="tempoLocacao"
                             value={formData.tempoLocacao}
                             onChange={(e) => handleInputChange('tempoLocacao', e.target.value)}
-                            placeholder="3"
+                            placeholder="24"
                             required
                           />
                         </div>

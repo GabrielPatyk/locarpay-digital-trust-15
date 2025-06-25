@@ -57,6 +57,8 @@ export type Database = {
           situacao_pagamento: string | null
           status_fianca: Database["public"]["Enums"]["status_fianca"]
           taxa_aplicada: number | null
+          valor_fianca: number | null
+          valor_total_locacao: number | null
         }
         Insert: {
           comprovante_pagamento?: string | null
@@ -105,6 +107,8 @@ export type Database = {
           situacao_pagamento?: string | null
           status_fianca?: Database["public"]["Enums"]["status_fianca"]
           taxa_aplicada?: number | null
+          valor_fianca?: number | null
+          valor_total_locacao?: number | null
         }
         Update: {
           comprovante_pagamento?: string | null
@@ -153,6 +157,8 @@ export type Database = {
           situacao_pagamento?: string | null
           status_fianca?: Database["public"]["Enums"]["status_fianca"]
           taxa_aplicada?: number | null
+          valor_fianca?: number | null
+          valor_total_locacao?: number | null
         }
         Relationships: [
           {

@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -88,11 +89,25 @@ export const useAnalista = () => {
 
   const updateScoreETaxa = useMutation({
     mutationFn: async ({ id, score, taxa }: { id: string; score: number; taxa: number }) => {
+      // Buscar dados da fiança para calcular o valor total e valor da fiança
+      const { data: fiancaData, error: fetchError } = await supabase
+        .from('fiancas_locaticias')
+        .select('imovel_valor_aluguel, imovel_tempo_locacao')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const valorTotal = fiancaData.imovel_valor_aluguel * fiancaData.imovel_tempo_locacao;
+      const valorFianca = (valorTotal * taxa) / 100;
+
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({
           score_credito: score,
           taxa_aplicada: taxa,
+          valor_total_locacao: valorTotal,
+          valor_fianca: valorFianca,
           data_atualizacao: new Date().toISOString()
         })
         .eq('id', id);
@@ -102,7 +117,7 @@ export const useAnalista = () => {
       await registrarLog({
         fiancaId: id,
         acao: 'Score e taxa atualizados',
-        detalhes: `Score: ${score}, Taxa: ${taxa}%`
+        detalhes: `Score: ${score}, Taxa: ${taxa}%, Valor Total: R$ ${valorTotal.toLocaleString('pt-BR')}, Valor Fiança: R$ ${valorFianca.toLocaleString('pt-BR')}`
       });
 
       return id;
@@ -125,12 +140,26 @@ export const useAnalista = () => {
       taxa: number; 
       observacoes?: string; 
     }) => {
+      // Buscar dados da fiança para calcular o valor total e valor da fiança
+      const { data: fiancaData, error: fetchError } = await supabase
+        .from('fiancas_locaticias')
+        .select('imovel_valor_aluguel, imovel_tempo_locacao')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const valorTotal = fiancaData.imovel_valor_aluguel * fiancaData.imovel_tempo_locacao;
+      const valorFianca = (valorTotal * taxa) / 100;
+
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({
           status_fianca: 'aprovada',
           score_credito: score,
           taxa_aplicada: taxa,
+          valor_total_locacao: valorTotal,
+          valor_fianca: valorFianca,
           observacoes_aprovacao: observacoes,
           data_analise: new Date().toISOString(),
           data_atualizacao: new Date().toISOString()
@@ -142,7 +171,7 @@ export const useAnalista = () => {
       await registrarLog({
         fiancaId: id,
         acao: 'Fiança aprovada',
-        detalhes: `Score: ${score}, Taxa: ${taxa}%${observacoes ? `, Observações: ${observacoes}` : ''}`
+        detalhes: `Score: ${score}, Taxa: ${taxa}%, Valor Total: R$ ${valorTotal.toLocaleString('pt-BR')}, Valor Fiança: R$ ${valorFianca.toLocaleString('pt-BR')}${observacoes ? `, Observações: ${observacoes}` : ''}`
       });
 
       return id;
@@ -173,7 +202,23 @@ export const useAnalista = () => {
       };
 
       if (score) updateData.score_credito = score;
-      if (taxa) updateData.taxa_aplicada = taxa;
+      if (taxa) {
+        updateData.taxa_aplicada = taxa;
+        
+        // Calcular valor total e valor da fiança se taxa foi fornecida
+        const { data: fiancaData, error: fetchError } = await supabase
+          .from('fiancas_locaticias')
+          .select('imovel_valor_aluguel, imovel_tempo_locacao')
+          .eq('id', id)
+          .single();
+
+        if (!fetchError && fiancaData) {
+          const valorTotal = fiancaData.imovel_valor_aluguel * fiancaData.imovel_tempo_locacao;
+          const valorFianca = (valorTotal * taxa) / 100;
+          updateData.valor_total_locacao = valorTotal;
+          updateData.valor_fianca = valorFianca;
+        }
+      }
 
       const { error } = await supabase
         .from('fiancas_locaticias')
