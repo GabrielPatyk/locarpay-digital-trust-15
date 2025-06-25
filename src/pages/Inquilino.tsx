@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useInquilinoData } from '@/hooks/useInquilinoData';
 import { useAuth } from '@/contexts/AuthContext';
-import UploadComprovanteModal from '@/components/UploadComprovanteModal';
 import { 
   DollarSign, 
   CreditCard, 
@@ -275,7 +274,7 @@ const Inquilino = () => {
                           </p>
                         </div>
                         <Button
-                          onClick={() => setShowUploadModal(true)}
+                          onClick={() => alert('Funcionalidade de upload em desenvolvimento')}
                           className="bg-blue-600 hover:bg-blue-700"
                         >
                           <Upload className="mr-2 h-4 w-4" />
@@ -324,13 +323,6 @@ const Inquilino = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Upload Modal */}
-        <UploadComprovanteModal
-          isOpen={showUploadModal}
-          onClose={() => setShowUploadModal(false)}
-          fiancaId={fiancaPagamento?.id || ''}
-        />
       </div>
     </Layout>
   );
