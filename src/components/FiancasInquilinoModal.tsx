@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Calendar, CreditCard, MapPin, Clock, Percent, DollarSign } from 'lucide-react';
+import { FileText, Calendar, CreditCard, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { InquilinoFianca } from '@/hooks/useInquilinosImobiliaria';
@@ -29,14 +29,12 @@ const FiancasInquilinoModal = ({ isOpen, onClose, inquilino }: FiancasInquilinoM
           id,
           status_fianca,
           imovel_valor_aluguel,
+          valor_fianca,
           imovel_endereco,
           imovel_cidade,
           imovel_estado,
           data_criacao,
-          data_vencimento,
-          imovel_tempo_locacao,
-          taxa_aplicada,
-          valor_fianca
+          data_vencimento
         `)
         .eq('inquilino_cpf', inquilino.cpf)
         .eq('id_imobiliaria', user.id)
@@ -113,14 +111,14 @@ const FiancasInquilinoModal = ({ isOpen, onClose, inquilino }: FiancasInquilinoM
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">Valor do Aluguel</p>
+                      <p className="text-sm text-gray-600">Valor da Fiança</p>
                       <p className="text-xl font-bold text-primary">
-                        R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}
+                        R$ {(fianca.valor_fianca || fianca.imovel_valor_aluguel).toLocaleString('pt-BR')}
                       </p>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center space-x-2">
                       <MapPin className="h-4 w-4 text-gray-400" />
                       <span className="text-sm text-gray-600">
@@ -141,35 +139,6 @@ const FiancasInquilinoModal = ({ isOpen, onClose, inquilino }: FiancasInquilinoM
                         </span>
                       </div>
                     )}
-                  </div>
-
-                  {/* Nova seção com informações adicionais */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-blue-500" />
-                      <div>
-                        <p className="text-xs text-gray-500">Tempo de Aluguel</p>
-                        <p className="text-sm font-semibold">{fianca.imovel_tempo_locacao} meses</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Percent className="h-4 w-4 text-green-500" />
-                      <div>
-                        <p className="text-xs text-gray-500">Taxa da Fiança</p>
-                        <p className="text-sm font-semibold">
-                          {fianca.taxa_aplicada ? `${fianca.taxa_aplicada}%` : 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <DollarSign className="h-4 w-4 text-purple-500" />
-                      <div>
-                        <p className="text-xs text-gray-500">Valor Total da Fiança</p>
-                        <p className="text-sm font-semibold text-purple-600">
-                          {fianca.valor_fianca ? `R$ ${fianca.valor_fianca.toLocaleString('pt-BR')}` : 'N/A'}
-                        </p>
-                      </div>
-                    </div>
                   </div>
                 </CardContent>
               </Card>

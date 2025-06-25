@@ -3,40 +3,13 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { Shield, ArrowLeft } from 'lucide-react';
 
 const Unauthorized = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const getUserDashboard = () => {
-    if (!user) return '/login';
-    
-    switch (user.type) {
-      case 'admin':
-        return '/admin';
-      case 'analista':
-        return '/analista';
-      case 'executivo':
-        return '/executivo';
-      case 'financeiro':
-        return '/financeiro';
-      case 'juridico':
-        return '/juridico';
-      case 'imobiliaria':
-        return '/imobiliaria';
-      case 'inquilino':
-        return '/inquilino';
-      case 'sdr':
-        return '/sdr';
-      default:
-        return '/login';
-    }
-  };
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
@@ -63,7 +36,7 @@ const Unauthorized = () => {
               Voltar
             </Button>
             <Button 
-              onClick={() => navigate(getUserDashboard())}
+              onClick={() => navigate('/dashboard')}
               className="flex-1 bg-primary hover:bg-primary/90"
             >
               Dashboard

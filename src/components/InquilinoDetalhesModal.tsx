@@ -18,7 +18,6 @@ interface InquilinoDetalhesModalProps {
 const InquilinoDetalhesModal = ({ isOpen, onClose, inquilino }: InquilinoDetalhesModalProps) => {
   const { user } = useAuth();
 
-  // Buscar a última fiança para obter o valor_fianca
   const { data: ultimaFianca } = useQuery({
     queryKey: ['ultima-fianca', inquilino?.cpf, user?.id],
     queryFn: async () => {
@@ -26,20 +25,21 @@ const InquilinoDetalhesModal = ({ isOpen, onClose, inquilino }: InquilinoDetalhe
 
       const { data, error } = await supabase
         .from('fiancas_locaticias')
-        .select('valor_fianca, data_criacao')
+        .select('valor_fianca, imovel_valor_aluguel')
         .eq('inquilino_cpf', inquilino.cpf)
         .eq('id_imobiliaria', user.id)
         .order('data_criacao', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
 
-      if (error) return null;
-      return data;
+      if (error) throw error;
+      return data?.[0] || null;
     },
     enabled: !!inquilino?.cpf && !!user?.id && isOpen
   });
 
   if (!inquilino) return null;
+
+  const valorUltimaFianca = ultimaFianca?.valor_fianca || ultimaFianca?.imovel_valor_aluguel || inquilino.valorAluguel;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -123,12 +123,9 @@ const InquilinoDetalhesModal = ({ isOpen, onClose, inquilino }: InquilinoDetalhe
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
                   <CreditCard className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                   <p className="text-lg font-semibold text-purple-600">
-                    {ultimaFianca?.valor_fianca 
-                      ? `R$ ${ultimaFianca.valor_fianca.toLocaleString('pt-BR')}` 
-                      : 'N/A'
-                    }
+                    R$ {valorUltimaFianca.toLocaleString('pt-BR')}
                   </p>
-                  <p className="text-sm text-gray-600">Última Fiança</p>
+                  <p className="text-sm text-gray-600">Valor da Última Fiança</p>
                 </div>
               </div>
             </CardContent>
