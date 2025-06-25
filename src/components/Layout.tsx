@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, LogOut, Settings, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ProfileCompletionCheck from '@/components/ProfileCompletionCheck';
 
@@ -26,11 +27,10 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   const handleSettings = () => {
     if (user?.type === 'imobiliaria') {
       navigate('/configuracoes-imobiliaria');
-    } else if (user?.type === 'inquilino') {
-      navigate('/configuracoes-inquilino');
     } else if (user?.type === 'analista') {
       navigate('/configuracoes-analista');
     }
+    // Para outros tipos de usuário, não faz nada ainda
   };
 
   const getUserTypeLabel = (type: string) => {
@@ -51,39 +51,72 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
     return name?.split(' ').map(n => n[0]).join('').toUpperCase() || '';
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ProfileCompletionCheck />
-      
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="px-4 md:px-6 py-3 md:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3 md:space-x-4">
-              {isMobile && (
+  // Header específico para mobile
+  if (isMobile) {
+    return (
+      <SidebarInset>
+        <ProfileCompletionCheck />
+        {/* Header Mobile */}
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              {/* Logo e Texto */}
+              <div className="flex items-center space-x-3">
                 <img 
                   src="/lovable-uploads/1fc475c2-f7e6-4e6e-bf1b-b349783c2b93.png" 
                   alt="LocarPay Logo" 
                   className="w-8 h-8 object-contain"
                 />
-              )}
-              <div>
-                <h1 className="text-lg md:text-xl font-bold text-[#0C1C2E]">{title}</h1>
-                {isMobile && (
+                <div>
+                  <h2 className="text-lg font-bold bg-gradient-to-r from-[#F4D573] to-[#BC942C] bg-clip-text text-transparent">
+                    LocarPay
+                  </h2>
                   <p className="text-xs text-gray-600">{getUserTypeLabel(user?.type || '')}</p>
-                )}
+                </div>
+              </div>
+              
+              {/* Menu Hambúrguer */}
+              <SidebarTrigger>
+                <Menu className="h-6 w-6" />
+              </SidebarTrigger>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto">
+          <div className="p-4">
+            {children}
+          </div>
+        </main>
+      </SidebarInset>
+    );
+  }
+
+  // Header padrão para desktop
+  return (
+    <SidebarInset>
+      <ProfileCompletionCheck />
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <SidebarTrigger className="md:hidden" />
+              <div className="flex items-center space-x-3">
+                <h1 className="text-xl font-bold text-[#0C1C2E]">{title}</h1>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 md:space-x-4">
-              <Button variant="ghost" size="sm" className="relative hidden md:flex">
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" size="sm" className="relative">
                 <Bell className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                   3
                 </span>
               </Button>
 
-              <div className="flex items-center space-x-2 md:space-x-3">
+              <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
                   {user?.imagem_perfil ? (
                     <AvatarImage src={user.imagem_perfil} alt="Foto de perfil" />
@@ -103,8 +136,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
                 variant="ghost" 
                 size="sm" 
                 onClick={handleSettings}
-                disabled={user?.type !== 'imobiliaria' && user?.type !== 'inquilino' && user?.type !== 'analista'}
-                className="hidden md:flex"
+                disabled={user?.type !== 'imobiliaria' && user?.type !== 'analista'}
               >
                 <Settings className="h-5 w-5" />
               </Button>
@@ -118,12 +150,12 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
-        <div className="p-4 md:p-6">
+      <main className="flex-1 overflow-auto">
+        <div className="p-6">
           {children}
         </div>
       </main>
-    </div>
+    </SidebarInset>
   );
 };
 

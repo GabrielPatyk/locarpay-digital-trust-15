@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useInquilinosImobiliaria } from '@/hooks/useInquilinosImobiliaria';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import Layout from '@/components/Layout';
-import InquilinoDetalhesModal from '@/components/InquilinoDetalhesModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { 
   Building, 
@@ -32,8 +34,6 @@ const Imobiliaria = () => {
   const { user } = useAuth();
   const { formatPhone } = usePhoneFormatter();
   const { inquilinos, isLoading: inquilinosLoading, getStatusColor, getStatusLabel, getVerificationColor, getVerificationLabel } = useInquilinosImobiliaria();
-  const [selectedInquilino, setSelectedInquilino] = useState(null);
-  const [isDetalhesModalOpen, setIsDetalhesModalOpen] = useState(false);
 
   // Dados mock para demonstração
   const dashboardData = {
@@ -89,11 +89,6 @@ const Imobiliaria = () => {
       'reprovado': 'Reprovado'
     };
     return labels[status] || status;
-  };
-
-  const handleVisualizarInquilino = (inquilino: any) => {
-    setSelectedInquilino(inquilino);
-    setIsDetalhesModalOpen(true);
   };
 
   const handleLigar = (telefone: string) => {
@@ -336,11 +331,11 @@ const Imobiliaria = () => {
                               <p className="text-sm text-gray-600">CPF: {inquilino.cpf}</p>
                             </div>
                             <div className="flex gap-2">
-                              <Badge className={`${inquilino.statusAtivo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                {inquilino.statusAtivo ? 'Ativo' : 'Inativo'}
+                              <Badge className={`${getStatusColor(inquilino.statusAtivo)} text-white`}>
+                                {getStatusLabel(inquilino.statusAtivo)}
                               </Badge>
-                              <Badge className={`${inquilino.statusVerificacao === 'verificado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                {inquilino.statusVerificacao === 'verificado' ? 'Verificado' : 'Verificação Pendente'}
+                              <Badge className={`${getVerificationColor(inquilino.statusVerificacao)} text-white`}>
+                                {getVerificationLabel(inquilino.statusVerificacao)}
                               </Badge>
                             </div>
                           </div>
@@ -367,11 +362,7 @@ const Imobiliaria = () => {
                           </div>
 
                           <div className="flex flex-wrap gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleVisualizarInquilino(inquilino)}
-                            >
+                            <Button variant="outline" size="sm">
                               <Eye className="mr-2 h-4 w-4" />
                               Ver Detalhes
                             </Button>
@@ -405,13 +396,6 @@ const Imobiliaria = () => {
             )}
           </TabsContent>
         </Tabs>
-
-        {/* Modal de Detalhes */}
-        <InquilinoDetalhesModal
-          isOpen={isDetalhesModalOpen}
-          onClose={() => setIsDetalhesModalOpen(false)}
-          inquilino={selectedInquilino}
-        />
       </div>
     </Layout>
   );
