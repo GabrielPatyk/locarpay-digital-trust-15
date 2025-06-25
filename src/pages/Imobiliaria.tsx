@@ -1,9 +1,10 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useInquilinosImobiliaria } from '@/hooks/useInquilinosImobiliaria';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import Layout from '@/components/Layout';
+import InquilinoDetalhesModal from '@/components/InquilinoDetalhesModal';
+import FiancasInquilinoModal from '@/components/FiancasInquilinoModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +35,10 @@ const Imobiliaria = () => {
   const { user } = useAuth();
   const { formatPhone } = usePhoneFormatter();
   const { inquilinos, isLoading: inquilinosLoading, getStatusColor, getStatusLabel, getVerificationColor, getVerificationLabel } = useInquilinosImobiliaria();
+  
+  const [selectedInquilino, setSelectedInquilino] = useState(null);
+  const [isDetalhesModalOpen, setIsDetalhesModalOpen] = useState(false);
+  const [isFiancasModalOpen, setIsFiancasModalOpen] = useState(false);
 
   // Dados mock para demonstração
   const dashboardData = {
@@ -101,6 +106,16 @@ const Imobiliaria = () => {
     if (email) {
       window.open(`mailto:${email}`, '_blank');
     }
+  };
+
+  const handleVisualizarInquilino = (inquilino: any) => {
+    setSelectedInquilino(inquilino);
+    setIsDetalhesModalOpen(true);
+  };
+
+  const handleVerFiancas = (inquilino: any) => {
+    setSelectedInquilino(inquilino);
+    setIsFiancasModalOpen(true);
   };
 
   return (
@@ -331,10 +346,10 @@ const Imobiliaria = () => {
                               <p className="text-sm text-gray-600">CPF: {inquilino.cpf}</p>
                             </div>
                             <div className="flex gap-2">
-                              <Badge className={`${getStatusColor(inquilino.statusAtivo)} text-white`}>
+                              <Badge className="bg-green-100 text-green-800">
                                 {getStatusLabel(inquilino.statusAtivo)}
                               </Badge>
-                              <Badge className={`${getVerificationColor(inquilino.statusVerificacao)} text-white`}>
+                              <Badge className="bg-green-100 text-green-800">
                                 {getVerificationLabel(inquilino.statusVerificacao)}
                               </Badge>
                             </div>
@@ -362,9 +377,21 @@ const Imobiliaria = () => {
                           </div>
 
                           <div className="flex flex-wrap gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleVisualizarInquilino(inquilino)}
+                            >
                               <Eye className="mr-2 h-4 w-4" />
                               Ver Detalhes
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleVerFiancas(inquilino)}
+                            >
+                              <FileText className="mr-2 h-4 w-4" />
+                              Fianças
                             </Button>
                             {inquilino.telefone && (
                               <Button 
@@ -396,6 +423,19 @@ const Imobiliaria = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Modals */}
+        <InquilinoDetalhesModal
+          isOpen={isDetalhesModalOpen}
+          onClose={() => setIsDetalhesModalOpen(false)}
+          inquilino={selectedInquilino}
+        />
+        
+        <FiancasInquilinoModal
+          isOpen={isFiancasModalOpen}
+          onClose={() => setIsFiancasModalOpen(false)}
+          inquilino={selectedInquilino}
+        />
       </div>
     </Layout>
   );

@@ -1,9 +1,12 @@
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Mail, Phone, FileText, Calendar, CreditCard } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { InquilinoFianca } from '@/hooks/useInquilinosImobiliaria';
 
 interface InquilinoDetalhesModalProps {
@@ -13,7 +16,30 @@ interface InquilinoDetalhesModalProps {
 }
 
 const InquilinoDetalhesModal = ({ isOpen, onClose, inquilino }: InquilinoDetalhesModalProps) => {
+  const { user } = useAuth();
+
+  const { data: ultimaFianca } = useQuery({
+    queryKey: ['ultima-fianca', inquilino?.cpf, user?.id],
+    queryFn: async () => {
+      if (!inquilino?.cpf || !user?.id) return null;
+
+      const { data, error } = await supabase
+        .from('fiancas_locaticias')
+        .select('valor_fianca, imovel_valor_aluguel')
+        .eq('inquilino_cpf', inquilino.cpf)
+        .eq('id_imobiliaria', user.id)
+        .order('data_criacao', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+      return data?.[0] || null;
+    },
+    enabled: !!inquilino?.cpf && !!user?.id && isOpen
+  });
+
   if (!inquilino) return null;
+
+  const valorUltimaFianca = ultimaFianca?.valor_fianca || ultimaFianca?.imovel_valor_aluguel || inquilino.valorAluguel;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -97,9 +123,9 @@ const InquilinoDetalhesModal = ({ isOpen, onClose, inquilino }: InquilinoDetalhe
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
                   <CreditCard className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                   <p className="text-lg font-semibold text-purple-600">
-                    R$ {inquilino.valorAluguel.toLocaleString('pt-BR')}
+                    R$ {valorUltimaFianca.toLocaleString('pt-BR')}
                   </p>
-                  <p className="text-sm text-gray-600">Último Valor</p>
+                  <p className="text-sm text-gray-600">Valor da Última Fiança</p>
                 </div>
               </div>
             </CardContent>
