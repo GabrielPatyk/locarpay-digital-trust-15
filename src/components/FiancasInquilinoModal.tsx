@@ -29,7 +29,6 @@ const FiancasInquilinoModal = ({ isOpen, onClose, inquilino }: FiancasInquilinoM
           id,
           status_fianca,
           imovel_valor_aluguel,
-          valor_fianca,
           imovel_endereco,
           imovel_cidade,
           imovel_estado,
@@ -111,9 +110,9 @@ const FiancasInquilinoModal = ({ isOpen, onClose, inquilino }: FiancasInquilinoM
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">Valor da Fiança</p>
+                      <p className="text-sm text-gray-600">Valor do Aluguel</p>
                       <p className="text-xl font-bold text-primary">
-                        R$ {(fianca.valor_fianca || fianca.imovel_valor_aluguel).toLocaleString('pt-BR')}
+                        R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}
                       </p>
                     </div>
                   </div>
