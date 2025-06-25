@@ -23,6 +23,7 @@ import Documentos from "./pages/Documentos";
 import Campanhas from "./pages/Campanhas";
 import Leads from "./pages/Leads";
 import ConfiguracoesImobiliaria from "./pages/ConfiguracoesImobiliaria";
+import ConfiguracoesInquilino from "./pages/ConfiguracoesInquilino";
 import Admin from "./pages/Admin";
 import Analista from "./pages/Analista";
 import Executivo from "./pages/Executivo";
@@ -84,9 +85,9 @@ function App() {
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     <Route path="*" element={<NotFound />} />
 
-                    {/* Protected routes with sidebar */}
+                    {/* Dashboard restricted to admin only */}
                     <Route path="/dashboard" element={
-                      <ProtectedRoute>
+                      <ProtectedRoute allowedRoles={['admin']}>
                         <AppSidebar />
                         <Dashboard />
                       </ProtectedRoute>
@@ -289,6 +290,12 @@ function App() {
                       <ProtectedRoute allowedRoles={['inquilino']}>
                         <AppSidebar />
                         <Inquilino />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/configuracoes-inquilino" element={
+                      <ProtectedRoute allowedRoles={['inquilino']}>
+                        <AppSidebar />
+                        <ConfiguracoesInquilino />
                       </ProtectedRoute>
                     } />
 
