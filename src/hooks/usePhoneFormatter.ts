@@ -50,11 +50,34 @@ export const usePhoneFormatter = () => {
     }
   };
 
+  const formatCPF = (value: string): string => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '');
+    
+    // Limita a 11 dígitos
+    const limitedNumbers = numbers.slice(0, 11);
+    
+    // Aplica a máscara XXX.XXX.XXX-XX
+    if (limitedNumbers.length <= 3) {
+      return limitedNumbers;
+    } else if (limitedNumbers.length <= 6) {
+      return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3)}`;
+    } else if (limitedNumbers.length <= 9) {
+      return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3, 6)}.${limitedNumbers.slice(6)}`;
+    } else {
+      return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3, 6)}.${limitedNumbers.slice(6, 9)}-${limitedNumbers.slice(9)}`;
+    }
+  };
+
   const unformatPhone = (value: string): string => {
     return value.replace(/\D/g, '');
   };
 
   const unformatCNPJ = (value: string): string => {
+    return value.replace(/\D/g, '');
+  };
+
+  const unformatCPF = (value: string): string => {
     return value.replace(/\D/g, '');
   };
 
@@ -66,8 +89,10 @@ export const usePhoneFormatter = () => {
   return {
     formatPhone,
     formatCNPJ,
+    formatCPF,
     unformatPhone,
     unformatCNPJ,
+    unformatCPF,
     isValidPhone
   };
 };

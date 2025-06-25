@@ -5,10 +5,9 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Login from '@/pages/Login';
-import Signup from '@/pages/Signup';
+import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
-import ResetPassword from '@/pages/ResetPassword';
-import EmailVerification from '@/pages/EmailVerification';
+import VerificarEmail from '@/pages/VerificarEmail';
 import Imobiliaria from '@/pages/Imobiliaria';
 import Inquilino from '@/pages/Inquilino';
 import Analista from '@/pages/Analista';
@@ -36,10 +35,10 @@ function App() {
           <div className="min-h-screen bg-gray-50">
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
+              <Route path="/signup" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/email-verification" element={<EmailVerification />} />
+              <Route path="/reset-password" element={<VerificarEmail />} />
+              <Route path="/email-verification" element={<VerificarEmail />} />
               
               <Route path="/imobiliaria" element={
                 <ProtectedRoute allowedRoles={['imobiliaria']}>

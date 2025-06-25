@@ -21,6 +21,7 @@ export interface User {
   contractAccepted?: boolean;
   companyName?: string;
   cnpj?: string;
+  cpf?: string;
   address?: string;
   fullName?: string;
   telefone?: string;
