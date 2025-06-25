@@ -46,7 +46,6 @@ import LeadsAdmin from "./pages/LeadsAdmin";
 import RelatoriosAdmin from "./pages/RelatoriosAdmin";
 import RelatoriosAnalista from "./pages/RelatoriosAnalista";
 import RelatoriosFinanceiro from "./pages/RelatoriosFinanceiro";
-import RelatoriosImobiliaria from "./pages/RelatoriosImobiliaria";
 import RelatoriosSDR from "./pages/RelatoriosSDR";
 import SinistrosAdmin from "./pages/SinistrosAdmin";
 import ContratosImobiliaria from "./pages/ContratosImobiliaria";
@@ -283,12 +282,6 @@ function App() {
                       <ProtectedRoute allowedRoles={['imobiliaria']}>
                         <AppSidebar />
                         <InquilinosImobiliaria />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/relatorios-imobiliaria" element={
-                      <ProtectedRoute allowedRoles={['imobiliaria']}>
-                        <AppSidebar />
-                        <RelatoriosImobiliaria />
                       </ProtectedRoute>
                     } />
 
