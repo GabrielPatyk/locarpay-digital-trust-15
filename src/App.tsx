@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -289,12 +290,6 @@ function App() {
                       <ProtectedRoute allowedRoles={['inquilino']}>
                         <AppSidebar />
                         <Inquilino />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/configuracoes-inquilino" element={
-                      <ProtectedRoute allowedRoles={['inquilino']}>
-                        <AppSidebar />
-                        <ConfiguracoesInquilino />
                       </ProtectedRoute>
                     } />
 
