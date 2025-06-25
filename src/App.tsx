@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,7 +23,6 @@ import Documentos from "./pages/Documentos";
 import Campanhas from "./pages/Campanhas";
 import Leads from "./pages/Leads";
 import ConfiguracoesImobiliaria from "./pages/ConfiguracoesImobiliaria";
-import ConfiguracoesInquilino from "./pages/ConfiguracoesInquilino";
 import Admin from "./pages/Admin";
 import Analista from "./pages/Analista";
 import Executivo from "./pages/Executivo";
