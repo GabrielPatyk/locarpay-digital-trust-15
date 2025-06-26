@@ -5,10 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import CriarFiancaModal from '@/components/CriarFiancaModal';
+import FiancaStatusTooltip from '@/components/FiancaStatusTooltip';
 import { 
   FileText, 
   TrendingUp, 
@@ -20,12 +23,14 @@ import {
   Calendar,
   MapPin,
   User,
-  DollarSign
+  DollarSign,
+  Filter
 } from 'lucide-react';
 
 const FiancasImobiliaria = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todos');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: fiancas = [], isLoading, refetch } = useQuery({
@@ -45,11 +50,15 @@ const FiancasImobiliaria = () => {
     enabled: !!user?.id
   });
 
-  const filteredFiancas = fiancas.filter(fianca =>
-    fianca.inquilino_nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fianca.inquilino_cpf.includes(searchTerm) ||
-    fianca.imovel_endereco.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredFiancas = fiancas.filter(fianca => {
+    const matchesSearch = fianca.inquilino_nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fianca.inquilino_cpf.includes(searchTerm) ||
+      fianca.imovel_endereco.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'todos' || fianca.status_fianca === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   // Estatísticas
   const totalFiancas = fiancas.length;
@@ -85,9 +94,26 @@ const FiancasImobiliaria = () => {
     }
   };
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
   const handleModalClose = () => {
     setIsModalOpen(false);
     refetch();
+  };
+
+  const handleViewFianca = (fiancaId: string) => {
+    // Implementar navegação para detalhes da fiança
+    console.log('Ver fiança:', fiancaId);
+  };
+
+  const handleAcceptFianca = (fiancaId: string) => {
+    // Implementar aceitação da fiança
+    console.log('Aceitar fiança:', fiancaId);
   };
 
   return (
@@ -105,7 +131,7 @@ const FiancasImobiliaria = () => {
         </div>
 
         {/* Dashboard Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Fianças</CardTitle>
@@ -159,111 +185,142 @@ const FiancasImobiliaria = () => {
           </Card>
         </div>
 
-        {/* Busca e Nova Fiança */}
-        <div className="flex justify-between items-center">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Buscar fianças por inquilino, CPF ou endereço..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button onClick={() => setIsModalOpen(true)} className="ml-4">
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Fiança
-          </Button>
-        </div>
-
         {/* Lista de Fianças */}
-        <div className="space-y-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row justify-between gap-4">
+              <CardTitle>Lista de Fianças</CardTitle>
+              {/* Filtros (agora empilhados em mobile) */}
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <Input
+                  placeholder="Buscar..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full"
+                />
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-40">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    <SelectItem value="em_analise">Em Análise</SelectItem>
+                    <SelectItem value="aprovada">Aprovadas</SelectItem>
+                    <SelectItem value="rejeitada">Rejeitadas</SelectItem>
+                    <SelectItem value="ativa">Ativas</SelectItem>
+                    <SelectItem value="vencida">Vencidas</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={() => setIsModalOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nova Fiança
+                </Button>
+              </div>
             </div>
-          ) : filteredFiancas.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {searchTerm ? 'Nenhuma fiança encontrada' : 'Nenhuma fiança cadastrada'}
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  {searchTerm 
-                    ? 'Tente ajustar sua busca.'
-                    : 'Comece criando sua primeira fiança.'
-                  }
-                </p>
-                {!searchTerm && (
-                  <Button onClick={() => setIsModalOpen(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Nova Fiança
-                  </Button>
+          </CardHeader>
+
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <>
+                {/* Tabela responsiva com scroll horizontal em mobile */}
+                <div className="overflow-x-auto">
+                  <Table className="min-w-[600px] lg:min-w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[150px]">Inquilino</TableHead>
+                        <TableHead className="lg:w-[250px]">Imóvel</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="hidden sm:table-cell">Data</TableHead>
+                        <TableHead>Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredFiancas.map((fianca) => (
+                        <TableRow key={fianca.id}>
+                          {/* Celulas com ajustes para mobile */}
+                          <TableCell className="font-medium py-2">
+                            <div className="line-clamp-1">
+                              {fianca.inquilino_nome_completo}
+                            </div>
+                          </TableCell>
+                          
+                          <TableCell className="py-2">
+                            <div className="line-clamp-1">
+                              {`${fianca.imovel_endereco}, ${fianca.imovel_numero}`}
+                            </div>
+                            <div className="text-xs text-muted-foreground sm:hidden">
+                              {fianca.imovel_bairro}
+                            </div>
+                          </TableCell>
+                          
+                          <TableCell className="py-2">
+                            {formatCurrency(fianca.imovel_valor_aluguel)}
+                          </TableCell>
+                          
+                          <TableCell className="py-2">
+                            <FiancaStatusTooltip
+                              status={fianca.status_fianca}
+                              motivo_reprovacao={fianca.motivo_reprovacao}
+                              data_atualizacao={fianca.data_atualizacao}
+                              analista="Sistema" // Pode ser expandido para buscar o nome do analista
+                            >
+                              <Badge className={`${getStatusColor(fianca.status_fianca)} text-xs cursor-pointer hover:opacity-80`}>
+                                {getStatusLabel(fianca.status_fianca)}
+                              </Badge>
+                            </FiancaStatusTooltip>
+                          </TableCell>
+                          
+                          <TableCell className="hidden sm:table-cell py-2">
+                            {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}
+                          </TableCell>
+                          
+                          <TableCell className="py-2">
+                            <div className="flex gap-1">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8"
+                                onClick={() => handleViewFianca(fianca.id)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {fianca.status_fianca === 'aprovada' && (
+                                <Button 
+                                  size="icon"
+                                  className="h-8 w-8 bg-green-600 hover:bg-green-700"
+                                  onClick={() => handleAcceptFianca(fianca.id)}
+                                >
+                                  <CheckCircle className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mensagem quando não há resultados */}
+                {filteredFiancas.length === 0 && (
+                  <div className="text-center py-8">
+                    <FileText className="mx-auto h-10 w-10 text-muted-foreground" />
+                    <h3 className="mt-2 text-sm font-medium">Nenhuma fiança encontrada</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {searchTerm ? "Tente ajustar sua busca" : "Adicione uma nova fiança"}
+                    </p>
+                  </div>
                 )}
-              </CardContent>
-            </Card>
-          ) : (
-            filteredFiancas.map((fianca) => (
-              <Card key={fianca.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-primary/10 p-2 rounded-full">
-                        <FileText className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">Fiança #{fianca.id.slice(0, 8)}</h3>
-                        <Badge className={getStatusColor(fianca.status_fianca)}>
-                          {getStatusLabel(fianca.status_fianca)}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600">Valor do Aluguel</p>
-                      <p className="text-xl font-bold text-primary">
-                        R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}
-                      </p>
-                      {fianca.valor_fianca && (
-                        <p className="text-sm text-purple-600 font-medium">
-                          Fiança: R$ {fianca.valor_fianca.toLocaleString('pt-BR')}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-gray-400" />
-                      <div>
-                        <p className="text-sm text-gray-600">Inquilino</p>
-                        <p className="font-medium">{fianca.inquilino_nome_completo}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4 text-gray-400" />
-                      <div>
-                        <p className="text-sm text-gray-600">Imóvel</p>
-                        <p className="font-medium">{fianca.imovel_endereco}, {fianca.imovel_cidade}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Calendar className="h-4 w-4" />
-                      <span>Criada em {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}</span>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Eye className="mr-2 h-4 w-4" />
-                      Visualizar
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Seção de Ajuda */}
         <Card>
