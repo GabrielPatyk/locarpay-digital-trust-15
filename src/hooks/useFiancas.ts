@@ -22,7 +22,6 @@ export interface FiancaFormData {
   inquilinoCidade: string;
   inquilinoEstado: string;
   inquilinoPais: string;
-  inquilinoCep: string;
   // Dados do Imóvel
   tipoImovel: string;
   tipoLocacao: string;
@@ -38,7 +37,6 @@ export interface FiancaFormData {
   imovelCidade: string;
   imovelEstado: string;
   imovelPais: string;
-  imovelCep: string;
   // CNPJ da Imobiliária
   cnpjImobiliaria: string;
 }
