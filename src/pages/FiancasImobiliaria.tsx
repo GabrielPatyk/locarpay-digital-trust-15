@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { useFiancas, type FiancaFormData } from '@/hooks/useFiancas';
-import { validateFiancaForm, formatCurrency as formatCurrencyUtil } from '@/components/FiancaFormValidation';
+import { validateFiancaForm, formatCurrency } from '@/components/FiancaFormValidation';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import RejectedFiancaTooltip from '@/components/RejectedFiancaTooltip';
 import ApprovedFiancaTooltip from '@/components/ApprovedFiancaTooltip';
@@ -103,7 +103,7 @@ const FiancasImobiliaria = () => {
       }));
     } else if (field === 'rendaMensal' || field === 'valorAluguel') {
       // Formatar valores monetários
-      const formatted = formatCurrencyUtil(value);
+      const formatted = formatCurrency(value);
       setFormData(prev => ({
         ...prev,
         [field]: formatted
@@ -266,13 +266,6 @@ const FiancasImobiliaria = () => {
   const applyDateFilter = () => {
     // Força uma re-renderização para aplicar os filtros
     setSearchTerm(searchTerm);
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
   };
 
   if (isLoading) {
@@ -729,80 +722,58 @@ const FiancasImobiliaria = () => {
               </Dialog>
             </div>
           </CardHeader>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
-              <CardTitle>Lista de Fianças</CardTitle>
-              {/* Filtros (agora empilhados em mobile) */}
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <Input
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-40">
-                    <Filter className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    <SelectItem value="em_analise">Em Análise</SelectItem>
-                    <SelectItem value="aprovada">Aprovadas</SelectItem>
-                    <SelectItem value="ativa">Ativas</SelectItem>
-                    <SelectItem value="vencida">Vencidas</SelectItem>
-                    <SelectItem value="rejeitada">Rejeitadas</SelectItem>
-                    <SelectItem value="cancelada">Canceladas</SelectItem>
-                    <SelectItem value="enviada_ao_financeiro">Enviada ao Financeiro</SelectItem>
-                    <SelectItem value="pagamento_disponivel">Aguardando Pagamento</SelectItem>
-                    <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-
           <CardContent>
-            {/* Tabela responsiva com scroll horizontal em mobile */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Pesquisar por inquilino ou imóvel..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <Filter className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Filtrar por status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Status</SelectItem>
+                  <SelectItem value="em_analise">Em Análise</SelectItem>
+                  <SelectItem value="aprovada">Aprovadas</SelectItem>
+                  <SelectItem value="ativa">Ativas</SelectItem>
+                  <SelectItem value="vencida">Vencidas</SelectItem>
+                  <SelectItem value="rejeitada">Rejeitadas</SelectItem>
+                  <SelectItem value="cancelada">Canceladas</SelectItem>
+                  <SelectItem value="enviada_ao_financeiro">Enviada ao Financeiro</SelectItem>
+                  <SelectItem value="pagamento_disponivel">Aguardando Pagamento</SelectItem>
+                  <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="overflow-x-auto">
-              <Table className="min-w-[600px] lg:min-w-full">
+              <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[150px]">Inquilino</TableHead>
-                    <TableHead className="lg:w-[250px]">Imóvel</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="hidden sm:table-cell">Data</TableHead>
-                    <TableHead>Ações</TableHead>
+                    <TableHead className="min-w-[120px]">Inquilino</TableHead>
+                    <TableHead className="min-w-[200px]">Imóvel</TableHead>
+                    <TableHead className="min-w-[100px]">Valor</TableHead>
+                    <TableHead className="min-w-[120px]">Status</TableHead>
+                    <TableHead className="min-w-[100px]">Data Criação</TableHead>
+                    <TableHead className="min-w-[100px]">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredFiancas.map((fianca) => (
                     <TableRow key={fianca.id}>
-                      {/* Celulas com ajustes para mobile */}
-                      <TableCell className="font-medium py-2">
-                        <div className="line-clamp-1">
-                          {fianca.inquilino_nome_completo}
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell className="py-2">
-                        <div className="line-clamp-1">
-                          {`${fianca.imovel_endereco}, ${fianca.imovel_numero}`}
-                        </div>
-                        <div className="text-xs text-muted-foreground sm:hidden">
-                          {fianca.imovel_bairro}
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell className="py-2">
-                        {formatCurrency(fianca.imovel_valor_aluguel)}
-                      </TableCell>
-                      
-                      <TableCell className="py-2">
+                      <TableCell className="font-medium">{fianca.inquilino_nome_completo}</TableCell>
+                      <TableCell>{`${fianca.imovel_endereco}, ${fianca.imovel_numero} - ${fianca.imovel_bairro}`}</TableCell>
+                      <TableCell>R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}</TableCell>
+                      <TableCell>
                         {fianca.status_fianca === 'rejeitada' ? (
                           <RejectedFiancaTooltip
                             rejectionReason={fianca.motivo_reprovacao || 'Não informado'}
@@ -810,7 +781,7 @@ const FiancasImobiliaria = () => {
                             score={fianca.score_credito}
                             analystName="Analista Responsável"
                           >
-                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help text-xs`}>
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
                               {getStatusLabel(fianca.status_fianca)}
                             </Badge>
                           </RejectedFiancaTooltip>
@@ -822,7 +793,7 @@ const FiancasImobiliaria = () => {
                             analystName="Analista Responsável"
                             observations={fianca.observacoes_aprovacao}
                           >
-                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help text-xs`}>
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
                               {getStatusLabel(fianca.status_fianca)}
                             </Badge>
                           </ApprovedFiancaTooltip>
@@ -832,45 +803,40 @@ const FiancasImobiliaria = () => {
                             nomeInquilino={fianca.inquilino_nome_completo}
                             dataEnvio={fianca.data_atualizacao}
                           >
-                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help text-xs`}>
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
                               {getStatusLabel(fianca.status_fianca)}
                             </Badge>
                           </AguardandoPagamentoTooltip>
                         ) : (
-                          <Badge className={`${getStatusColor(fianca.status_fianca)} text-white text-xs`}>
+                          <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
                             {getStatusLabel(fianca.status_fianca)}
                           </Badge>
                         )}
                       </TableCell>
-                      
-                      <TableCell className="hidden sm:table-cell py-2">
-                        {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}
-                      </TableCell>
-                      
-                      <TableCell className="py-2">
-                        <div className="flex gap-1">
+                      <TableCell>{new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
                           <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8"
+                            variant="outline" 
+                            size="sm"
                             onClick={() => handleViewFianca(fianca.id)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          {fianca.status_fianca === 'aprovada' && (
+                          {fianca.status_fianca === 'aprovada' ? (
                             <Button 
-                              size="icon"
-                              className="h-8 w-8 bg-green-600 hover:bg-green-700"
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
                               onClick={() => handleAcceptFianca(fianca.id)}
                               disabled={isAccepting}
                             >
                               {isAccepting ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
-                                <CheckCircle className="h-4 w-4" />
+                                'Aceitar'
                               )}
                             </Button>
-                          )}
+                          ) : null}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -879,13 +845,17 @@ const FiancasImobiliaria = () => {
               </Table>
             </div>
 
-            {/* Mensagem quando não há resultados */}
             {filteredFiancas.length === 0 && (
               <div className="text-center py-8">
-                <FileText className="mx-auto h-10 w-10 text-muted-foreground" />
-                <h3 className="mt-2 text-sm font-medium">Nenhuma fiança encontrada</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {searchTerm ? "Tente ajustar sua busca" : "Adicione uma nova fiança"}
+                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Nenhuma fiança encontrada
+                </h3>
+                <p className="text-gray-600">
+                  {searchTerm || statusFilter !== 'todos' || startDate || endDate
+                    ? 'Tente ajustar sua busca ou adicione uma nova fiança.'
+                    : 'Adicione sua primeira fiança para começar.'
+                  }
                 </p>
               </div>
             )}
