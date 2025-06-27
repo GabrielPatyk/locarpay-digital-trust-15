@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -60,6 +59,8 @@ import PerformanceExecutivo from "./pages/PerformanceExecutivo";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import DetalheFianca from './pages/DetalheFianca';
+import DetalheImobiliaria from './pages/DetalheImobiliaria';
+import EditarImobiliaria from './pages/EditarImobiliaria';
 
 const queryClient = new QueryClient();
 
