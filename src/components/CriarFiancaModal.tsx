@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useFiancas, FiancaFormData } from '@/hooks/useFiancas';
 import { useImobiliariaData } from '@/hooks/useImobiliariaData';
+import { useFormFormatters } from '@/hooks/useFormFormatters';
 import { Loader2 } from 'lucide-react';
 
 interface CriarFiancaModalProps {
@@ -22,13 +23,22 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
   const { createFianca, isCreating } = useFiancas();
   const { cnpj } = useImobiliariaData();
   const { toast } = useToast();
+  const {
+    formatCPF,
+    validateCPF,
+    formatWhatsApp,
+    formatCurrency,
+    formatCEP,
+    fetchAddressByCEP,
+    parseCurrencyToNumber
+  } = useFormFormatters();
   
-  const [formData, setFormData] = useState<FiancaFormData>({
+  const [formData, setFormData] = useState<Omit<FiancaFormData, 'cnpjImobiliaria'>>({
     nomeCompleto: '',
     cpf: '',
     email: '',
-    whatsapp: '',
-    rendaMensal: '',
+    whatsapp: '+55 ',
+    rendaMensal: 'R$ 0,00',
     inquilinoEndereco: '',
     inquilinoNumero: '',
     inquilinoComplemento: '',
@@ -36,9 +46,10 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
     inquilinoCidade: '',
     inquilinoEstado: '',
     inquilinoPais: 'Brasil',
+    inquilinoCep: '',
     tipoImovel: '',
     tipoLocacao: '',
-    valorAluguel: '',
+    valorAluguel: 'R$ 0,00',
     descricaoImovel: '',
     areaMetros: '',
     tempoLocacao: '',
@@ -49,32 +60,99 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
     imovelCidade: '',
     imovelEstado: '',
     imovelPais: 'Brasil',
-    cnpjImobiliaria: cnpj || ''
+    imovelCep: ''
   });
 
-  const handleInputChange = (field: keyof FiancaFormData, value: string) => {
+  const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
+  const handleCPFChange = (value: string) => {
+    const formatted = formatCPF(value);
+    handleInputChange('cpf', formatted);
+  };
+
+  const handleCPFBlur = () => {
+    if (formData.cpf && !validateCPF(formData.cpf, () => handleInputChange('cpf', ''))) {
+      // CPF is invalid, field will be cleared by the validator
+    }
+  };
+
+  const handleWhatsAppChange = (value: string) => {
+    const formatted = formatWhatsApp(value);
+    handleInputChange('whatsapp', formatted);
+  };
+
+  const handleCurrencyChange = (field: 'rendaMensal' | 'valorAluguel', value: string) => {
+    const formatted = formatCurrency(value);
+    handleInputChange(field, formatted);
+  };
+
+  const handleCEPChange = (field: 'inquilinoCep' | 'imovelCep', value: string) => {
+    const formatted = formatCEP(value);
+    handleInputChange(field, formatted);
+  };
+
+  const handleCEPBlur = async (field: 'inquilinoCep' | 'imovelCep') => {
+    const cepValue = formData[field];
+    if (cepValue) {
+      await fetchAddressByCEP(cepValue, (address) => {
+        if (field === 'inquilinoCep') {
+          setFormData(prev => ({
+            ...prev,
+            inquilinoEndereco: address.logradouro,
+            inquilinoBairro: address.bairro,
+            inquilinoCidade: address.cidade,
+            inquilinoEstado: address.estado
+          }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            imovelEndereco: address.logradouro,
+            imovelBairro: address.bairro,
+            imovelCidade: address.cidade,
+            imovelEstado: address.estado
+          }));
+        }
+      });
+    }
+  };
+
   const handleSubmitFianca = async () => {
     try {
-      await createFianca(formData);
+      const fiancaData: FiancaFormData = {
+        ...formData,
+        cnpjImobiliaria: cnpj || ''
+      };
+      
+      // Convert currency values to numbers
+      const rendaMensalNumber = parseCurrencyToNumber(formData.rendaMensal);
+      const valorAluguelNumber = parseCurrencyToNumber(formData.valorAluguel);
+      
+      await createFianca({
+        ...fiancaData,
+        rendaMensal: rendaMensalNumber.toString(),
+        valorAluguel: valorAluguelNumber.toString()
+      });
+      
       toast({
         title: "Fiança criada com sucesso!",
         description: "A solicitação foi enviada para análise.",
       });
+      
       refetch?.();
       onClose();
+      
       // Reset form
       setFormData({
         nomeCompleto: '',
         cpf: '',
         email: '',
-        whatsapp: '',
-        rendaMensal: '',
+        whatsapp: '+55 ',
+        rendaMensal: 'R$ 0,00',
         inquilinoEndereco: '',
         inquilinoNumero: '',
         inquilinoComplemento: '',
@@ -82,9 +160,10 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
         inquilinoCidade: '',
         inquilinoEstado: '',
         inquilinoPais: 'Brasil',
+        inquilinoCep: '',
         tipoImovel: '',
         tipoLocacao: '',
-        valorAluguel: '',
+        valorAluguel: 'R$ 0,00',
         descricaoImovel: '',
         areaMetros: '',
         tempoLocacao: '',
@@ -95,7 +174,7 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
         imovelCidade: '',
         imovelEstado: '',
         imovelPais: 'Brasil',
-        cnpjImobiliaria: cnpj || ''
+        imovelCep: ''
       });
     } catch (error: any) {
       toast({
@@ -149,7 +228,8 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
                   <Input
                     id="cpf"
                     value={formData.cpf}
-                    onChange={(e) => handleInputChange('cpf', e.target.value)}
+                    onChange={(e) => handleCPFChange(e.target.value)}
+                    onBlur={handleCPFBlur}
                     placeholder="000.000.000-00"
                     required
                   />
@@ -170,8 +250,8 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
                   <Input
                     id="whatsapp"
                     value={formData.whatsapp}
-                    onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                    placeholder="+55 (11) 98765-4321"
+                    onChange={(e) => handleWhatsAppChange(e.target.value)}
+                    placeholder="+55 (11) 9 8765-4321"
                     required
                   />
                 </div>
@@ -180,7 +260,7 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
                   <Input
                     id="rendaMensal"
                     value={formData.rendaMensal}
-                    onChange={(e) => handleInputChange('rendaMensal', e.target.value)}
+                    onChange={(e) => handleCurrencyChange('rendaMensal', e.target.value)}
                     placeholder="R$ 5.000,00"
                     required
                   />
@@ -190,6 +270,17 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
               {/* Seção 2 - Endereço do Inquilino */}
               <div className="space-y-4">
                 <h3 className="font-medium">Endereço do Inquilino</h3>
+                <div>
+                  <Label htmlFor="inquilinoCep">CEP *</Label>
+                  <Input
+                    id="inquilinoCep"
+                    value={formData.inquilinoCep}
+                    onChange={(e) => handleCEPChange('inquilinoCep', e.target.value)}
+                    onBlur={() => handleCEPBlur('inquilinoCep')}
+                    placeholder="00000-000"
+                    required
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
                     <Label htmlFor="inquilinoEndereco">Endereço *</Label>
@@ -308,7 +399,7 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
                   <Input
                     id="valorAluguel"
                     value={formData.valorAluguel}
-                    onChange={(e) => handleInputChange('valorAluguel', e.target.value)}
+                    onChange={(e) => handleCurrencyChange('valorAluguel', e.target.value)}
                     placeholder="R$ 2.500,00"
                     required
                   />
@@ -332,21 +423,22 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
                     required
                   />
                 </div>
-                <div>
-                  <Label htmlFor="cnpjImobiliaria">CNPJ da Imobiliária *</Label>
-                  <Input
-                    id="cnpjImobiliaria"
-                    value={formData.cnpjImobiliaria}
-                    onChange={(e) => handleInputChange('cnpjImobiliaria', e.target.value)}
-                    placeholder="00.000.000/0000-00"
-                    required
-                  />
-                </div>
               </div>
 
               {/* Seção 2 - Endereço do Imóvel e Descrição */}
               <div className="space-y-4">
                 <h3 className="font-medium">Endereço do Imóvel</h3>
+                <div>
+                  <Label htmlFor="imovelCep">CEP *</Label>
+                  <Input
+                    id="imovelCep"
+                    value={formData.imovelCep}
+                    onChange={(e) => handleCEPChange('imovelCep', e.target.value)}
+                    onBlur={() => handleCEPBlur('imovelCep')}
+                    placeholder="00000-000"
+                    required
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
                     <Label htmlFor="imovelEndereco">Endereço *</Label>
