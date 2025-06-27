@@ -15,6 +15,7 @@ export interface InquilinoFianca {
   statusAtivo: boolean;
   statusVerificacao: 'verificado' | 'pendente';
   valorAluguel: number;
+  valorUltimaFianca: number;
   dataInicio: string;
   fiancaId: string;
   totalFiancas: number;
@@ -40,6 +41,7 @@ export const useInquilinosImobiliaria = (searchTerm: string = '', statusFilter: 
           inquilino_whatsapp,
           status_fianca,
           imovel_valor_aluguel,
+          valor_fianca,
           data_criacao,
           inquilino_usuario_id
         `)
@@ -63,6 +65,7 @@ export const useInquilinosImobiliaria = (searchTerm: string = '', statusFilter: 
           // Se a fiança atual é mais recente, atualizar os dados principais
           if (new Date(fianca.data_criacao) > new Date(inquilino.dataInicio)) {
             inquilino.valorAluguel = fianca.imovel_valor_aluguel;
+            inquilino.valorUltimaFianca = fianca.valor_fianca || fianca.imovel_valor_aluguel;
             inquilino.dataInicio = fianca.data_criacao;
             inquilino.fiancaId = fianca.id;
           }
@@ -95,6 +98,7 @@ export const useInquilinosImobiliaria = (searchTerm: string = '', statusFilter: 
             statusAtivo,
             statusVerificacao,
             valorAluguel: fianca.imovel_valor_aluguel,
+            valorUltimaFianca: fianca.valor_fianca || fianca.imovel_valor_aluguel,
             dataInicio: fianca.data_criacao,
             fiancaId: fianca.id,
             totalFiancas: 1,

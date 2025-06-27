@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useInquilinosImobiliaria } from '@/hooks/useInquilinosImobiliaria';
@@ -331,11 +330,11 @@ const Imobiliaria = () => {
                               <p className="text-sm text-gray-600">CPF: {inquilino.cpf}</p>
                             </div>
                             <div className="flex gap-2">
-                              <Badge className={`${getStatusColor(inquilino.statusAtivo)} text-white`}>
-                                {getStatusLabel(inquilino.statusAtivo)}
+                              <Badge className={inquilino.statusAtivo ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}>
+                                {inquilino.statusAtivo ? 'Ativo' : 'Inativo'}
                               </Badge>
-                              <Badge className={`${getVerificationColor(inquilino.statusVerificacao)} text-white`}>
-                                {getVerificationLabel(inquilino.statusVerificacao)}
+                              <Badge className={inquilino.statusVerificacao === 'verificado' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}>
+                                {inquilino.statusVerificacao === 'verificado' ? 'Verificado' : 'Verificação Pendente'}
                               </Badge>
                             </div>
                           </div>

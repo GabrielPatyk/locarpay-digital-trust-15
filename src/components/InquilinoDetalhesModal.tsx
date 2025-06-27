@@ -62,10 +62,10 @@ const InquilinoDetalhesModal = ({ isOpen, onClose, inquilino }: InquilinoDetalhe
               </div>
               
               <div className="flex gap-2">
-                <Badge className={inquilino.statusAtivo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                <Badge className={inquilino.statusAtivo ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'}>
                   {inquilino.statusAtivo ? 'Ativo' : 'Inativo'}
                 </Badge>
-                <Badge className={inquilino.statusVerificacao === 'verificado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                <Badge className={inquilino.statusVerificacao === 'verificado' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}>
                   {inquilino.statusVerificacao === 'verificado' ? 'Verificado' : 'Verificação Pendente'}
                 </Badge>
               </div>
@@ -97,9 +97,9 @@ const InquilinoDetalhesModal = ({ isOpen, onClose, inquilino }: InquilinoDetalhe
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
                   <CreditCard className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                   <p className="text-lg font-semibold text-purple-600">
-                    R$ {inquilino.valorAluguel.toLocaleString('pt-BR')}
+                    R$ {inquilino.valorUltimaFianca.toLocaleString('pt-BR')}
                   </p>
-                  <p className="text-sm text-gray-600">Último Valor</p>
+                  <p className="text-sm text-gray-600">Última Fiança</p>
                 </div>
               </div>
             </CardContent>
