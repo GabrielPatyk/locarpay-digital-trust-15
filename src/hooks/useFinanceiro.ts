@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +5,55 @@ import { useHistoricoFiancas } from './useHistoricoFiancas';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Fianca = Tables<'fiancas_locaticias'>;
+
+const sendWebhook = async (fiancaData: any) => {
+  try {
+    console.log('Enviando webhook para:', 'https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6');
+    
+    await fetch('https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(fiancaData)
+    });
+    
+    console.log('Webhook enviado com sucesso');
+  } catch (error) {
+    console.error('Erro ao enviar webhook:', error);
+  }
+};
+
+const getFiancaCompleteData = async (fiancaId: string) => {
+  // Buscar todos os dados da fiança
+  const { data: fianca, error: fiancaError } = await supabase
+    .from('fiancas_locaticias')
+    .select('*')
+    .eq('id', fiancaId)
+    .single();
+
+  if (fiancaError) throw fiancaError;
+
+  // Buscar dados da imobiliária
+  const { data: imobiliaria, error: imobiliariaError } = await supabase
+    .from('usuarios')
+    .select(`
+      *,
+      perfil_usuario(*)
+    `)
+    .eq('id', fianca.id_imobiliaria)
+    .single();
+
+  if (imobiliariaError) throw imobiliariaError;
+
+  return {
+    fianca,
+    imobiliaria: {
+      ...imobiliaria,
+      perfil: imobiliaria.perfil_usuario
+    }
+  };
+};
 
 export const useFinanceiro = () => {
   const { user } = useAuth();
@@ -71,6 +119,20 @@ export const useFinanceiro = () => {
         detalhes: `Status alterado para ${novoStatus}`
       });
 
+      // Enviar webhook quando o status for alterado para assinatura_imobiliaria
+      if (novoStatus === 'assinatura_imobiliaria') {
+        try {
+          const webhookData = await getFiancaCompleteData(fiancaId);
+          await sendWebhook({
+            event: 'fianca_payment_confirmed',
+            data: webhookData,
+            timestamp: new Date().toISOString()
+          });
+        } catch (webhookError) {
+          console.error('Erro ao enviar webhook:', webhookError);
+        }
+      }
+
       return fiancaId;
     },
     onSuccess: () => {
@@ -112,7 +174,7 @@ export const useFinanceiro = () => {
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({ 
-          status_fianca: 'ativa',
+          status_fianca: 'assinatura_imobiliaria',
           data_atualizacao: new Date().toISOString()
         })
         .eq('id', fiancaId);
@@ -122,8 +184,20 @@ export const useFinanceiro = () => {
       await registrarLog({
         fiancaId,
         acao: 'Pagamento confirmado',
-        detalhes: 'Fiança ativada após confirmação do pagamento'
+        detalhes: 'Fiança enviada para assinatura da imobiliária após confirmação do pagamento'
       });
+
+      // Enviar webhook quando confirmar pagamento
+      try {
+        const webhookData = await getFiancaCompleteData(fiancaId);
+        await sendWebhook({
+          event: 'fianca_payment_confirmed',
+          data: webhookData,
+          timestamp: new Date().toISOString()
+        });
+      } catch (webhookError) {
+        console.error('Erro ao enviar webhook:', webhookError);
+      }
 
       return fiancaId;
     },

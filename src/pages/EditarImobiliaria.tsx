@@ -10,11 +10,13 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Save, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 
 const EditarImobiliaria = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { formatPhone, formatCNPJ, unformatPhone, unformatCNPJ } = usePhoneFormatter();
 
   const [formData, setFormData] = useState({
     nome: '',
@@ -57,9 +59,9 @@ const EditarImobiliaria = () => {
       setFormData({
         nome: imobiliaria.nome || '',
         email: imobiliaria.email || '',
-        telefone: imobiliaria.telefone || '',
+        telefone: formatPhone(imobiliaria.telefone || ''),
         nome_empresa: imobiliaria.perfil_usuario?.nome_empresa || '',
-        cnpj: imobiliaria.perfil_usuario?.cnpj || '',
+        cnpj: formatCNPJ(imobiliaria.perfil_usuario?.cnpj || ''),
         endereco: imobiliaria.perfil_usuario?.endereco || '',
         numero: imobiliaria.perfil_usuario?.numero || '',
         complemento: imobiliaria.perfil_usuario?.complemento || '',
@@ -69,7 +71,7 @@ const EditarImobiliaria = () => {
         pais: imobiliaria.perfil_usuario?.pais || 'Brasil'
       });
     }
-  }, [imobiliaria]);
+  }, [imobiliaria, formatPhone, formatCNPJ]);
 
   const updateMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -81,7 +83,7 @@ const EditarImobiliaria = () => {
         .update({
           nome: data.nome,
           email: data.email,
-          telefone: data.telefone
+          telefone: unformatPhone(data.telefone)
         })
         .eq('id', id);
 
@@ -100,7 +102,7 @@ const EditarImobiliaria = () => {
           .from('perfil_usuario')
           .update({
             nome_empresa: data.nome_empresa,
-            cnpj: data.cnpj,
+            cnpj: unformatCNPJ(data.cnpj),
             endereco: data.endereco,
             numero: data.numero,
             complemento: data.complemento,
@@ -119,7 +121,7 @@ const EditarImobiliaria = () => {
           .insert({
             usuario_id: id,
             nome_empresa: data.nome_empresa,
-            cnpj: data.cnpj,
+            cnpj: unformatCNPJ(data.cnpj),
             endereco: data.endereco,
             numero: data.numero,
             complemento: data.complemento,
@@ -149,6 +151,12 @@ const EditarImobiliaria = () => {
   });
 
   const handleInputChange = (field: string, value: string) => {
+    if (field === 'telefone') {
+      value = formatPhone(value);
+    } else if (field === 'cnpj') {
+      value = formatCNPJ(value);
+    }
+    
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -208,6 +216,7 @@ const EditarImobiliaria = () => {
                     id="cnpj"
                     value={formData.cnpj}
                     onChange={(e) => handleInputChange('cnpj', e.target.value)}
+                    placeholder="00.000.000/0000-00"
                     required
                   />
                 </div>
@@ -240,11 +249,12 @@ const EditarImobiliaria = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="telefone">Telefone</Label>
+                  <Label htmlFor="telefone">Telefone/WhatsApp</Label>
                   <Input
                     id="telefone"
                     value={formData.telefone}
                     onChange={(e) => handleInputChange('telefone', e.target.value)}
+                    placeholder="+55 (00) 0 0000-0000"
                   />
                 </div>
               </CardContent>

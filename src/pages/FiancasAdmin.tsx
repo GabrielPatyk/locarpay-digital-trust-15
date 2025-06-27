@@ -56,53 +56,53 @@ const FiancasAdmin = () => {
     total: fiancas.length,
     aprovadas: fiancas.filter(f => f.status_fianca === 'aprovada').length,
     pendentes: fiancas.filter(f => f.status_fianca === 'em_analise').length,
-    valorTotal: fiancas.reduce((sum, f) => sum + f.imovel_valor_aluguel, 0)
+    valorTotal: fiancas.reduce((sum, f) => sum + (f.valor_fianca || 0), 0)
   };
 
   return (
     <Layout title="Gestão de Fianças">
-      <div className="space-y-6">
+      <div className="space-y-4 px-2 sm:px-0">
         {/* Dashboard */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Fianças</p>
-                  <p className="text-2xl font-bold text-primary">{stats.total}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Fianças</p>
+                  <p className="text-lg sm:text-2xl font-bold text-primary">{stats.total}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Aprovadas</p>
-                  <p className="text-2xl font-bold text-green-500">{stats.aprovadas}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Aprovadas</p>
+                  <p className="text-lg sm:text-2xl font-bold text-green-500">{stats.aprovadas}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pendentes</p>
-                  <p className="text-2xl font-bold text-yellow-500">{stats.pendentes}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pendentes</p>
+                  <p className="text-lg sm:text-2xl font-bold text-yellow-500">{stats.pendentes}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Valor Total</p>
-                  <p className="text-2xl font-bold text-primary">{formatCurrency(stats.valorTotal)}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Valor Total</p>
+                  <p className="text-sm sm:text-xl font-bold text-primary">{formatCurrency(stats.valorTotal)}</p>
                 </div>
               </div>
             </CardContent>
@@ -110,9 +110,9 @@ const FiancasAdmin = () => {
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-3 sm:pb-4">
             <div className="flex flex-col sm:flex-row justify-between gap-4">
-              <CardTitle>Lista de Fianças</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">Lista de Fianças</CardTitle>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <Input
                   placeholder="Buscar inquilino ou imobiliária..."
@@ -137,68 +137,79 @@ const FiancasAdmin = () => {
             </div>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <Table className="min-w-[700px] lg:min-w-full">
+              <Table className="w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[150px]">Inquilino</TableHead>
-                    <TableHead className="w-[150px]">Imobiliária</TableHead>
-                    <TableHead className="lg:w-[200px]">Imóvel</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="hidden sm:table-cell">Data</TableHead>
-                    <TableHead>Ações</TableHead>
+                    <TableHead className="w-[180px] px-4 py-3">Inquilino</TableHead>
+                    <TableHead className="w-[180px] px-4 py-3">Imobiliária</TableHead>
+                    <TableHead className="w-[220px] px-4 py-3">Imóvel</TableHead>
+                    <TableHead className="w-[120px] px-4 py-3">Valor Fiança</TableHead>
+                    <TableHead className="w-[140px] px-4 py-3">Status</TableHead>
+                    <TableHead className="w-[100px] px-4 py-3">Data</TableHead>
+                    <TableHead className="w-[80px] px-4 py-3">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {fiancas.map((fianca) => (
-                    <TableRow key={fianca.id}>
-                      <TableCell className="font-medium py-2">
-                        <div className="line-clamp-1">
-                          {fianca.inquilino_nome_completo}
+                    <TableRow key={fianca.id} className="hover:bg-gray-50">
+                      <TableCell className="px-4 py-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-900 break-words">
+                            {fianca.inquilino_nome_completo}
+                          </p>
                         </div>
                       </TableCell>
                       
-                      <TableCell className="py-2">
-                        <div className="line-clamp-1 font-medium text-blue-600">
-                          {fianca.imobiliaria_nome}
+                      <TableCell className="px-4 py-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-blue-600 break-words">
+                            {fianca.imobiliaria_nome}
+                          </p>
                         </div>
                       </TableCell>
                       
-                      <TableCell className="py-2">
-                        <div className="line-clamp-1">
-                          {`${fianca.imovel_endereco}, ${fianca.imovel_numero}`}
-                        </div>
-                        <div className="text-xs text-muted-foreground sm:hidden">
-                          {fianca.imovel_bairro}
+                      <TableCell className="px-4 py-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm text-gray-900 break-words">
+                            {`${fianca.imovel_endereco}, ${fianca.imovel_numero}`}
+                          </p>
+                          <p className="text-xs text-gray-500 break-words">
+                            {fianca.imovel_bairro}
+                          </p>
                         </div>
                       </TableCell>
                       
-                      <TableCell className="py-2">
-                        {formatCurrency(fianca.imovel_valor_aluguel)}
+                      <TableCell className="px-4 py-3">
+                        <span className="text-sm font-medium">
+                          {formatCurrency(fianca.valor_fianca || 0)}
+                        </span>
                       </TableCell>
                       
-                      <TableCell className="py-2">
+                      <TableCell className="px-4 py-3">
                         <FiancaStatusTooltipAdmin
                           status={fianca.status_fianca}
                           motivoReprovacao={fianca.motivo_reprovacao}
                           dataAnalise={fianca.data_analise}
+                          analisadoPor={fianca.analisado_por}
                           getStatusColor={getStatusColor}
                           getStatusLabel={getStatusLabel}
                         />
                       </TableCell>
                       
-                      <TableCell className="hidden sm:table-cell py-2">
-                        {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}
+                      <TableCell className="px-4 py-3">
+                        <span className="text-xs text-gray-500">
+                          {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}
+                        </span>
                       </TableCell>
                       
-                      <TableCell className="py-2">
+                      <TableCell className="px-4 py-3">
                         <Button 
                           variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8"
+                          size="sm"
                           onClick={() => handleViewFianca(fianca.id)}
+                          className="h-8 w-8 p-0"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>

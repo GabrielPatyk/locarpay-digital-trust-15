@@ -11,6 +11,7 @@ export interface FiancaAdmin {
   imovel_numero: string;
   imovel_bairro: string;
   imovel_valor_aluguel: number;
+  valor_fianca: number;
   status_fianca: string;
   data_criacao: string;
   motivo_reprovacao?: string;
@@ -35,6 +36,7 @@ export const useFiancasAdmin = (searchTerm: string = '', statusFilter: string = 
           imovel_numero,
           imovel_bairro,
           imovel_valor_aluguel,
+          valor_fianca,
           status_fianca,
           data_criacao,
           motivo_reprovacao,
