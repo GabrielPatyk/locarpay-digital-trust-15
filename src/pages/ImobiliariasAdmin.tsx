@@ -65,6 +65,14 @@ const ImobiliariasAdmin = () => {
     }
   };
 
+  const handleViewImobiliaria = (imobiliariaId: string) => {
+    navigate(`/detalhe-imobiliaria/${imobiliariaId}`);
+  };
+
+  const handleEditImobiliaria = (imobiliariaId: string) => {
+    navigate(`/editar-imobiliaria/${imobiliariaId}`);
+  };
+
   const filteredImobiliarias = imobiliarias.filter(imobiliaria => {
     const nomeEmpresa = imobiliaria.perfil_usuario?.nome_empresa || '';
     const cnpj = imobiliaria.perfil_usuario?.cnpj || '';
@@ -171,65 +179,87 @@ const ImobiliariasAdmin = () => {
               ) : (
                 filteredImobiliarias.map((imobiliaria) => (
                   <div key={imobiliaria.id} className="p-4 rounded-lg border hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h4 className="font-medium text-lg">
-                          {imobiliaria.perfil_usuario?.nome_empresa || imobiliaria.nome}
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          CNPJ: {imobiliaria.perfil_usuario?.cnpj || 'Não informado'}
-                        </p>
+                    <div className="flex flex-col lg:flex-row justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+                          <div className="min-w-0">
+                            <h4 className="font-medium text-lg truncate">
+                              {imobiliaria.perfil_usuario?.nome_empresa || imobiliaria.nome}
+                            </h4>
+                            <p className="text-sm text-gray-600 truncate">
+                              CNPJ: {imobiliaria.perfil_usuario?.cnpj || 'Não informado'}
+                            </p>
+                          </div>
+                          <Badge className={imobiliaria.ativo ? "bg-green-500 flex-shrink-0" : "bg-red-500 flex-shrink-0"}>
+                            {imobiliaria.ativo ? 'Ativa' : 'Inativa'}
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                          <div className="min-w-0">
+                            <p className="text-sm text-gray-500">E-mail</p>
+                            <p className="font-medium truncate" title={imobiliaria.email}>
+                              {imobiliaria.email}
+                            </p>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm text-gray-500">Telefone</p>
+                            <p className="font-medium truncate">
+                              {imobiliaria.telefone || 'Não informado'}
+                            </p>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm text-gray-500">Responsável</p>
+                            <p className="font-medium truncate" title={imobiliaria.nome}>
+                              {imobiliaria.nome}
+                            </p>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm text-gray-500">Fianças Ativas</p>
+                            <p className="font-medium">0</p>
+                          </div>
+                        </div>
                       </div>
-                      <Badge className={imobiliaria.ativo ? "bg-green-500" : "bg-red-500"}>
-                        {imobiliaria.ativo ? 'Ativa' : 'Inativa'}
-                      </Badge>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm text-gray-500">E-mail</p>
-                        <p className="font-medium">{imobiliaria.email}</p>
+                      
+                      <div className="flex flex-wrap gap-2 lg:flex-col lg:w-auto justify-start lg:justify-center">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewImobiliaria(imobiliaria.id)}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Eye className="mr-1 h-4 w-4" />
+                          Ver
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditImobiliaria(imobiliaria.id)}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Edit className="mr-1 h-4 w-4" />
+                          Editar
+                        </Button>
+                        <Button
+                          variant={imobiliaria.ativo ? "destructive" : "default"}
+                          size="sm"
+                          onClick={() => handleDesativar(imobiliaria.id, imobiliaria.ativo)}
+                          disabled={isUpdating}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <UserX className="mr-1 h-4 w-4" />
+                          {imobiliaria.ativo ? 'Desativar' : 'Ativar'}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setImobiliariaToDelete(imobiliaria)}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Trash2 className="mr-1 h-4 w-4" />
+                          Excluir
+                        </Button>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Telefone</p>
-                        <p className="font-medium">{imobiliaria.telefone || 'Não informado'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Responsável</p>
-                        <p className="font-medium">{imobiliaria.nome}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Fianças Ativas</p>
-                        <p className="font-medium">0</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="mr-1 h-4 w-4" />
-                        Ver
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Edit className="mr-1 h-4 w-4" />
-                        Editar
-                      </Button>
-                      <Button
-                        variant={imobiliaria.ativo ? "destructive" : "default"}
-                        size="sm"
-                        onClick={() => handleDesativar(imobiliaria.id, imobiliaria.ativo)}
-                        disabled={isUpdating}
-                      >
-                        <UserX className="mr-1 h-4 w-4" />
-                        {imobiliaria.ativo ? 'Desativar' : 'Ativar'}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setImobiliariaToDelete(imobiliaria)}
-                      >
-                        <Trash2 className="mr-1 h-4 w-4" />
-                        Excluir
-                      </Button>
                     </div>
                   </div>
                 ))

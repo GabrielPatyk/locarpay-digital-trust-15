@@ -118,6 +118,18 @@ function App() {
                         <ImobiliariasAdmin />
                       </ProtectedRoute>
                     } />
+                    <Route path="/detalhe-imobiliaria/:id" element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <AppSidebar />
+                        <DetalheImobiliaria />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/editar-imobiliaria/:id" element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <AppSidebar />
+                        <EditarImobiliaria />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/executivos-admin" element={
                       <ProtectedRoute allowedRoles={['admin']}>
                         <AppSidebar />
@@ -357,7 +369,6 @@ function App() {
                       </ProtectedRoute>
                     } />
 
-                    {/* Add this route within the Routes component */}
                     <Route path="/detalhe-fianca/:id" element={<ProtectedRoute><DetalheFianca /></ProtectedRoute>} />
                   </Routes>
                 </SidebarProvider>
