@@ -313,6 +313,12 @@ function App() {
                         <SDR />
                       </ProtectedRoute>
                     } />
+                    <Route path="/configuracoes-sdr" element={
+                      <ProtectedRoute allowedRoles={['sdr']}>
+                        <AppSidebar />
+                        <ConfiguracoesSDR />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/relatorios-sdr" element={
                       <ProtectedRoute allowedRoles={['sdr']}>
                         <AppSidebar />
