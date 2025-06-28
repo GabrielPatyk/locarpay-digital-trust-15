@@ -43,16 +43,15 @@ export const useDashboardExecutivo = () => {
       if (imobiliariaIds.length > 0) {
         const { data: fiancasData, error: fiancasError } = await supabase
           .from('fiancas_locaticias')
-          .select('imovel_valor_aluguel, taxa_aplicada, status_fianca')
+          .select('valor_fianca, status_fianca')
           .in('id_imobiliaria', imobiliariaIds);
 
         if (fiancasError) throw fiancasError;
 
         totalFiancas = fiancasData.length;
         valorTotalFiancas = fiancasData.reduce((acc, fianca) => {
-          const valor = fianca.imovel_valor_aluguel || 0;
-          const taxa = fianca.taxa_aplicada || 0;
-          return acc + (valor * (taxa / 100));
+          const valorFianca = fianca.valor_fianca || 0;
+          return acc + valorFianca;
         }, 0);
       }
 
@@ -61,7 +60,7 @@ export const useDashboardExecutivo = () => {
         imobiliariasData.map(async (imobiliaria) => {
           const { data: fiancas, error: fiancasError } = await supabase
             .from('fiancas_locaticias')
-            .select('imovel_valor_aluguel, taxa_aplicada')
+            .select('valor_fianca')
             .eq('id_imobiliaria', imobiliaria.id);
 
           if (fiancasError) {
@@ -71,9 +70,8 @@ export const useDashboardExecutivo = () => {
 
           const totalFiancasImob = fiancas?.length || 0;
           const valorTotalImob = fiancas?.reduce((acc, fianca) => {
-            const valor = fianca.imovel_valor_aluguel || 0;
-            const taxa = fianca.taxa_aplicada || 0;
-            return acc + (valor * (taxa / 100));
+            const valorFianca = fianca.valor_fianca || 0;
+            return acc + valorFianca;
           }, 0) || 0;
 
           return {

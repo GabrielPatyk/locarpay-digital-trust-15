@@ -61,6 +61,7 @@ import NotFound from "./pages/NotFound";
 import DetalheFianca from './pages/DetalheFianca';
 import DetalheImobiliaria from './pages/DetalheImobiliaria';
 import EditarImobiliaria from './pages/EditarImobiliaria';
+import ConfiguracoesSDR from '@/pages/ConfiguracoesSDR';
 
 const queryClient = new QueryClient();
 
@@ -307,18 +308,11 @@ function App() {
                     } />
 
                     {/* SDR routes */}
-                    <Route path="/sdr" element={
-                      <ProtectedRoute allowedRoles={['sdr']}>
-                        <AppSidebar />
-                        <SDR />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/relatorios-sdr" element={
-                      <ProtectedRoute allowedRoles={['sdr']}>
-                        <AppSidebar />
-                        <RelatoriosSDR />
-                      </ProtectedRoute>
-                    } />
+                    <Route path="/sdr" element={<ProtectedRoute><SDR /></ProtectedRoute>} />
+                    <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
+                    <Route path="/campanhas" element={<ProtectedRoute><Campanhas /></ProtectedRoute>} />
+                    <Route path="/relatorios-sdr" element={<ProtectedRoute><RelatoriosSDR /></ProtectedRoute>} />
+                    <Route path="/configuracoes-sdr" element={<ProtectedRoute><ConfiguracoesSDR /></ProtectedRoute>} />
 
                     {/* Shared routes */}
                     <Route path="/fiancas" element={
