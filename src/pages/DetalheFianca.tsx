@@ -233,7 +233,9 @@ const DetalheFianca = () => {
               <div>
                 <p className="text-sm font-medium text-gray-500">Executivo Responsável</p>
                 <p className="text-base text-blue-600">
-                  {fianca.usuarios?.criado_por_usuario?.nome || 'Não atribuído'}
+                  {fianca.usuarios?.criado_por_usuario && Array.isArray(fianca.usuarios.criado_por_usuario) 
+                    ? fianca.usuarios.criado_por_usuario[0]?.nome || 'Não atribuído'
+                    : fianca.usuarios?.criado_por_usuario?.nome || 'Não atribuído'}
                 </p>
               </div>
               <div>
