@@ -21,7 +21,14 @@ export const useFiancaDetails = (fiancaId: string) => {
         .from('fiancas_locaticias')
         .select(`
           *,
-          usuarios!fiancas_locaticias_criado_por_fkey(nome)
+          usuarios!fiancas_locaticias_id_imobiliaria_fkey(
+            id,
+            nome,
+            email,
+            telefone,
+            criado_por,
+            criado_por_usuario:usuarios!usuarios_criado_por_fkey(nome)
+          )
         `)
         .eq('id', fiancaId)
         .single();

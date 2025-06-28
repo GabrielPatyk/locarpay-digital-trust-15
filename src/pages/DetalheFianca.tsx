@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -8,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useFiancaDetails } from '@/hooks/useFiancaDetails';
 import { useCargoRedirect } from '@/hooks/useCargoRedirect';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   ArrowLeft, 
   User, 
@@ -27,8 +27,16 @@ import {
 const DetalheFianca = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { fianca, historico, isLoading } = useFiancaDetails(id || '');
   const { getCargoHomePage } = useCargoRedirect();
+
+  // Verificar se o usuário é admin
+  React.useEffect(() => {
+    if (user && user.cargo !== 'admin') {
+      navigate('/unauthorized');
+    }
+  }, [user, navigate]);
 
   const handleVoltar = () => {
     const homePage = getCargoHomePage();
@@ -87,7 +95,6 @@ const DetalheFianca = () => {
 
   // Buscar o nome do analista correto do histórico
   const getAnalistaNome = () => {
-    // Buscar a entrada mais recente de "Score e taxa atualizados" ou aprovação/rejeição
     const analistaAction = historico.find(item => 
       item.acao.includes('Score e taxa atualizados') || 
       item.acao.includes('aprovada') || 
@@ -98,6 +105,22 @@ const DetalheFianca = () => {
            analistaAction?.usuario_nome || 
            'Não atribuído';
   };
+
+  if (user?.cargo !== 'admin') {
+    return (
+      <Layout title="Acesso Negado">
+        <div className="text-center py-8">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Acesso restrito apenas para Administradores
+          </h3>
+          <Button variant="outline" onClick={handleVoltar}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar
+          </Button>
+        </div>
+      </Layout>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -194,26 +217,50 @@ const DetalheFianca = () => {
             </CardContent>
           </Card>
 
-          {/* Dados do Imóvel */}
+          {/* Dados da Imobiliária e Executivo */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Building className="mr-2 h-5 w-5 text-orange-600" />
-                Dados do Imóvel
+                Dados da Imobiliária
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="text-sm font-medium text-gray-500">Tipo</p>
-                <p className="text-base">{fianca.imovel_tipo}</p>
+                <p className="text-sm font-medium text-gray-500">Nome da Imobiliária</p>
+                <p className="text-base font-semibold">{fianca.usuarios?.nome || 'Não informado'}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Endereço</p>
-                <p className="text-base">
-                  {fianca.imovel_endereco}, {fianca.imovel_numero}
-                  {fianca.imovel_complemento && `, ${fianca.imovel_complemento}`}<br />
-                  {fianca.imovel_bairro}, {fianca.imovel_cidade} - {fianca.imovel_estado}
+                <p className="text-sm font-medium text-gray-500">Executivo Responsável</p>
+                <p className="text-base text-blue-600">
+                  {fianca.usuarios?.criado_por_usuario?.nome || 'Não atribuído'}
                 </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">E-mail</p>
+                <p className="text-base">{fianca.usuarios?.email || 'Não informado'}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Telefone</p>
+                <p className="text-base">{fianca.usuarios?.telefone || 'Não informado'}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Dados do Imóvel */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Building className="mr-2 h-5 w-5 text-orange-600" />
+              Dados do Imóvel
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Tipo</p>
+                <p className="text-base">{fianca.imovel_tipo}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Valor do Aluguel</p>
@@ -221,19 +268,27 @@ const DetalheFianca = () => {
                   R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}
                 </p>
               </div>
-              {fianca.imovel_area_metros && (
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Área</p>
-                  <p className="text-base">{fianca.imovel_area_metros} m²</p>
-                </div>
-              )}
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Endereço</p>
+              <p className="text-base">
+                {fianca.imovel_endereco}, {fianca.imovel_numero}
+                {fianca.imovel_complemento && `, ${fianca.imovel_complemento}`}<br />
+                {fianca.imovel_bairro}, {fianca.imovel_cidade} - {fianca.imovel_estado}
+              </p>
+            </div>
+            {fianca.imovel_area_metros && (
               <div>
-                <p className="text-sm font-medium text-gray-500">Tempo de Locação</p>
-                <p className="text-base">{fianca.imovel_tempo_locacao} meses</p>
+                <p className="text-sm font-medium text-gray-500">Área</p>
+                <p className="text-base">{fianca.imovel_area_metros} m²</p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+            <div>
+              <p className="text-sm font-medium text-gray-500">Tempo de Locação</p>
+              <p className="text-base">{fianca.imovel_tempo_locacao} meses</p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Dados da Análise */}
         <Card>
@@ -297,7 +352,6 @@ const DetalheFianca = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Status de Pagamento */}
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <div className="flex items-center justify-center mb-2">
                   {['pagamento_disponivel', 'comprovante_enviado', 'ativa'].includes(fianca.status_fianca) ? (
@@ -312,7 +366,6 @@ const DetalheFianca = () => {
                 </Badge>
               </div>
 
-              {/* Valor da Fiança */}
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <DollarSign className="h-8 w-8 mx-auto mb-2 text-green-600" />
                 <p className="text-sm font-medium text-gray-500">Valor da Fiança</p>
@@ -321,7 +374,6 @@ const DetalheFianca = () => {
                 </p>
               </div>
 
-              {/* Link de Pagamento */}
               <div className="text-center p-4 bg-purple-50 rounded-lg">
                 <LinkIcon className="h-8 w-8 mx-auto mb-2 text-purple-600" />
                 <p className="text-sm font-medium text-gray-500">Link de Pagamento</p>
@@ -332,7 +384,6 @@ const DetalheFianca = () => {
               </div>
             </div>
 
-            {/* Informações Adicionais de Pagamento */}
             {['pagamento_disponivel', 'comprovante_enviado', 'ativa'].includes(fianca.status_fianca) && (
               <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                 <h4 className="font-semibold text-gray-800 mb-3">Detalhes do Pagamento</h4>

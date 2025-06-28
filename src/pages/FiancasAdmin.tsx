@@ -139,85 +139,87 @@ const FiancasAdmin = () => {
 
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[180px] px-4 py-3">Inquilino</TableHead>
-                    <TableHead className="w-[180px] px-4 py-3">Imobiliária</TableHead>
-                    <TableHead className="w-[220px] px-4 py-3">Imóvel</TableHead>
-                    <TableHead className="w-[120px] px-4 py-3">Valor Fiança</TableHead>
-                    <TableHead className="w-[140px] px-4 py-3">Status</TableHead>
-                    <TableHead className="w-[100px] px-4 py-3">Data</TableHead>
-                    <TableHead className="w-[80px] px-4 py-3">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {fiancas.map((fianca) => (
-                    <TableRow key={fianca.id} className="hover:bg-gray-50">
-                      <TableCell className="px-4 py-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-gray-900 break-words">
-                            {fianca.inquilino_nome_completo}
-                          </p>
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell className="px-4 py-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-blue-600 break-words">
-                            {fianca.imobiliaria_nome}
-                          </p>
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell className="px-4 py-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm text-gray-900 break-words">
-                            {`${fianca.imovel_endereco}, ${fianca.imovel_numero}`}
-                          </p>
-                          <p className="text-xs text-gray-500 break-words">
-                            {fianca.imovel_bairro}
-                          </p>
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell className="px-4 py-3">
-                        <span className="text-sm font-medium">
-                          {formatCurrency(fianca.valor_fianca || 0)}
-                        </span>
-                      </TableCell>
-                      
-                      <TableCell className="px-4 py-3">
-                        <FiancaStatusTooltipAdmin
-                          status={fianca.status_fianca}
-                          motivoReprovacao={fianca.motivo_reprovacao}
-                          dataAnalise={fianca.data_analise}
-                          analisadoPor={fianca.analisado_por}
-                          getStatusColor={getStatusColor}
-                          getStatusLabel={getStatusLabel}
-                        />
-                      </TableCell>
-                      
-                      <TableCell className="px-4 py-3">
-                        <span className="text-xs text-gray-500">
-                          {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}
-                        </span>
-                      </TableCell>
-                      
-                      <TableCell className="px-4 py-3">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleViewFianca(fianca.id)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
+              <div className="min-w-[1200px]">
+                <Table className="w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[180px] px-4 py-3">Inquilino</TableHead>
+                      <TableHead className="w-[180px] px-4 py-3">Imobiliária</TableHead>
+                      <TableHead className="w-[220px] px-4 py-3">Imóvel</TableHead>
+                      <TableHead className="w-[120px] px-4 py-3">Valor Fiança</TableHead>
+                      <TableHead className="w-[140px] px-4 py-3">Status</TableHead>
+                      <TableHead className="w-[100px] px-4 py-3">Data</TableHead>
+                      <TableHead className="w-[80px] px-4 py-3">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {fiancas.map((fianca) => (
+                      <TableRow key={fianca.id} className="hover:bg-gray-50">
+                        <TableCell className="px-4 py-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 break-words">
+                              {fianca.inquilino_nome_completo}
+                            </p>
+                          </div>
+                        </TableCell>
+                        
+                        <TableCell className="px-4 py-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-blue-600 break-words">
+                              {fianca.imobiliaria_nome}
+                            </p>
+                          </div>
+                        </TableCell>
+                        
+                        <TableCell className="px-4 py-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm text-gray-900 break-words">
+                              {`${fianca.imovel_endereco}, ${fianca.imovel_numero}`}
+                            </p>
+                            <p className="text-xs text-gray-500 break-words">
+                              {fianca.imovel_bairro}
+                            </p>
+                          </div>
+                        </TableCell>
+                        
+                        <TableCell className="px-4 py-3">
+                          <span className="text-sm font-medium">
+                            {formatCurrency(fianca.valor_fianca || 0)}
+                          </span>
+                        </TableCell>
+                        
+                        <TableCell className="px-4 py-3">
+                          <FiancaStatusTooltipAdmin
+                            status={fianca.status_fianca}
+                            motivoReprovacao={fianca.motivo_reprovacao}
+                            dataAnalise={fianca.data_analise}
+                            analisadoPor={fianca.analisado_por}
+                            getStatusColor={getStatusColor}
+                            getStatusLabel={getStatusLabel}
+                          />
+                        </TableCell>
+                        
+                        <TableCell className="px-4 py-3">
+                          <span className="text-xs text-gray-500">
+                            {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}
+                          </span>
+                        </TableCell>
+                        
+                        <TableCell className="px-4 py-3">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleViewFianca(fianca.id)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
 
             {fiancas.length === 0 && (
