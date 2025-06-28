@@ -6,7 +6,6 @@ import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 
 type Fianca = Tables<'fiancas_locaticias'>;
 type FiancaInsert = TablesInsert<'fiancas_locaticias'>;
-type StatusFianca = Tables<'fiancas_locaticias'>['status_fianca'];
 
 export interface FiancaFormData {
   // Dados do Inquilino
@@ -42,7 +41,7 @@ export interface FiancaFormData {
   cnpjImobiliaria: string;
 }
 
-export const useFiancas = (searchTerm?: string, statusFilter?: string) => {
+export const useFiancas = (imobiliariaId?: string, searchTerm?: string) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { registrarLog } = useHistoricoFiancas();
@@ -53,21 +52,18 @@ export const useFiancas = (searchTerm?: string, statusFilter?: string) => {
     error,
     refetch
   } = useQuery({
-    queryKey: ['fiancas', user?.id, searchTerm, statusFilter],
+    queryKey: ['fiancas', imobiliariaId || user?.id, searchTerm],
     queryFn: async () => {
-      if (!user?.id) return [];
+      const userId = imobiliariaId || user?.id;
+      if (!userId) return [];
       
       let query = supabase
         .from('fiancas_locaticias')
         .select('*')
-        .eq('id_imobiliaria', user.id);
+        .eq('id_imobiliaria', userId);
       
       if (searchTerm) {
         query = query.or(`inquilino_nome_completo.ilike.%${searchTerm}%,inquilino_email.ilike.%${searchTerm}%,imovel_endereco.ilike.%${searchTerm}%`);
-      }
-
-      if (statusFilter && statusFilter !== 'todos') {
-        query = query.eq('status_fianca', statusFilter as StatusFianca);
       }
       
       const { data, error } = await query.order('data_criacao', { ascending: false });
@@ -75,7 +71,7 @@ export const useFiancas = (searchTerm?: string, statusFilter?: string) => {
       if (error) throw error;
       return data as Fianca[];
     },
-    enabled: !!user?.id
+    enabled: !!(imobiliariaId || user?.id)
   });
 
   const createFiancaMutation = useMutation({
@@ -121,6 +117,7 @@ export const useFiancas = (searchTerm?: string, statusFilter?: string) => {
 
       if (error) throw error;
 
+      // Registrar log da criação
       await registrarLog({
         fiancaId: data.id,
         acao: 'Fiança criada',
@@ -146,6 +143,7 @@ export const useFiancas = (searchTerm?: string, statusFilter?: string) => {
 
       if (error) throw error;
 
+      // Registrar log da aceitação
       await registrarLog({
         fiancaId,
         acao: 'Fiança enviada ao financeiro',
@@ -169,6 +167,7 @@ export const useFiancas = (searchTerm?: string, statusFilter?: string) => {
 
       if (error) throw error;
 
+      // Registrar log da mudança de status
       const acoes: Record<string, string> = {
         'aprovada': 'Fiança aprovada',
         'rejeitada': 'Fiança rejeitada',
@@ -190,59 +189,6 @@ export const useFiancas = (searchTerm?: string, statusFilter?: string) => {
       console.error('Erro ao atualizar status:', error);
       throw error;
     }
-  };
-
-  // Utility functions
-  const getStatusOptions = () => [
-    { value: 'todos', label: 'Todos' },
-    { value: 'em_analise', label: 'Em Análise' },
-    { value: 'aprovada', label: 'Aprovada' },
-    { value: 'rejeitada', label: 'Rejeitada' },
-    { value: 'enviada_ao_financeiro', label: 'Enviada ao Financeiro' },
-    { value: 'pagamento_disponivel', label: 'Pagamento disponível' },
-    { value: 'comprovante_enviado', label: 'Comprovante enviado' },
-    { value: 'ativa', label: 'Ativa' }
-  ];
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      'em_analise': 'bg-yellow-500',
-      'aprovada': 'bg-green-500',
-      'rejeitada': 'bg-red-500',
-      'enviada_ao_financeiro': 'bg-blue-500',
-      'pagamento_disponivel': 'bg-purple-500',
-      'comprovante_enviado': 'bg-indigo-500',
-      'ativa': 'bg-emerald-500'
-    };
-    return colors[status] || 'bg-gray-500';
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      'em_analise': 'Em Análise',
-      'aprovada': 'Aprovada',
-      'rejeitada': 'Rejeitada',
-      'enviada_ao_financeiro': 'Enviada ao Financeiro',
-      'pagamento_disponivel': 'Pagamento disponível',
-      'comprovante_enviado': 'Comprovante enviado',
-      'ativa': 'Ativa'
-    };
-    return labels[status] || status;
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
-  // Stats calculation
-  const stats = {
-    totalFiancas: fiancas.length,
-    emAnalise: fiancas.filter(f => f.status_fianca === 'em_analise').length,
-    aprovadas: fiancas.filter(f => f.status_fianca === 'aprovada').length,
-    valorTotal: fiancas.reduce((sum, f) => sum + (f.valor_fianca || f.imovel_valor_aluguel || 0), 0)
   };
 
   const getFiancasStats = () => {
@@ -271,11 +217,6 @@ export const useFiancas = (searchTerm?: string, statusFilter?: string) => {
     isAccepting: acceptFianca.isPending,
     updateFiancaStatus,
     registrarLog,
-    getFiancasStats,
-    stats,
-    getStatusOptions,
-    getStatusColor,
-    getStatusLabel,
-    formatCurrency
+    getFiancasStats
   };
 };
