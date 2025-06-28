@@ -33,7 +33,7 @@ const DetalheFianca = () => {
 
   // Verificar se o usuário é admin
   React.useEffect(() => {
-    if (user && user.cargo !== 'admin') {
+    if (user && user.type !== 'admin') {
       navigate('/unauthorized');
     }
   }, [user, navigate]);
@@ -106,7 +106,7 @@ const DetalheFianca = () => {
            'Não atribuído';
   };
 
-  if (user?.cargo !== 'admin') {
+  if (user?.type !== 'admin') {
     return (
       <Layout title="Acesso Negado">
         <div className="text-center py-8">
