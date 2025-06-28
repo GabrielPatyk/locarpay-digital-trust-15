@@ -60,7 +60,7 @@ export const useImobiliariasExecutivo = () => {
         (data as ImobiliariaComPerfil[]).map(async (imobiliaria) => {
           const { data: fiancas, error: fiancasError } = await supabase
             .from('fiancas_locaticias')
-            .select('valor_fianca')
+            .select('imovel_valor_aluguel, taxa_aplicada')
             .eq('id_imobiliaria', imobiliaria.id);
 
           if (fiancasError) {
@@ -70,8 +70,9 @@ export const useImobiliariasExecutivo = () => {
 
           const totalFiancas = fiancas?.length || 0;
           const valorTotal = fiancas?.reduce((acc, fianca) => {
-            const valorFianca = fianca.valor_fianca || 0;
-            return acc + valorFianca;
+            const valor = fianca.imovel_valor_aluguel || 0;
+            const taxa = fianca.taxa_aplicada || 0;
+            return acc + (valor * (taxa / 100));
           }, 0) || 0;
 
           return {
