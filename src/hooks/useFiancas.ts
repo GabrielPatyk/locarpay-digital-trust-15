@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +6,7 @@ import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 
 type Fianca = Tables<'fiancas_locaticias'>;
 type FiancaInsert = TablesInsert<'fiancas_locaticias'>;
+type StatusFianca = Tables<'fiancas_locaticias'>['status_fianca'];
 
 export interface FiancaFormData {
   // Dados do Inquilino
@@ -67,7 +67,7 @@ export const useFiancas = (searchTerm?: string, statusFilter?: string) => {
       }
 
       if (statusFilter && statusFilter !== 'todos') {
-        query = query.eq('status_fianca', statusFilter);
+        query = query.eq('status_fianca', statusFilter as StatusFianca);
       }
       
       const { data, error } = await query.order('data_criacao', { ascending: false });
@@ -121,7 +121,6 @@ export const useFiancas = (searchTerm?: string, statusFilter?: string) => {
 
       if (error) throw error;
 
-      // Registrar log da criação
       await registrarLog({
         fiancaId: data.id,
         acao: 'Fiança criada',
@@ -147,7 +146,6 @@ export const useFiancas = (searchTerm?: string, statusFilter?: string) => {
 
       if (error) throw error;
 
-      // Registrar log da aceitação
       await registrarLog({
         fiancaId,
         acao: 'Fiança enviada ao financeiro',
@@ -171,7 +169,6 @@ export const useFiancas = (searchTerm?: string, statusFilter?: string) => {
 
       if (error) throw error;
 
-      // Registrar log da mudança de status
       const acoes: Record<string, string> = {
         'aprovada': 'Fiança aprovada',
         'rejeitada': 'Fiança rejeitada',
