@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -117,11 +116,11 @@ const DetalheFianca = () => {
     
     // Se for array, pegar o primeiro elemento
     if (Array.isArray(criadoPorUsuario)) {
-      return criadoPorUsuario.length > 0 ? criadoPorUsuario[0].nome : 'Não atribuído';
+      return criadoPorUsuario.length > 0 ? criadoPorUsuario[0]?.nome : 'Não atribuído';
     }
     
     // Se for objeto, pegar o nome diretamente
-    return criadoPorUsuario.nome || 'Não atribuído';
+    return (criadoPorUsuario as { nome: string }).nome || 'Não atribuído';
   };
 
   if (user?.type !== 'admin') {
