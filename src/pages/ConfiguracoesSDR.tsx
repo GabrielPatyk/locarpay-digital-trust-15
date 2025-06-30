@@ -34,7 +34,7 @@ const ConfiguracoesSDR = () => {
     nome: user?.name || '',
     email: user?.email || '',
     telefone: user?.telefone || '',
-    cpf: user?.cpf || ''
+    cpf: '' // Initialize as empty string since it's not in User type
   });
 
   const [perfil, setPerfil] = useState<PerfilUsuario>({
@@ -62,8 +62,32 @@ const ConfiguracoesSDR = () => {
   useEffect(() => {
     if (user?.id) {
       carregarPerfilUsuario();
+      carregarDadosUsuario();
     }
   }, [user?.id]);
+
+  const carregarDadosUsuario = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('cpf')
+        .eq('id', user?.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (data) {
+        setDadosPessoais(prev => ({
+          ...prev,
+          cpf: data.cpf || ''
+        }));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados do usuário:', error);
+    }
+  };
 
   const carregarPerfilUsuario = async () => {
     try {
@@ -127,8 +151,7 @@ const ConfiguracoesSDR = () => {
       updateUser({
         ...user!,
         name: dadosPessoais.nome,
-        telefone: dadosParaAtualizar.telefone,
-        cpf: dadosPessoais.cpf
+        telefone: dadosParaAtualizar.telefone
       });
 
       toast({
