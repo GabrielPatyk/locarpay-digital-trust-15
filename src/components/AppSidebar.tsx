@@ -139,19 +139,24 @@ const AppSidebar = () => {
           icon: Home,
         },
         {
-          title: 'Leads',
-          url: '/leads',
+          title: 'CRM',
+          url: '/crm',
           icon: Users,
         },
         {
-          title: 'Campanhas',
-          url: '/campanhas',
-          icon: Phone,
+          title: 'Automação',
+          url: '/automacao',
+          icon: Settings,
         },
         {
           title: 'Relatórios',
           url: '/relatorios-sdr',
           icon: BarChart3,
+        },
+        {
+          title: 'Configurações',
+          url: '/configuracoes-sdr',
+          icon: Settings,
         },
       ];
     }

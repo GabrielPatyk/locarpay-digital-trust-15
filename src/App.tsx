@@ -20,8 +20,6 @@ import Contratos from "./pages/Contratos";
 import Clientes from "./pages/Clientes";
 import Analises from "./pages/Analises";
 import Documentos from "./pages/Documentos";
-import Campanhas from "./pages/Campanhas";
-import Leads from "./pages/Leads";
 import ConfiguracoesImobiliaria from "./pages/ConfiguracoesImobiliaria";
 import Admin from "./pages/Admin";
 import Analista from "./pages/Analista";
@@ -36,6 +34,7 @@ import ConfiguracoesAnalista from "./pages/ConfiguracoesAnalista";
 import ConfiguracoesExecutivo from "./pages/ConfiguracoesExecutivo";
 import ConfiguracoesFinanceiro from "./pages/ConfiguracoesFinanceiro";
 import ConfiguracoesJuridico from "./pages/ConfiguracoesJuridico";
+import ConfiguracoesSDR from "./pages/ConfiguracoesSDR";
 import FiancasAdmin from "./pages/FiancasAdmin";
 import FiancasImobiliaria from "./pages/FiancasImobiliaria";
 import ImobiliariasAdmin from "./pages/ImobiliariasAdmin";
@@ -61,6 +60,8 @@ import NotFound from "./pages/NotFound";
 import DetalheFianca from './pages/DetalheFianca';
 import DetalheImobiliaria from './pages/DetalheImobiliaria';
 import EditarImobiliaria from './pages/EditarImobiliaria';
+import CRM from './pages/CRM';
+import Automacao from './pages/Automacao';
 
 const queryClient = new QueryClient();
 
@@ -313,10 +314,28 @@ function App() {
                         <SDR />
                       </ProtectedRoute>
                     } />
+                    <Route path="/configuracoes-sdr" element={
+                      <ProtectedRoute allowedRoles={['sdr']}>
+                        <AppSidebar />
+                        <ConfiguracoesSDR />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/relatorios-sdr" element={
                       <ProtectedRoute allowedRoles={['sdr']}>
                         <AppSidebar />
                         <RelatoriosSDR />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/crm" element={
+                      <ProtectedRoute allowedRoles={['sdr']}>
+                        <AppSidebar />
+                        <CRM />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/automacao" element={
+                      <ProtectedRoute allowedRoles={['sdr']}>
+                        <AppSidebar />
+                        <Automacao />
                       </ProtectedRoute>
                     } />
 
@@ -349,18 +368,6 @@ function App() {
                       <ProtectedRoute>
                         <AppSidebar />
                         <Documentos />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/campanhas" element={
-                      <ProtectedRoute>
-                        <AppSidebar />
-                        <Campanhas />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/leads" element={
-                      <ProtectedRoute>
-                        <AppSidebar />
-                        <Leads />
                       </ProtectedRoute>
                     } />
                     <Route path="/pagamentos" element={
