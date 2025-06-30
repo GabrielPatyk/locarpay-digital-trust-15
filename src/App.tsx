@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -36,6 +37,7 @@ import ConfiguracoesAnalista from "./pages/ConfiguracoesAnalista";
 import ConfiguracoesExecutivo from "./pages/ConfiguracoesExecutivo";
 import ConfiguracoesFinanceiro from "./pages/ConfiguracoesFinanceiro";
 import ConfiguracoesJuridico from "./pages/ConfiguracoesJuridico";
+import ConfiguracoesSDR from "./pages/ConfiguracoesSDR";
 import FiancasAdmin from "./pages/FiancasAdmin";
 import FiancasImobiliaria from "./pages/FiancasImobiliaria";
 import ImobiliariasAdmin from "./pages/ImobiliariasAdmin";

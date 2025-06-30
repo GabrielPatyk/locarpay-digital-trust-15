@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +33,7 @@ const ConfiguracoesSDR = () => {
   const [dadosPessoais, setDadosPessoais] = useState({
     nome: user?.name || '',
     email: user?.email || '',
-    telefone: user?.phone || '',
+    telefone: user?.telefone || '',
     cpf: user?.cpf || ''
   });
 
@@ -128,7 +127,7 @@ const ConfiguracoesSDR = () => {
       updateUser({
         ...user!,
         name: dadosPessoais.nome,
-        phone: dadosParaAtualizar.telefone,
+        telefone: dadosParaAtualizar.telefone,
         cpf: dadosPessoais.cpf
       });
 
@@ -247,7 +246,7 @@ const ConfiguracoesSDR = () => {
     }
   };
 
-  const handleImageUpload = async (imageUrl: string) => {
+  const handleImageChange = async (imageUrl: string) => {
     try {
       const { error } = await supabase
         .from('usuarios')
@@ -477,8 +476,8 @@ const ConfiguracoesSDR = () => {
                 <div className="space-y-4">
                   <ImageUpload
                     currentImage={imagemPerfil}
-                    onImageUpload={handleImageUpload}
-                    folder="perfil"
+                    onImageChange={handleImageChange}
+                    userName={user?.name}
                   />
                 </div>
               </CardContent>
