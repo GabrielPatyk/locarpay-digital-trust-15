@@ -246,6 +246,74 @@ export type Database = {
           },
         ]
       }
+      imoveis_imobiliaria: {
+        Row: {
+          area_metros: number | null
+          bairro: string
+          cidade: string
+          complemento: string | null
+          data_atualizacao: string
+          data_criacao: string
+          descricao: string | null
+          endereco: string
+          estado: string
+          id: string
+          id_imobiliaria: string
+          inquilino_nome: string | null
+          numero: string
+          pais: string
+          status: string
+          tipo: string
+          valor_aluguel: number
+        }
+        Insert: {
+          area_metros?: number | null
+          bairro: string
+          cidade: string
+          complemento?: string | null
+          data_atualizacao?: string
+          data_criacao?: string
+          descricao?: string | null
+          endereco: string
+          estado: string
+          id?: string
+          id_imobiliaria: string
+          inquilino_nome?: string | null
+          numero: string
+          pais?: string
+          status?: string
+          tipo: string
+          valor_aluguel: number
+        }
+        Update: {
+          area_metros?: number | null
+          bairro?: string
+          cidade?: string
+          complemento?: string | null
+          data_atualizacao?: string
+          data_criacao?: string
+          descricao?: string | null
+          endereco?: string
+          estado?: string
+          id?: string
+          id_imobiliaria?: string
+          inquilino_nome?: string | null
+          numero?: string
+          pais?: string
+          status?: string
+          tipo?: string
+          valor_aluguel?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imoveis_imobiliaria_id_imobiliaria_fkey"
+            columns: ["id_imobiliaria"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perfil_usuario: {
         Row: {
           atualizado_em: string

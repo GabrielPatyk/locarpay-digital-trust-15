@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useImoveisImobiliaria } from '@/hooks/useImoveisImobiliaria';
+import { useImoveisImobiliariaReal } from '@/hooks/useImoveisImobiliariaReal';
+import CriarImovelModal from '@/components/CriarImovelModal';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ const ImoveisImobiliaria = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
+  const [showCriarModal, setShowCriarModal] = useState(false);
   
   const { 
     imoveis, 
@@ -34,7 +36,7 @@ const ImoveisImobiliaria = () => {
     getStatusColor, 
     getStatusLabel, 
     stats 
-  } = useImoveisImobiliaria(searchTerm, statusFilter);
+  } = useImoveisImobiliariaReal(searchTerm, statusFilter);
 
   return (
     <Layout title="Gestão de Imóveis">
@@ -47,7 +49,10 @@ const ImoveisImobiliaria = () => {
               Gerencie todos os imóveis da sua imobiliária
             </p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90">
+          <Button 
+            onClick={() => setShowCriarModal(true)}
+            className="bg-primary hover:bg-primary/90"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Imóvel
           </Button>
@@ -171,7 +176,7 @@ const ImoveisImobiliaria = () => {
                     : 'Ainda não há imóveis cadastrados para sua imobiliária.'
                   }
                 </p>
-                <Button>
+                <Button onClick={() => setShowCriarModal(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Adicionar Primeiro Imóvel
                 </Button>
@@ -262,6 +267,11 @@ const ImoveisImobiliaria = () => {
             )}
           </CardContent>
         </Card>
+
+        <CriarImovelModal 
+          open={showCriarModal} 
+          onOpenChange={setShowCriarModal} 
+        />
       </div>
     </Layout>
   );

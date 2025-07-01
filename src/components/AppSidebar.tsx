@@ -209,6 +209,11 @@ const AppSidebar = () => {
           icon: Users,
         },
         {
+          title: 'Imóveis',
+          url: '/imoveis-imobiliaria',
+          icon: Building,
+        },
+        {
           title: 'Contratos',
           url: '/contratos-imobiliaria',
           icon: FileText,
