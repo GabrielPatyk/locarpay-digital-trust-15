@@ -27,6 +27,7 @@ import Executivo from "./pages/Executivo";
 import Financeiro from "./pages/Financeiro";
 import Juridico from "./pages/Juridico";
 import Imobiliaria from "./pages/Imobiliaria";
+import ImoveisImobiliaria from "./pages/ImoveisImobiliaria";
 import Inquilino from "./pages/Inquilino";
 import SDR from "./pages/SDR";
 import ConfiguracoesAdmin from "./pages/ConfiguracoesAdmin";
@@ -296,6 +297,12 @@ function App() {
                       <ProtectedRoute allowedRoles={['imobiliaria']}>
                         <AppSidebar />
                         <InquilinosImobiliaria />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/imoveis-imobiliaria" element={
+                      <ProtectedRoute allowedRoles={['imobiliaria']}>
+                        <AppSidebar />
+                        <ImoveisImobiliaria />
                       </ProtectedRoute>
                     } />
 

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useInquilinosImobiliaria } from '@/hooks/useInquilinosImobiliaria';
+import { useInquilinosImobiliaria, InquilinoFianca } from '@/hooks/useInquilinosImobiliaria';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import Layout from '@/components/Layout';
+import InquilinoDetalhesModal from '@/components/InquilinoDetalhesModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,8 @@ const Imobiliaria = () => {
   const { user } = useAuth();
   const { formatPhone } = usePhoneFormatter();
   const { inquilinos, isLoading: inquilinosLoading, getStatusColor, getStatusLabel, getVerificationColor, getVerificationLabel } = useInquilinosImobiliaria();
+  const [selectedInquilino, setSelectedInquilino] = useState<InquilinoFianca | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Dados mock para demonstração
   const dashboardData = {
@@ -361,7 +364,14 @@ const Imobiliaria = () => {
                           </div>
 
                           <div className="flex flex-wrap gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedInquilino(inquilino);
+                                setModalOpen(true);
+                              }}
+                            >
                               <Eye className="mr-2 h-4 w-4" />
                               Ver Detalhes
                             </Button>
@@ -396,6 +406,13 @@ const Imobiliaria = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal de Detalhes do Inquilino */}
+      <InquilinoDetalhesModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        inquilino={selectedInquilino}
+      />
     </Layout>
   );
 };
