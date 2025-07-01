@@ -10,6 +10,7 @@ interface CreateUserData {
   senha: string;
   cargo: string;
   telefone?: string;
+  cnpj?: string;
 }
 
 export const useUserCreation = () => {
@@ -20,10 +21,15 @@ export const useUserCreation = () => {
   const createUser = async (userData: CreateUserData) => {
     setIsLoading(true);
     try {
+      // Para imobiliárias, usar CNPJ como senha padrão
+      const senhaParaHash = userData.cargo === 'imobiliaria' && userData.cnpj 
+        ? userData.cnpj.replace(/\D/g, '') // Remove caracteres não numéricos
+        : userData.senha;
+
       // Hash da senha
       const { data: hashedPassword, error: hashError } = await supabase.rpc(
         'hash_password',
-        { password: userData.senha }
+        { password: senhaParaHash }
       );
 
       if (hashError) {
@@ -40,6 +46,7 @@ export const useUserCreation = () => {
           cargo: userData.cargo,
           telefone: userData.telefone,
           verificado: false, // Sempre false para novos usuários
+          primeiro_acesso: userData.cargo === 'imobiliaria' ? true : false, // TRUE para imobiliárias
         })
         .select()
         .single();

@@ -346,6 +346,7 @@ export type Database = {
           id: string
           imagem_perfil: string | null
           nome: string
+          primeiro_acesso: boolean | null
           senha: string
           telefone: string | null
           token_expira_em: string | null
@@ -363,6 +364,7 @@ export type Database = {
           id?: string
           imagem_perfil?: string | null
           nome: string
+          primeiro_acesso?: boolean | null
           senha: string
           telefone?: string | null
           token_expira_em?: string | null
@@ -380,6 +382,7 @@ export type Database = {
           id?: string
           imagem_perfil?: string | null
           nome?: string
+          primeiro_acesso?: boolean | null
           senha?: string
           telefone?: string | null
           token_expira_em?: string | null

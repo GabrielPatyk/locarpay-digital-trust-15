@@ -8,6 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ProfileCompletionCheck from '@/components/ProfileCompletionCheck';
+import PrimeiroAcessoModal from '@/components/PrimeiroAcessoModal';
+import { usePrimeiroAcesso } from '@/hooks/usePrimeiroAcesso';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,6 +20,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { isPrimeiroAcesso } = usePrimeiroAcesso();
 
   const handleLogout = () => {
     logout();
@@ -91,6 +94,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
             {children}
           </div>
         </main>
+        <PrimeiroAcessoModal open={isPrimeiroAcesso} />
       </SidebarInset>
     );
   }
@@ -99,6 +103,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   return (
     <SidebarInset>
       <ProfileCompletionCheck />
+      <PrimeiroAcessoModal open={isPrimeiroAcesso} />
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="px-6 py-4">
