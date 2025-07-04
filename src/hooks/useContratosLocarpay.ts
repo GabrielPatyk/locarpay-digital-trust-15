@@ -22,17 +22,18 @@ export const useContratosLocarpay = () => {
 
         if (error) {
           console.error('Erro ao buscar contratos:', error);
-          return [];
+          throw error;
         }
         
+        console.log('Contratos encontrados:', data);
         return data || [];
       } catch (err) {
         console.error('Erro na query de contratos:', err);
-        return [];
+        throw err;
       }
     },
     enabled: !!user?.id && user?.type === 'imobiliaria',
-    retry: 1,
+    retry: 2,
     staleTime: 30000 // 30 segundos
   });
 
@@ -42,7 +43,7 @@ export const useContratosLocarpay = () => {
         throw new Error('Usuário deve ser uma imobiliária');
       }
 
-      console.log('Tentando criar contrato pendente para imobiliária:', user.id);
+      console.log('Criando contrato pendente para imobiliária:', user.id);
 
       const { data, error } = await supabase
         .from('contratos_locarpay')
@@ -92,8 +93,9 @@ export const useContratosLocarpay = () => {
       console.log('Nenhum contrato encontrado para a imobiliária, criando contrato pendente...');
       try {
         await criarContratoPendente.mutateAsync();
+        console.log('Contrato pendente criado automaticamente');
       } catch (err) {
-        console.error('Erro ao criar contrato pendente:', err);
+        console.error('Erro ao criar contrato pendente automaticamente:', err);
       }
     } else {
       console.log(`Encontrados ${contratos.length} contratos para a imobiliária`);
