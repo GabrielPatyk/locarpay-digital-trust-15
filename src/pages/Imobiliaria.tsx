@@ -5,6 +5,7 @@ import { useContratosLocarpay } from '@/hooks/useContratosLocarpay';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import Layout from '@/components/Layout';
 import InquilinoDetalhesModal from '@/components/InquilinoDetalhesModal';
+import ContratoPendenteModal from '@/components/ContratoPendenteModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,20 +36,39 @@ const Imobiliaria = () => {
   const { user } = useAuth();
   const { formatPhone } = usePhoneFormatter();
   const { inquilinos, isLoading: inquilinosLoading, getStatusColor, getStatusLabel, getVerificationColor, getVerificationLabel } = useInquilinosImobiliaria();
-  const { verificarECriarContrato, isLoading: contratosLoading, hasError: contratosError } = useContratosLocarpay();
+  const { 
+    verificarECriarContrato, 
+    isLoading: contratosLoading, 
+    hasError: contratosError,
+    temContratoPendente,
+    getContratoPendente
+  } = useContratosLocarpay();
+  
   const [selectedInquilino, setSelectedInquilino] = useState<InquilinoFianca | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [contratoModalOpen, setContratoModalOpen] = useState(false);
 
   // Verificar e criar contrato LocarPay se necessário
   useEffect(() => {
     if (user?.type === 'imobiliaria' && !contratosLoading && !contratosError) {
       const timer = setTimeout(() => {
         verificarECriarContrato();
-      }, 1000); // Aguardar 1 segundo para garantir que tudo foi carregado
+      }, 1000);
 
       return () => clearTimeout(timer);
     }
   }, [user, verificarECriarContrato, contratosLoading, contratosError]);
+
+  // Verificar se deve abrir o modal de contrato pendente
+  useEffect(() => {
+    if (!contratosLoading && temContratoPendente()) {
+      const timer = setTimeout(() => {
+        setContratoModalOpen(true);
+      }, 2000); // Aguardar 2 segundos após o carregamento
+
+      return () => clearTimeout(timer);
+    }
+  }, [contratosLoading, temContratoPendente]);
 
   // Dados mock para demonstração
   const dashboardData = {
@@ -117,6 +137,8 @@ const Imobiliaria = () => {
       window.open(`mailto:${email}`, '_blank');
     }
   };
+
+  const contratoPendente = getContratoPendente();
 
   return (
     <Layout title={`Dashboard - ${user?.name || 'Imobiliária'}`}>
@@ -425,6 +447,13 @@ const Imobiliaria = () => {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         inquilino={selectedInquilino}
+      />
+
+      {/* Modal de Contrato Pendente */}
+      <ContratoPendenteModal
+        isOpen={contratoModalOpen}
+        onClose={() => setContratoModalOpen(false)}
+        linkAssinatura={contratoPendente?.link_assinatura}
       />
     </Layout>
   );
