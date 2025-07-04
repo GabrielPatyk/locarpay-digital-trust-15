@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useInquilinosImobiliaria, InquilinoFianca } from '@/hooks/useInquilinosImobiliaria';
+import { useContratosLocarpay } from '@/hooks/useContratosLocarpay';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import Layout from '@/components/Layout';
 import InquilinoDetalhesModal from '@/components/InquilinoDetalhesModal';
@@ -34,8 +35,16 @@ const Imobiliaria = () => {
   const { user } = useAuth();
   const { formatPhone } = usePhoneFormatter();
   const { inquilinos, isLoading: inquilinosLoading, getStatusColor, getStatusLabel, getVerificationColor, getVerificationLabel } = useInquilinosImobiliaria();
+  const { verificarECriarContrato } = useContratosLocarpay();
   const [selectedInquilino, setSelectedInquilino] = useState<InquilinoFianca | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  // Verificar e criar contrato LocarPay se necessário
+  useEffect(() => {
+    if (user?.type === 'imobiliaria') {
+      verificarECriarContrato();
+    }
+  }, [user, verificarECriarContrato]);
 
   // Dados mock para demonstração
   const dashboardData = {
