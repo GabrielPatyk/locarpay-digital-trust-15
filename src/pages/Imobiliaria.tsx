@@ -35,16 +35,20 @@ const Imobiliaria = () => {
   const { user } = useAuth();
   const { formatPhone } = usePhoneFormatter();
   const { inquilinos, isLoading: inquilinosLoading, getStatusColor, getStatusLabel, getVerificationColor, getVerificationLabel } = useInquilinosImobiliaria();
-  const { verificarECriarContrato } = useContratosLocarpay();
+  const { verificarECriarContrato, isLoading: contratosLoading, hasError: contratosError } = useContratosLocarpay();
   const [selectedInquilino, setSelectedInquilino] = useState<InquilinoFianca | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
   // Verificar e criar contrato LocarPay se necessário
   useEffect(() => {
-    if (user?.type === 'imobiliaria') {
-      verificarECriarContrato();
+    if (user?.type === 'imobiliaria' && !contratosLoading && !contratosError) {
+      const timer = setTimeout(() => {
+        verificarECriarContrato();
+      }, 1000); // Aguardar 1 segundo para garantir que tudo foi carregado
+
+      return () => clearTimeout(timer);
     }
-  }, [user, verificarECriarContrato]);
+  }, [user, verificarECriarContrato, contratosLoading, contratosError]);
 
   // Dados mock para demonstração
   const dashboardData = {
