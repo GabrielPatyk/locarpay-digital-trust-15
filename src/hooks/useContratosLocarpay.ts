@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,21 +38,95 @@ export const useContratosLocarpay = () => {
     staleTime: 30000 // 30 segundos
   });
 
+  const buscarDadosCompletosImobiliaria = async () => {
+    if (!user?.id) return null;
+
+    try {
+      // Buscar dados do usuário e perfil completo
+      const { data: dadosUsuario, error: errorUsuario } = await supabase
+        .from('usuarios')
+        .select(`
+          id,
+          nome,
+          email,
+          telefone,
+          cpf,
+          cargo,
+          ativo,
+          verificado,
+          criado_em,
+          perfil_usuario (
+            nome_empresa,
+            cnpj,
+            endereco,
+            numero,
+            complemento,
+            bairro,
+            cidade,
+            estado,
+            pais
+          )
+        `)
+        .eq('id', user.id)
+        .single();
+
+      if (errorUsuario) {
+        console.error('Erro ao buscar dados da imobiliária:', errorUsuario);
+        return null;
+      }
+
+      return dadosUsuario;
+    } catch (error) {
+      console.error('Erro ao buscar dados completos da imobiliária:', error);
+      return null;
+    }
+  };
+
   const dispararWebhook = async (contratoData: any) => {
     try {
       console.log('Disparando webhook para:', WEBHOOK_URL);
+      
+      // Buscar dados completos da imobiliária
+      const dadosCompletos = await buscarDadosCompletosImobiliaria();
+      
+      if (!dadosCompletos) {
+        console.error('Não foi possível buscar dados completos da imobiliária');
+        return;
+      }
+
+      const payload = {
+        evento: 'contrato_pendente',
+        timestamp: new Date().toISOString(),
+        imobiliaria: {
+          id: dadosCompletos.id,
+          nome_responsavel: dadosCompletos.nome,
+          email: dadosCompletos.email,
+          telefone: dadosCompletos.telefone,
+          cpf: dadosCompletos.cpf,
+          cargo: dadosCompletos.cargo,
+          ativo: dadosCompletos.ativo,
+          verificado: dadosCompletos.verificado,
+          criado_em: dadosCompletos.criado_em,
+          // Dados do perfil da empresa
+          nome_empresa: dadosCompletos.perfil_usuario?.nome_empresa || null,
+          cnpj: dadosCompletos.perfil_usuario?.cnpj || null,
+          endereco: dadosCompletos.perfil_usuario?.endereco || null,
+          numero: dadosCompletos.perfil_usuario?.numero || null,
+          complemento: dadosCompletos.perfil_usuario?.complemento || null,
+          bairro: dadosCompletos.perfil_usuario?.bairro || null,
+          cidade: dadosCompletos.perfil_usuario?.cidade || null,
+          estado: dadosCompletos.perfil_usuario?.estado || null,
+          pais: dadosCompletos.perfil_usuario?.pais || null
+        },
+        contrato: contratoData
+      };
+
       const response = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          evento: 'contrato_pendente',
-          imobiliaria_id: user?.id,
-          imobiliaria_nome: user?.name,
-          contrato: contratoData,
-          timestamp: new Date().toISOString()
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {

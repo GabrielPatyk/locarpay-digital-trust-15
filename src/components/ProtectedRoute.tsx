@@ -33,7 +33,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const roles = allowedRoles || (requiredUserType ? [requiredUserType] : undefined);
   
   if (roles && user && !roles.includes(user.type as UserType)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;

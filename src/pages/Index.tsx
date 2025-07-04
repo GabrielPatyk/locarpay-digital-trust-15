@@ -13,11 +13,11 @@ const Index = () => {
     );
   }
 
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
   }
 
-  return <Navigate to="/login" replace />;
+  return <Navigate to="/dashboard" replace />;
 };
 
 export default Index;
