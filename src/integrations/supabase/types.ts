@@ -9,6 +9,38 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      contratos_locarpay: {
+        Row: {
+          criado_em: string
+          id: string
+          imobiliaria_id: string
+          link_assinatura: string | null
+          status: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          imobiliaria_id: string
+          link_assinatura?: string | null
+          status?: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          imobiliaria_id?: string
+          link_assinatura?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_locarpay_imobiliaria_id_fkey"
+            columns: ["imobiliaria_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fiancas_locaticias: {
         Row: {
           comprovante_pagamento: string | null

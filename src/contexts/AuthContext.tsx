@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserType } from '@/types/user';
@@ -32,6 +31,92 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setIsLoading(false);
   }, []);
+
+  const verificarEDispararWebhookContrato = async (userId: string, userType: string) => {
+    // Só executa para imobiliárias
+    if (userType !== 'imobiliaria') return;
+
+    try {
+      // Verificar se há contratos pendentes para esta imobiliária
+      const { data: contratosPendentes, error } = await supabase
+        .from('contratos_locarpay')
+        .select('*')
+        .eq('imobiliaria_id', userId)
+        .eq('status', 'pendente');
+
+      if (error) {
+        console.error('Erro ao verificar contratos pendentes:', error);
+        return;
+      }
+
+      // Se há contratos pendentes, buscar dados completos da imobiliária e disparar webhook
+      if (contratosPendentes && contratosPendentes.length > 0) {
+        const { data: dadosImobiliaria, error: errorDados } = await supabase
+          .from('usuarios')
+          .select(`
+            *,
+            perfil_usuario (*)
+          `)
+          .eq('id', userId)
+          .single();
+
+        if (errorDados || !dadosImobiliaria) {
+          console.error('Erro ao buscar dados da imobiliária:', errorDados);
+          return;
+        }
+
+        // Preparar payload com todos os dados da imobiliária
+        const webhookPayload = {
+          id: dadosImobiliaria.id,
+          nome: dadosImobiliaria.nome,
+          email: dadosImobiliaria.email,
+          telefone: dadosImobiliaria.telefone,
+          cargo: dadosImobiliaria.cargo,
+          cpf: dadosImobiliaria.cpf,
+          ativo: dadosImobiliaria.ativo,
+          verificado: dadosImobiliaria.verificado,
+          primeiro_acesso: dadosImobiliaria.primeiro_acesso,
+          criado_em: dadosImobiliaria.criado_em,
+          // Dados do perfil se existir
+          perfil: dadosImobiliaria.perfil_usuario ? {
+            cnpj: dadosImobiliaria.perfil_usuario.cnpj,
+            nome_empresa: dadosImobiliaria.perfil_usuario.nome_empresa,
+            endereco: dadosImobiliaria.perfil_usuario.endereco,
+            numero: dadosImobiliaria.perfil_usuario.numero,
+            complemento: dadosImobiliaria.perfil_usuario.complemento,
+            bairro: dadosImobiliaria.perfil_usuario.bairro,
+            cidade: dadosImobiliaria.perfil_usuario.cidade,
+            estado: dadosImobiliaria.perfil_usuario.estado,
+            pais: dadosImobiliaria.perfil_usuario.pais
+          } : null,
+          // Informações sobre os contratos pendentes
+          contratos_pendentes: contratosPendentes.length,
+          timestamp: new Date().toISOString()
+        };
+
+        // Disparar webhook
+        try {
+          const response = await fetch('https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookPayload)
+          });
+
+          if (response.ok) {
+            console.log('Webhook de contrato pendente disparado com sucesso para imobiliária:', dadosImobiliaria.nome);
+          } else {
+            console.error('Erro ao disparar webhook de contrato pendente:', response.status, response.statusText);
+          }
+        } catch (error) {
+          console.error('Erro na requisição do webhook de contrato pendente:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Erro na verificação de contratos pendentes:', error);
+    }
+  };
 
   const login = async (email: string, password: string): Promise<{ success: boolean; redirectPath?: string; needsVerification?: boolean; userName?: string; isInactive?: boolean }> => {
     try {
@@ -120,6 +205,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(user);
       localStorage.setItem('user', JSON.stringify(user));
+
+      // Verificar e disparar webhook para contratos pendentes (apenas para imobiliárias)
+      await verificarEDispararWebhookContrato(user.id, user.type);
       
       // Define redirect path based on user type
       const redirectPaths: Record<string, string> = {
