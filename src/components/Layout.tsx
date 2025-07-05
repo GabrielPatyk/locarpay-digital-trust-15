@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,7 +9,10 @@ import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ProfileCompletionCheck from '@/components/ProfileCompletionCheck';
 import PrimeiroAcessoModal from '@/components/PrimeiroAcessoModal';
+import ContratoPendenteModal from '@/components/ContratoPendenteModal';
+import ContratoAssinadoModal from '@/components/ContratoAssinadoModal';
 import { usePrimeiroAcesso } from '@/hooks/usePrimeiroAcesso';
+import { useContratosLocarpay } from '@/hooks/useContratosLocarpay';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -21,6 +24,52 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { isPrimeiroAcesso } = usePrimeiroAcesso();
+  
+  // Estados para controlar os modais
+  const [showContratoPendente, setShowContratoPendente] = useState(false);
+  const [showContratoAssinado, setShowContratoAssinado] = useState(false);
+  const [contratoAssinadoMostrado, setContratoAssinadoMostrado] = useState(false);
+
+  // Hook dos contratos (apenas para imobiliárias)
+  const { 
+    verificarECriarContrato,
+    temContratoPendente,
+    temContratoAssinado,
+    getContratoPendente,
+    isLoading
+  } = useContratosLocarpay();
+
+  // Verificar contratos ao carregar o componente
+  useEffect(() => {
+    if (user?.type === 'imobiliaria' && !isLoading) {
+      verificarECriarContrato();
+    }
+  }, [user, isLoading, verificarECriarContrato]);
+
+  // Controlar exibição dos modais
+  useEffect(() => {
+    if (user?.type === 'imobiliaria' && !isLoading) {
+      const hasAssinado = temContratoAssinado();
+      const hasPendente = temContratoPendente();
+
+      if (hasAssinado && !contratoAssinadoMostrado) {
+        // Mostrar modal de sucesso apenas uma vez
+        setShowContratoAssinado(true);
+        setContratoAssinadoMostrado(true);
+        setShowContratoPendente(false);
+      } else if (hasPendente && !hasAssinado) {
+        // Mostrar modal de pendente se não foi assinado
+        setShowContratoPendente(true);
+        setShowContratoAssinado(false);
+      } else {
+        // Fechar ambos os modais se não há pendente nem assinado recente
+        setShowContratoPendente(false);
+        if (contratoAssinadoMostrado) {
+          setShowContratoAssinado(false);
+        }
+      }
+    }
+  }, [user, isLoading, temContratoPendente, temContratoAssinado, contratoAssinadoMostrado]);
 
   const handleLogout = () => {
     logout();
@@ -55,6 +104,8 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   const getInitials = (name: string) => {
     return name?.split(' ').map(n => n[0]).join('').toUpperCase() || '';
   };
+
+  const contratoPendente = getContratoPendente();
 
   // Header específico para mobile
   if (isMobile) {
@@ -94,7 +145,23 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
             {children}
           </div>
         </main>
+        
+        {/* Modals */}
         <PrimeiroAcessoModal open={isPrimeiroAcesso} />
+        
+        {user?.type === 'imobiliaria' && (
+          <>
+            <ContratoPendenteModal 
+              isOpen={showContratoPendente}
+              onClose={() => setShowContratoPendente(false)}
+              linkAssinatura={contratoPendente?.link_assinatura}
+            />
+            <ContratoAssinadoModal
+              isOpen={showContratoAssinado}
+              onClose={() => setShowContratoAssinado(false)}
+            />
+          </>
+        )}
       </SidebarInset>
     );
   }
@@ -104,6 +171,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
     <SidebarInset>
       <ProfileCompletionCheck />
       <PrimeiroAcessoModal open={isPrimeiroAcesso} />
+      
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="px-6 py-4">
@@ -162,6 +230,21 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
           {children}
         </div>
       </main>
+
+      {/* Modals para Imobiliárias */}
+      {user?.type === 'imobiliaria' && (
+        <>
+          <ContratoPendenteModal 
+            isOpen={showContratoPendente}
+            onClose={() => setShowContratoPendente(false)}
+            linkAssinatura={contratoPendente?.link_assinatura}
+          />
+          <ContratoAssinadoModal
+            isOpen={showContratoAssinado}
+            onClose={() => setShowContratoAssinado(false)}
+          />
+        </>
+      )}
     </SidebarInset>
   );
 };

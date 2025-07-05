@@ -1,8 +1,11 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 const WEBHOOK_URL = 'https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6';
+
+let webhookDisparado = false; // Flag para evitar múltiplos webhooks
 
 export const useContratosLocarpay = () => {
   const { user } = useAuth();
@@ -83,14 +86,22 @@ export const useContratosLocarpay = () => {
   };
 
   const dispararWebhook = async (contratoData: any) => {
+    // Evitar múltiplos disparos do webhook
+    if (webhookDisparado) {
+      console.log('Webhook já foi disparado, ignorando...');
+      return;
+    }
+
     try {
       console.log('Disparando webhook para:', WEBHOOK_URL);
+      webhookDisparado = true; // Marcar como disparado
       
       // Buscar dados completos da imobiliária
       const dadosCompletos = await buscarDadosCompletosImobiliaria();
       
       if (!dadosCompletos) {
         console.error('Não foi possível buscar dados completos da imobiliária');
+        webhookDisparado = false; // Resetar em caso de erro
         return;
       }
 
@@ -131,11 +142,13 @@ export const useContratosLocarpay = () => {
 
       if (!response.ok) {
         console.warn('Webhook retornou status:', response.status);
+        webhookDisparado = false; // Resetar em caso de erro
       } else {
         console.log('Webhook disparado com sucesso');
       }
     } catch (error) {
       console.error('Erro ao disparar webhook:', error);
+      webhookDisparado = false; // Resetar em caso de erro
     }
   };
 
@@ -206,13 +219,12 @@ export const useContratosLocarpay = () => {
     } else {
       console.log(`Encontrados ${contratos.length} contratos para a imobiliária`);
       
-      // Verificar se há contratos pendentes e disparar webhook
+      // Verificar se há contratos pendentes e disparar webhook apenas uma vez
       const contratosPendentes = contratos.filter(contrato => contrato.status === 'pendente');
-      if (contratosPendentes.length > 0) {
+      if (contratosPendentes.length > 0 && !webhookDisparado) {
         console.log('Encontrados contratos pendentes, disparando webhook...');
-        for (const contrato of contratosPendentes) {
-          await dispararWebhook(contrato);
-        }
+        // Disparar webhook apenas para o primeiro contrato pendente
+        await dispararWebhook(contratosPendentes[0]);
       }
     }
   };
@@ -221,8 +233,16 @@ export const useContratosLocarpay = () => {
     return contratos?.some(contrato => contrato.status === 'pendente') || false;
   };
 
+  const temContratoAssinado = () => {
+    return contratos?.some(contrato => contrato.status === 'assinado') || false;
+  };
+
   const getContratoPendente = () => {
     return contratos?.find(contrato => contrato.status === 'pendente') || null;
+  };
+
+  const resetWebhookFlag = () => {
+    webhookDisparado = false;
   };
 
   return {
@@ -234,6 +254,8 @@ export const useContratosLocarpay = () => {
     isCreating: criarContratoPendente.isPending,
     hasError: !!error || !!criarContratoPendente.error,
     temContratoPendente,
-    getContratoPendente
+    temContratoAssinado,
+    getContratoPendente,
+    resetWebhookFlag
   };
 };
