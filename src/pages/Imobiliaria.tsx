@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useInquilinosImobiliaria, InquilinoFianca } from '@/hooks/useInquilinosImobiliaria';
 import { useContratosLocarpay } from '@/hooks/useContratosLocarpay';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
+import { supabase } from '@/integrations/supabase/client';
 import Layout from '@/components/Layout';
 import InquilinoDetalhesModal from '@/components/InquilinoDetalhesModal';
 import ContratoPendenteModal from '@/components/ContratoPendenteModal';
@@ -47,6 +48,56 @@ const Imobiliaria = () => {
   const [selectedInquilino, setSelectedInquilino] = useState<InquilinoFianca | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [contratoModalOpen, setContratoModalOpen] = useState(false);
+  const [inquilinosAtivos, setInquilinosAtivos] = useState(0);
+  const [novosInquilinosNoMes, setNovosInquilinosNoMes] = useState(0);
+  const [loadingInquilinos, setLoadingInquilinos] = useState(true);
+
+  // Buscar dados reais de inquilinos ativos
+  useEffect(() => {
+    const fetchInquilinosAtivos = async () => {
+      if (!user || user.type !== 'imobiliaria') return;
+
+      try {
+        setLoadingInquilinos(true);
+        
+        // Buscar inquilinos ativos (com status 'ativa')
+        const { data: inquilinosAtivosData, error: inquilinosAtivosError } = await supabase
+          .from('fiancas_locaticias')
+          .select('*')
+          .eq('id_imobiliaria', user.id)
+          .eq('status_fianca', 'ativa');
+
+        if (inquilinosAtivosError) {
+          console.error('Erro ao buscar inquilinos ativos:', inquilinosAtivosError);
+        } else {
+          setInquilinosAtivos(inquilinosAtivosData?.length || 0);
+        }
+
+        // Buscar novos inquilinos do mês atual
+        const inicioDoMes = new Date();
+        inicioDoMes.setDate(1);
+        inicioDoMes.setHours(0, 0, 0, 0);
+
+        const { data: novosInquilinosData, error: novosInquilinosError } = await supabase
+          .from('fiancas_locaticias')
+          .select('*')
+          .eq('id_imobiliaria', user.id)
+          .gte('data_criacao', inicioDoMes.toISOString());
+
+        if (novosInquilinosError) {
+          console.error('Erro ao buscar novos inquilinos:', novosInquilinosError);
+        } else {
+          setNovosInquilinosNoMes(novosInquilinosData?.length || 0);
+        }
+      } catch (error) {
+        console.error('Erro geral ao buscar dados de inquilinos:', error);
+      } finally {
+        setLoadingInquilinos(false);
+      }
+    };
+
+    fetchInquilinosAtivos();
+  }, [user]);
 
   // Verificar e criar contrato LocarPay se necessário
   useEffect(() => {
@@ -70,10 +121,9 @@ const Imobiliaria = () => {
     }
   }, [contratosLoading, temContratoPendente]);
 
-  // Dados mock para demonstração
+  // Dados mock para demonstração (mantendo os outros dados)
   const dashboardData = {
     totalImoveis: 47,
-    inquilinosAtivos: 38,
     contratosPendentes: 5,
     receitaMensal: 85420,
     dadosGraficos: [
@@ -82,8 +132,8 @@ const Imobiliaria = () => {
       { mes: 'Mar', contratos: 18, receita: 85420 },
     ],
     statusImoveis: [
-      { name: 'Ocupados', value: 38, color: '#10b981' },
-      { name: 'Vagos', value: 9, color: '#f59e0b' }
+      { name: 'Ocupados', value: inquilinosAtivos, color: '#10b981' },
+      { name: 'Vagos', value: dashboardData.totalImoveis - inquilinosAtivos, color: '#f59e0b' }
     ]
   };
 
@@ -168,7 +218,7 @@ const Imobiliaria = () => {
             <CardContent>
               <div className="text-2xl font-bold text-primary">{dashboardData.totalImoveis}</div>
               <p className="text-xs text-muted-foreground">
-                {dashboardData.statusImoveis[0].value} ocupados, {dashboardData.statusImoveis[1].value} vagos
+                {inquilinosAtivos} ocupados, {dashboardData.totalImoveis - inquilinosAtivos} vagos
               </p>
             </CardContent>
           </Card>
@@ -179,10 +229,19 @@ const Imobiliaria = () => {
               <Users className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">{dashboardData.inquilinosAtivos}</div>
-              <p className="text-xs text-muted-foreground">
-                +3 novos este mês
-              </p>
+              {loadingInquilinos ? (
+                <div className="flex items-center">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span className="text-sm">Carregando...</span>
+                </div>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold text-success">{inquilinosAtivos}</div>
+                  <p className="text-xs text-muted-foreground">
+                    +{novosInquilinosNoMes} novos este mês
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -259,14 +318,20 @@ const Imobiliaria = () => {
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={dashboardData.statusImoveis}
+                        data={[
+                          { name: 'Ocupados', value: inquilinosAtivos, color: '#10b981' },
+                          { name: 'Vagos', value: dashboardData.totalImoveis - inquilinosAtivos, color: '#f59e0b' }
+                        ]}
                         cx="50%"
                         cy="50%"
                         innerRadius={60}
                         outerRadius={120}
                         dataKey="value"
                       >
-                        {dashboardData.statusImoveis.map((entry, index) => (
+                        {[
+                          { name: 'Ocupados', value: inquilinosAtivos, color: '#10b981' },
+                          { name: 'Vagos', value: dashboardData.totalImoveis - inquilinosAtivos, color: '#f59e0b' }
+                        ].map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>

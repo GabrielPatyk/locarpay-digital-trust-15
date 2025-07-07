@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -28,7 +27,6 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   // Estados para controlar os modais
   const [showContratoPendente, setShowContratoPendente] = useState(false);
   const [showContratoAssinado, setShowContratoAssinado] = useState(false);
-  const [contratoAssinadoMostrado, setContratoAssinadoMostrado] = useState(false);
 
   // Hook dos contratos (apenas para imobiliárias)
   const { 
@@ -51,11 +49,14 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
     if (user?.type === 'imobiliaria' && !isLoading) {
       const hasAssinado = temContratoAssinado();
       const hasPendente = temContratoPendente();
+      
+      // Verificar se o popup de documento assinado já foi mostrado nesta sessão
+      const contratoAssinadoMostrado = sessionStorage.getItem('contratoAssinadoMostrado');
 
       if (hasAssinado && !contratoAssinadoMostrado) {
-        // Mostrar modal de sucesso apenas uma vez
+        // Mostrar modal de sucesso apenas uma vez por sessão
         setShowContratoAssinado(true);
-        setContratoAssinadoMostrado(true);
+        sessionStorage.setItem('contratoAssinadoMostrado', 'true');
         setShowContratoPendente(false);
       } else if (hasPendente && !hasAssinado) {
         // Mostrar modal de pendente se não foi assinado
@@ -64,12 +65,10 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
       } else {
         // Fechar ambos os modais se não há pendente nem assinado recente
         setShowContratoPendente(false);
-        if (contratoAssinadoMostrado) {
-          setShowContratoAssinado(false);
-        }
+        setShowContratoAssinado(false);
       }
     }
-  }, [user, isLoading, temContratoPendente, temContratoAssinado, contratoAssinadoMostrado]);
+  }, [user, isLoading, temContratoPendente, temContratoAssinado]);
 
   const handleLogout = () => {
     logout();

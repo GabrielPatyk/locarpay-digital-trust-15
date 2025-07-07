@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import { useImobiliariaData } from '@/hooks/useImobiliariaData';
+import { useImobiliariaStatus } from '@/hooks/useImobiliariaStatus';
 import Layout from '@/components/Layout';
 import ImageUpload from '@/components/ImageUpload';
 import ConfirmationModal from '@/components/ConfirmationModal';
@@ -21,7 +21,9 @@ import {
   Save,
   Eye,
   EyeOff,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 
 const ConfiguracoesImobiliaria = () => {
@@ -29,6 +31,7 @@ const ConfiguracoesImobiliaria = () => {
   const { profile, updateProfile, updateUserData, updatePassword, loading } = useUserProfile();
   const { formatPhone, formatCNPJ, unformatPhone, unformatCNPJ, isValidPhone } = usePhoneFormatter();
   const { cnpj: currentCnpj, isLoading: cnpjLoading } = useImobiliariaData();
+  const { status: imobiliariaStatus, isLoading: statusLoading } = useImobiliariaStatus();
   const { toast } = useToast();
   
   const [showPassword, setShowPassword] = useState(false);
@@ -522,6 +525,87 @@ const ConfiguracoesImobiliaria = () => {
               <Save className="mr-2 h-4 w-4" />
               {loading ? 'Alterando...' : 'Alterar Senha'}
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Verificações */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <CheckCircle className="mr-2 h-5 w-5 text-green-600" />
+              Verificações
+            </CardTitle>
+            <CardDescription>
+              Status das verificações da sua conta
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {statusLoading ? (
+              <p className="text-gray-500">Carregando status...</p>
+            ) : (
+              <>
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    {imobiliariaStatus.emailVerificado ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-600" />
+                    )}
+                    <div>
+                      <p className="font-medium">E-mail Verificado</p>
+                      <p className="text-sm text-gray-600">
+                        {imobiliariaStatus.emailVerificado 
+                          ? 'Seu e-mail foi verificado com sucesso' 
+                          : 'Seu e-mail ainda não foi verificado'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    imobiliariaStatus.emailVerificado 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {imobiliariaStatus.emailVerificado ? 'Verificado' : 'Pendente'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    {imobiliariaStatus.contratoAssinado ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-600" />
+                    )}
+                    <div>
+                      <p className="font-medium">Contrato de Parceria</p>
+                      <p className="text-sm text-gray-600">
+                        {imobiliariaStatus.contratoAssinado 
+                          ? 'Contrato assinado e plataforma liberada' 
+                          : 'Contrato de parceria ainda não foi assinado'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    imobiliariaStatus.contratoAssinado 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {imobiliariaStatus.contratoAssinado ? 'Assinado' : 'Pendente'}
+                  </span>
+                </div>
+
+                {imobiliariaStatus.emailVerificado && imobiliariaStatus.contratoAssinado && (
+                  <div className="flex items-center justify-center p-4 bg-green-50 rounded-lg border border-green-200">
+                    <CheckCircle className="h-6 w-6 text-green-600 mr-2" />
+                    <span className="font-medium text-green-800">
+                      Sua conta está completamente verificada e ativa!
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
           </CardContent>
         </Card>
 
