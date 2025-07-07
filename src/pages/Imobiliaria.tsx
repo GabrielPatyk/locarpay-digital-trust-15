@@ -123,12 +123,12 @@ const Imobiliaria = () => {
 
   // Definir dados do dashboard após carregar os dados dos inquilinos
   const totalImoveis = 47;
-  const contratosPendentes = 5;
+  const contratosPendentesCount = 5;
   const receitaMensal = 85420;
   
   const dashboardData = {
     totalImoveis,
-    contratosPendentes,
+    contratosPendentes: contratosPendentesCount,
     receitaMensal,
     dadosGraficos: [
       { mes: 'Jan', contratos: 12, receita: 78000 },
