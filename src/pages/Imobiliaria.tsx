@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useInquilinosImobiliaria, InquilinoFianca } from '@/hooks/useInquilinosImobiliaria';
-import { useContratosLocarpay } from '@/hooks/useContratosLocarpay';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
-import { supabase } from '@/integrations/supabase/client';
 import Layout from '@/components/Layout';
 import InquilinoDetalhesModal from '@/components/InquilinoDetalhesModal';
-import ContratoPendenteModal from '@/components/ContratoPendenteModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,107 +34,23 @@ const Imobiliaria = () => {
   const { user } = useAuth();
   const { formatPhone } = usePhoneFormatter();
   const { inquilinos, isLoading: inquilinosLoading, getStatusColor, getStatusLabel, getVerificationColor, getVerificationLabel } = useInquilinosImobiliaria();
-  const { 
-    verificarECriarContrato, 
-    isLoading: contratosLoading, 
-    hasError: contratosError,
-    temContratoPendente,
-    getContratoPendente
-  } = useContratosLocarpay();
-  
   const [selectedInquilino, setSelectedInquilino] = useState<InquilinoFianca | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [contratoModalOpen, setContratoModalOpen] = useState(false);
-  const [inquilinosAtivos, setInquilinosAtivos] = useState(0);
-  const [novosInquilinosNoMes, setNovosInquilinosNoMes] = useState(0);
-  const [loadingInquilinos, setLoadingInquilinos] = useState(true);
 
-  // Buscar dados reais de inquilinos ativos
-  useEffect(() => {
-    const fetchInquilinosAtivos = async () => {
-      if (!user || user.type !== 'imobiliaria') return;
-
-      try {
-        setLoadingInquilinos(true);
-        
-        // Buscar inquilinos ativos (com status 'ativa')
-        const { data: inquilinosAtivosData, error: inquilinosAtivosError } = await supabase
-          .from('fiancas_locaticias')
-          .select('*')
-          .eq('id_imobiliaria', user.id)
-          .eq('status_fianca', 'ativa');
-
-        if (inquilinosAtivosError) {
-          console.error('Erro ao buscar inquilinos ativos:', inquilinosAtivosError);
-        } else {
-          setInquilinosAtivos(inquilinosAtivosData?.length || 0);
-        }
-
-        // Buscar novos inquilinos do mês atual
-        const inicioDoMes = new Date();
-        inicioDoMes.setDate(1);
-        inicioDoMes.setHours(0, 0, 0, 0);
-
-        const { data: novosInquilinosData, error: novosInquilinosError } = await supabase
-          .from('fiancas_locaticias')
-          .select('*')
-          .eq('id_imobiliaria', user.id)
-          .gte('data_criacao', inicioDoMes.toISOString());
-
-        if (novosInquilinosError) {
-          console.error('Erro ao buscar novos inquilinos:', novosInquilinosError);
-        } else {
-          setNovosInquilinosNoMes(novosInquilinosData?.length || 0);
-        }
-      } catch (error) {
-        console.error('Erro geral ao buscar dados de inquilinos:', error);
-      } finally {
-        setLoadingInquilinos(false);
-      }
-    };
-
-    fetchInquilinosAtivos();
-  }, [user]);
-
-  // Verificar e criar contrato LocarPay se necessário
-  useEffect(() => {
-    if (user?.type === 'imobiliaria' && !contratosLoading && !contratosError) {
-      const timer = setTimeout(() => {
-        verificarECriarContrato();
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [user, verificarECriarContrato, contratosLoading, contratosError]);
-
-  // Verificar se deve abrir o modal de contrato pendente
-  useEffect(() => {
-    if (!contratosLoading && temContratoPendente()) {
-      const timer = setTimeout(() => {
-        setContratoModalOpen(true);
-      }, 2000); // Aguardar 2 segundos após o carregamento
-
-      return () => clearTimeout(timer);
-    }
-  }, [contratosLoading, temContratoPendente]);
-
-  // Definir dados do dashboard após carregar os dados dos inquilinos
-  const totalImoveis = 47;
-  const contratosPendentesCount = 5;
-  const receitaMensal = 85420;
-  
+  // Dados mock para demonstração
   const dashboardData = {
-    totalImoveis,
-    contratosPendentes: contratosPendentesCount,
-    receitaMensal,
+    totalImoveis: 47,
+    inquilinosAtivos: 38,
+    contratosPendentes: 5,
+    receitaMensal: 85420,
     dadosGraficos: [
       { mes: 'Jan', contratos: 12, receita: 78000 },
       { mes: 'Fev', contratos: 15, receita: 82000 },
       { mes: 'Mar', contratos: 18, receita: 85420 },
     ],
     statusImoveis: [
-      { name: 'Ocupados', value: inquilinosAtivos, color: '#10b981' },
-      { name: 'Vagos', value: totalImoveis - inquilinosAtivos, color: '#f59e0b' }
+      { name: 'Ocupados', value: 38, color: '#10b981' },
+      { name: 'Vagos', value: 9, color: '#f59e0b' }
     ]
   };
 
@@ -192,8 +105,6 @@ const Imobiliaria = () => {
     }
   };
 
-  const contratoPendente = getContratoPendente();
-
   return (
     <Layout title={`Dashboard - ${user?.name || 'Imobiliária'}`}>
       <div className="space-y-6 animate-fade-in">
@@ -222,7 +133,7 @@ const Imobiliaria = () => {
             <CardContent>
               <div className="text-2xl font-bold text-primary">{dashboardData.totalImoveis}</div>
               <p className="text-xs text-muted-foreground">
-                {inquilinosAtivos} ocupados, {dashboardData.totalImoveis - inquilinosAtivos} vagos
+                {dashboardData.statusImoveis[0].value} ocupados, {dashboardData.statusImoveis[1].value} vagos
               </p>
             </CardContent>
           </Card>
@@ -233,19 +144,10 @@ const Imobiliaria = () => {
               <Users className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              {loadingInquilinos ? (
-                <div className="flex items-center">
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  <span className="text-sm">Carregando...</span>
-                </div>
-              ) : (
-                <>
-                  <div className="text-2xl font-bold text-success">{inquilinosAtivos}</div>
-                  <p className="text-xs text-muted-foreground">
-                    +{novosInquilinosNoMes} novos este mês
-                  </p>
-                </>
-              )}
+              <div className="text-2xl font-bold text-success">{dashboardData.inquilinosAtivos}</div>
+              <p className="text-xs text-muted-foreground">
+                +3 novos este mês
+              </p>
             </CardContent>
           </Card>
 
@@ -278,6 +180,7 @@ const Imobiliaria = () => {
           </Card>
         </div>
 
+        {/* Tabs com conteúdo detalhado */}
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
@@ -509,13 +412,6 @@ const Imobiliaria = () => {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         inquilino={selectedInquilino}
-      />
-
-      {/* Modal de Contrato Pendente */}
-      <ContratoPendenteModal
-        isOpen={contratoModalOpen}
-        onClose={() => setContratoModalOpen(false)}
-        linkAssinatura={contratoPendente?.link_assinatura}
       />
     </Layout>
   );
