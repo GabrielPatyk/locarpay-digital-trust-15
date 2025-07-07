@@ -121,11 +121,15 @@ const Imobiliaria = () => {
     }
   }, [contratosLoading, temContratoPendente]);
 
-  // Dados mock para demonstração (mantendo os outros dados)
+  // Definir dados do dashboard após carregar os dados dos inquilinos
+  const totalImoveis = 47;
+  const contratosPendentes = 5;
+  const receitaMensal = 85420;
+  
   const dashboardData = {
-    totalImoveis: 47,
-    contratosPendentes: 5,
-    receitaMensal: 85420,
+    totalImoveis,
+    contratosPendentes,
+    receitaMensal,
     dadosGraficos: [
       { mes: 'Jan', contratos: 12, receita: 78000 },
       { mes: 'Fev', contratos: 15, receita: 82000 },
@@ -133,7 +137,7 @@ const Imobiliaria = () => {
     ],
     statusImoveis: [
       { name: 'Ocupados', value: inquilinosAtivos, color: '#10b981' },
-      { name: 'Vagos', value: dashboardData.totalImoveis - inquilinosAtivos, color: '#f59e0b' }
+      { name: 'Vagos', value: totalImoveis - inquilinosAtivos, color: '#f59e0b' }
     ]
   };
 
@@ -274,7 +278,6 @@ const Imobiliaria = () => {
           </Card>
         </div>
 
-        {/* Tabs com conteúdo detalhado */}
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
@@ -318,20 +321,14 @@ const Imobiliaria = () => {
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={[
-                          { name: 'Ocupados', value: inquilinosAtivos, color: '#10b981' },
-                          { name: 'Vagos', value: dashboardData.totalImoveis - inquilinosAtivos, color: '#f59e0b' }
-                        ]}
+                        data={dashboardData.statusImoveis}
                         cx="50%"
                         cy="50%"
                         innerRadius={60}
                         outerRadius={120}
                         dataKey="value"
                       >
-                        {[
-                          { name: 'Ocupados', value: inquilinosAtivos, color: '#10b981' },
-                          { name: 'Vagos', value: dashboardData.totalImoveis - inquilinosAtivos, color: '#f59e0b' }
-                        ].map((entry, index) => (
+                        {dashboardData.statusImoveis.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
