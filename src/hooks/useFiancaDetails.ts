@@ -33,7 +33,10 @@ export const useFiancaDetails = (fiancaId: string) => {
         .eq('id', fiancaId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar fiança:', error);
+        throw error;
+      }
       return data;
     },
     enabled: !!fiancaId
@@ -51,7 +54,10 @@ export const useFiancaDetails = (fiancaId: string) => {
         .eq('fianca_id', fiancaId)
         .order('data_criacao', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar histórico:', error);
+        throw error;
+      }
       return data as HistoricoItem[];
     },
     enabled: !!fiancaId

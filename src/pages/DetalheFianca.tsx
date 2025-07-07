@@ -21,7 +21,7 @@ import {
   Loader2,
   CreditCard,
   CheckCircle,
-  Link as LinkIcon
+  LinkIcon
 } from 'lucide-react';
 
 const DetalheFianca = () => {
@@ -31,10 +31,11 @@ const DetalheFianca = () => {
   const { fianca, historico, isLoading } = useFiancaDetails(id || '');
   const { getCargoHomePage } = useCargoRedirect();
 
-  // Verificar se o usuário tem permissão (admin ou imobiliária dona da fiança)
+  // Verificar se o usuário tem permissão (admin, analista ou imobiliária dona da fiança)
   React.useEffect(() => {
     if (user && fianca) {
       const hasPermission = user.type === 'admin' || 
+                           user.type === 'analista' ||
                            (user.type === 'imobiliaria' && fianca.id_imobiliaria === user.id);
       
       if (!hasPermission) {
@@ -156,6 +157,7 @@ const DetalheFianca = () => {
 
   // Verificar permissão após carregar os dados
   const hasPermission = user?.type === 'admin' || 
+                       user?.type === 'analista' ||
                        (user?.type === 'imobiliaria' && fianca.id_imobiliaria === user.id);
 
   if (!hasPermission) {
