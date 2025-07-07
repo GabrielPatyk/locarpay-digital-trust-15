@@ -31,12 +31,17 @@ const DetalheFianca = () => {
   const { fianca, historico, isLoading } = useFiancaDetails(id || '');
   const { getCargoHomePage } = useCargoRedirect();
 
-  // Verificar se o usuário é admin
+  // Verificar se o usuário tem permissão (admin ou imobiliária dona da fiança)
   React.useEffect(() => {
-    if (user && user.type !== 'admin') {
-      navigate('/unauthorized');
+    if (user && fianca) {
+      const hasPermission = user.type === 'admin' || 
+                           (user.type === 'imobiliaria' && fianca.id_imobiliaria === user.id);
+      
+      if (!hasPermission) {
+        navigate('/unauthorized');
+      }
     }
-  }, [user, navigate]);
+  }, [user, fianca, navigate]);
 
   const handleVoltar = () => {
     const homePage = getCargoHomePage();
@@ -123,22 +128,6 @@ const DetalheFianca = () => {
     return (criadoPorUsuario as { nome: string }).nome || 'Não atribuído';
   };
 
-  if (user?.type !== 'admin') {
-    return (
-      <Layout title="Acesso Negado">
-        <div className="text-center py-8">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Acesso restrito apenas para Administradores
-          </h3>
-          <Button variant="outline" onClick={handleVoltar}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
-          </Button>
-        </div>
-      </Layout>
-    );
-  }
-
   if (isLoading) {
     return (
       <Layout title="Detalhes da Fiança">
@@ -155,6 +144,26 @@ const DetalheFianca = () => {
         <div className="text-center py-8">
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             Fiança não encontrada
+          </h3>
+          <Button variant="outline" onClick={handleVoltar}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar
+          </Button>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Verificar permissão após carregar os dados
+  const hasPermission = user?.type === 'admin' || 
+                       (user?.type === 'imobiliaria' && fianca.id_imobiliaria === user.id);
+
+  if (!hasPermission) {
+    return (
+      <Layout title="Acesso Negado">
+        <div className="text-center py-8">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Você não tem permissão para ver esta fiança
           </h3>
           <Button variant="outline" onClick={handleVoltar}>
             <ArrowLeft className="mr-2 h-4 w-4" />

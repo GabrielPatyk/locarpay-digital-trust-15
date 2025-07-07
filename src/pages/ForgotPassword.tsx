@@ -1,96 +1,88 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, ArrowLeft } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const ForgotPassword = () => {
+  // Hook para redirecionar se já estiver logado
+  const { isLoading: authLoading } = useAuthRedirect();
+  
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Se está verificando autenticação, mostrar loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#BC942C]"></div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    if (!email.trim()) {
-      setError('Por favor, digite seu e-mail.');
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      // Buscar usuário na tabela usuarios (não auth.users)
-      const { data: usuario, error: userError } = await supabase
+      // Verificar se o usuário existe
+      const { data: userExists, error: userError } = await supabase
         .from('usuarios')
-        .select('id, email')
-        .eq('email', email.trim())
-        .maybeSingle();
+        .select('id, nome')
+        .eq('email', email)
+        .single();
 
-      if (userError) {
-        console.error('Erro ao buscar usuário:', userError);
-        throw new Error('Erro interno do servidor');
+      if (userError && userError.code !== 'PGRST116') {
+        throw new Error('Erro ao verificar usuário');
       }
 
-      if (usuario) {
-        // Gerar token seguro
-        const token = crypto.randomUUID();
-
-        // Salvar token na tabela tokens_redefinicao_senha
-        const { error: tokenError } = await supabase
-          .from('tokens_redefinicao_senha')
-          .insert({
-            usuario_id: usuario.id,
-            token: token
-          });
-
-        if (tokenError) {
-          console.error('Erro ao salvar token:', tokenError);
-          throw new Error('Erro ao processar solicitação');
-        }
-
-        // Enviar webhook
-        try {
-          const webhookData = {
-            email: usuario.email,
-            token: token,
-            usuario_id: usuario.id,
-            link: `${window.location.origin}/redefinir-senha?token=${token}`
-          };
-
-          await fetch('https://webhook.lesenechal.com.br/webhook/Esqueci-A-Minha-Senha-LocarPay-Webhook', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(webhookData)
-          });
-        } catch (webhookError) {
-          console.error('Erro ao enviar webhook:', webhookError);
-          // Não falhar se o webhook não funcionar
-        }
+      if (!userExists) {
+        setError('E-mail não encontrado em nossa base de dados.');
+        setIsLoading(false);
+        return;
       }
 
-      // Sempre mostrar a mesma mensagem, independente se o email existe ou não
+      // Gerar token único
+      const token = crypto.randomUUID();
+
+      // Salvar token na tabela de tokens
+      const { error: tokenError } = await supabase
+        .from('tokens_redefinicao_senha')
+        .insert({
+          usuario_id: userExists.id,
+          token: token
+        });
+
+      if (tokenError) {
+        throw new Error('Erro ao gerar token de redefinição');
+      }
+
+      // Criar link de redefinição
+      const resetUrl = `${window.location.origin}/redefinir-senha?token=${token}`;
+
+      // Aqui você enviaria o e-mail (simulação)
+      console.log('Link de redefinição:', resetUrl);
+      console.log('Usuário:', userExists.nome);
+
       setSuccess(true);
       toast({
-        title: "Instruções enviadas!",
-        description: "Se o e-mail informado estiver cadastrado, você receberá instruções de redefinição.",
+        title: "E-mail enviado!",
+        description: "Verifique sua caixa de entrada para redefinir sua senha.",
       });
 
     } catch (err: any) {
-      console.error('Erro no processo:', err);
+      console.error('Erro ao solicitar redefinição de senha:', err);
       setError('Erro ao processar solicitação. Tente novamente.');
     } finally {
       setIsLoading(false);
@@ -122,7 +114,7 @@ const ForgotPassword = () => {
 
       <div className="relative w-full min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          {/* Recovery Card */}
+          {/* Forgot Password Card */}
           <Card className="shadow-2xl border-0 backdrop-blur-sm bg-white/95 overflow-hidden">
             <CardHeader className="space-y-6 pb-4">
               {/* Logo Section */}
@@ -134,14 +126,29 @@ const ForgotPassword = () => {
                     className="w-32 h-32 object-contain drop-shadow-lg"
                   />
                 </div>
-                <h1 className="text-2xl font-bold text-[#0C1C2E] mb-2">Esqueceu sua senha?</h1>
+                <h1 className="text-2xl font-bold text-[#0C1C2E] mb-2">
+                  {success ? 'E-mail Enviado!' : 'Esqueceu sua senha?'}
+                </h1>
                 <p className="text-sm text-[#0C1C2E]/70">
-                  Digite seu email para receber as instruções de recuperação
+                  {success 
+                    ? 'Verifique sua caixa de entrada'
+                    : 'Digite seu e-mail para receber o link de redefinição'
+                  }
                 </p>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {!success ? (
+              {success ? (
+                <div className="text-center py-6">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-[#0C1C2E] mb-2">E-mail enviado com sucesso!</h3>
+                  <p className="text-sm text-[#0C1C2E]/70">
+                    Verifique sua caixa de entrada e clique no link para redefinir sua senha.
+                  </p>
+                </div>
+              ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-[#0C1C2E] font-medium">E-mail</Label>
@@ -150,7 +157,7 @@ const ForgotPassword = () => {
                       <Input
                         id="email"
                         type="email"
-                        placeholder="seu@email.com"
+                        placeholder="Digite seu e-mail"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10 border-[#BC942C]/30 focus:border-[#BC942C] focus:ring-[#BC942C]/20"
@@ -170,19 +177,9 @@ const ForgotPassword = () => {
                     className="w-full bg-gradient-to-r from-[#F4D573] to-[#BC942C] hover:from-[#E6C46E] hover:to-[#B48534] text-[#0C1C2E] font-semibold shadow-lg"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Enviando...' : 'Enviar instruções'}
+                    {isLoading ? 'Enviando...' : 'Enviar Link de Redefinição'}
                   </Button>
                 </form>
-              ) : (
-                <div className="text-center py-6">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Mail className="h-8 w-8 text-green-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-[#0C1C2E] mb-2">Instruções enviadas!</h3>
-                  <p className="text-sm text-[#0C1C2E]/70">
-                    Se o e-mail informado estiver cadastrado, você receberá instruções de redefinição.
-                  </p>
-                </div>
               )}
 
               {/* Golden footer section */}
@@ -198,7 +195,7 @@ const ForgotPassword = () => {
                     className="flex items-center justify-center w-full text-[#0C1C2E] font-semibold text-sm hover:text-[#0C1C2E]/80 transition-colors"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Voltar para a tela de login
+                    {success ? 'Ir para login' : 'Voltar para login'}
                   </button>
                 </div>
               </div>

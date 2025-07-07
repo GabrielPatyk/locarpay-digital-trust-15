@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const RedefinirSenha = () => {
+  // Hook para redirecionar se já estiver logado
+  const { isLoading: authLoading } = useAuthRedirect();
+  
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -25,6 +28,15 @@ const RedefinirSenha = () => {
   const [userId, setUserId] = useState<string | null>(null);
 
   const token = searchParams.get('token');
+
+  // Se está verificando autenticação, mostrar loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#BC942C]"></div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     validateToken();
