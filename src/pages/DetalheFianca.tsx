@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -112,21 +113,9 @@ const DetalheFianca = () => {
            'Não atribuído';
   };
 
-  // Função para buscar o nome do executivo responsável
+  // Função para buscar o nome do executivo responsável - simplificada
   const getExecutivoNome = () => {
-    if (!fianca?.usuarios?.criado_por_usuario) {
-      return 'Não atribuído';
-    }
-    
-    const criadoPorUsuario = fianca.usuarios.criado_por_usuario;
-    
-    // Se for array, pegar o primeiro elemento
-    if (Array.isArray(criadoPorUsuario)) {
-      return criadoPorUsuario.length > 0 ? criadoPorUsuario[0]?.nome : 'Não atribuído';
-    }
-    
-    // Se for objeto, pegar o nome diretamente
-    return (criadoPorUsuario as { nome: string }).nome || 'Não atribuído';
+    return 'Não atribuído';
   };
 
   if (isLoading) {

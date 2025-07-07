@@ -26,6 +26,7 @@ export type Database = {
           data_envio_link: string | null
           data_vencimento: string | null
           id: string
+          id_analista: string | null
           id_imobiliaria: string
           imovel_area_metros: number | null
           imovel_bairro: string
@@ -76,6 +77,7 @@ export type Database = {
           data_envio_link?: string | null
           data_vencimento?: string | null
           id?: string
+          id_analista?: string | null
           id_imobiliaria: string
           imovel_area_metros?: number | null
           imovel_bairro: string
@@ -126,6 +128,7 @@ export type Database = {
           data_envio_link?: string | null
           data_vencimento?: string | null
           id?: string
+          id_analista?: string | null
           id_imobiliaria?: string
           imovel_area_metros?: number | null
           imovel_bairro?: string
@@ -169,6 +172,13 @@ export type Database = {
           {
             foreignKeyName: "fiancas_locaticias_criado_por_fkey"
             columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiancas_locaticias_id_analista_fkey"
+            columns: ["id_analista"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
