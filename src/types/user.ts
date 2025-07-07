@@ -1,4 +1,3 @@
-
 export type UserType = 
   | 'analista'
   | 'juridico'
@@ -28,6 +27,7 @@ export interface User {
   verificado?: boolean;
   imagem_perfil?: string;
   criado_por?: string;
+  cpf?: string;
 }
 
 export interface UserProfile {

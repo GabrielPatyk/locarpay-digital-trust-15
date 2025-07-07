@@ -69,6 +69,11 @@ const ConfiguracoesImobiliaria = () => {
     }
   }, [profile]);
 
+  const handleImageChange = (imageUrl: string) => {
+    // Image change is already handled by the ImageUpload component internally
+    // This is just a callback to satisfy the prop requirement
+  };
+
   const handleSalvarDadosPessoais = async () => {
     const success = await updateUserData({
       nome: dadosPessoais.nome,
@@ -392,7 +397,11 @@ const ConfiguracoesImobiliaria = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ImageUpload />
+                <ImageUpload 
+                  currentImage={user?.imagem_perfil}
+                  onImageChange={handleImageChange}
+                  userName={user?.name}
+                />
               </CardContent>
             </Card>
           </TabsContent>
