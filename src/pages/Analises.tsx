@@ -70,7 +70,7 @@ const Analises = () => {
           data_analise,
           imovel_valor_aluguel,
           valor_fianca,
-          usuarios:id_imobiliaria (
+          usuarios!fiancas_locaticias_id_imobiliaria_fkey (
             nome
           )
         `)
