@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   // Estados para controlar os modais
   const [showContratoPendente, setShowContratoPendente] = useState(false);
   const [showContratoAssinado, setShowContratoAssinado] = useState(false);
+  const [contratoAssinadoMostrado, setContratoAssinadoMostrado] = useState(false);
 
   // Hook dos contratos (apenas para imobiliárias)
   const { 
@@ -50,13 +52,10 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
       const hasAssinado = temContratoAssinado();
       const hasPendente = temContratoPendente();
 
-      // Verificar se já mostrou o modal de assinado na sessão atual
-      const jaVisitoModalAssinado = sessionStorage.getItem('contrato_assinado_mostrado');
-
-      if (hasAssinado && !jaVisitoModalAssinado) {
-        // Mostrar modal de sucesso apenas uma vez por sessão
+      if (hasAssinado && !contratoAssinadoMostrado) {
+        // Mostrar modal de sucesso apenas uma vez
         setShowContratoAssinado(true);
-        sessionStorage.setItem('contrato_assinado_mostrado', 'true');
+        setContratoAssinadoMostrado(true);
         setShowContratoPendente(false);
       } else if (hasPendente && !hasAssinado) {
         // Mostrar modal de pendente se não foi assinado
@@ -65,10 +64,12 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
       } else {
         // Fechar ambos os modais se não há pendente nem assinado recente
         setShowContratoPendente(false);
-        setShowContratoAssinado(false);
+        if (contratoAssinadoMostrado) {
+          setShowContratoAssinado(false);
+        }
       }
     }
-  }, [user, isLoading, temContratoPendente, temContratoAssinado]);
+  }, [user, isLoading, temContratoPendente, temContratoAssinado, contratoAssinadoMostrado]);
 
   const handleLogout = () => {
     logout();
