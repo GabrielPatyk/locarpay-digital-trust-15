@@ -1,45 +1,42 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
-import { useImobiliariaData } from '@/hooks/useImobiliariaData';
+import { useImobiliariaStatus } from '@/hooks/useImobiliariaStatus';
 import Layout from '@/components/Layout';
 import ImageUpload from '@/components/ImageUpload';
-import ConfirmationModal from '@/components/ConfirmationModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { 
-  Building, 
   User, 
-  Bell, 
-  Shield, 
+  Building, 
+  Lock, 
+  Upload, 
   Save,
-  Eye,
-  EyeOff,
-  AlertTriangle
+  CheckCircle,
+  XCircle,
+  Shield
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const ConfiguracoesImobiliaria = () => {
-  const { user, updateUser } = useAuth();
-  const { profile, updateProfile, updateUserData, updatePassword, loading } = useUserProfile();
-  const { formatPhone, formatCNPJ, unformatPhone, unformatCNPJ, isValidPhone } = usePhoneFormatter();
-  const { cnpj: currentCnpj, isLoading: cnpjLoading } = useImobiliariaData();
+  const { user } = useAuth();
   const { toast } = useToast();
-  
-  const [showPassword, setShowPassword] = useState(false);
-  const [showCompanyConfirmation, setShowCompanyConfirmation] = useState(false);
-  const [showPersonalConfirmation, setShowPersonalConfirmation] = useState(false);
-  const [pendingCompanyChanges, setPendingCompanyChanges] = useState<Record<string, string>>({});
-  const [pendingPersonalChanges, setPendingPersonalChanges] = useState<Record<string, string>>({});
-  
-  const [formData, setFormData] = useState({
-    // Dados da empresa - campos vazios para edição
-    nome_empresa: '',
+  const { profile, loading, updateProfile, updateUserData, updatePassword } = useUserProfile();
+  const { status: imobiliariaStatus, isLoading: statusLoading } = useImobiliariaStatus();
+
+  const [dadosPessoais, setDadosPessoais] = useState({
+    nome: user?.name || '',
+    email: user?.email || '',
+    telefone: user?.telefone || '',
+    cpf: user?.cpf || ''
+  });
+
+  const [dadosEmpresa, setDadosEmpresa] = useState({
+    nomeEmpresa: '',
     cnpj: '',
     endereco: '',
     numero: '',
@@ -47,572 +44,448 @@ const ConfiguracoesImobiliaria = () => {
     bairro: '',
     cidade: '',
     estado: '',
-    pais: 'Brasil',
-    
-    // Dados pessoais - campos vazios para edição
-    nome: '',
-    email: '',
-    telefone: '',
-    imagem_perfil: user?.imagem_perfil || '',
-    
-    // Segurança
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-    
-    // Notificações
-    emailNotifications: true,
-    smsNotifications: false,
-    weeklyReports: true,
-    monthlyReports: true
+    pais: 'Brasil'
   });
 
-  const handleInputChange = (field: string, value: string | boolean) => {
-    if (field === 'telefone') {
-      setFormData(prev => ({
-        ...prev,
-        [field]: formatPhone(value as string)
-      }));
-    } else if (field === 'cnpj') {
-      setFormData(prev => ({
-        ...prev,
-        [field]: formatCNPJ(value as string)
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
+  const [senhas, setSenhas] = useState({
+    senhaAtual: '',
+    novaSenha: '',
+    confirmarSenha: ''
+  });
+
+  useEffect(() => {
+    if (profile) {
+      setDadosEmpresa({
+        nomeEmpresa: profile.nome_empresa || '',
+        cnpj: profile.cnpj || '',
+        endereco: profile.endereco || '',
+        numero: profile.numero || '',
+        complemento: profile.complemento || '',
+        bairro: profile.bairro || '',
+        cidade: profile.cidade || '',
+        estado: profile.estado || '',
+        pais: profile.pais || 'Brasil'
+      });
+    }
+  }, [profile]);
+
+  const handleSalvarDadosPessoais = async () => {
+    const success = await updateUserData({
+      nome: dadosPessoais.nome,
+      email: dadosPessoais.email,
+      telefone: dadosPessoais.telefone
+    });
+
+    if (success) {
+      toast({
+        title: "Dados atualizados!",
+        description: "Suas informações pessoais foram salvas com sucesso.",
+      });
     }
   };
 
-  const handleSaveCompanyData = async () => {
-    // Preparar dados para confirmação
-    const changes = {
-      'Nome da Empresa': formData.nome_empresa || '(não alterado)',
-      'CNPJ': formData.cnpj || '(não alterado)',
-      'Endereço': formData.endereco || '(não alterado)',
-      'Número': formData.numero || '(não alterado)',
-      'Complemento': formData.complemento || '(não alterado)',
-      'Bairro': formData.bairro || '(não alterado)',
-      'Cidade': formData.cidade || '(não alterado)',
-      'Estado': formData.estado || '(não alterado)',
-      'País': formData.pais || 'Brasil'
-    };
-
-    setPendingCompanyChanges(changes);
-    setShowCompanyConfirmation(true);
-  };
-
-  const confirmCompanyChanges = async () => {
-    // Filtrar apenas campos preenchidos
-    const updateData: any = {};
-    
-    if (formData.nome_empresa.trim()) updateData.nome_empresa = formData.nome_empresa;
-    if (formData.cnpj.trim()) updateData.cnpj = unformatCNPJ(formData.cnpj);
-    if (formData.endereco.trim()) updateData.endereco = formData.endereco;
-    if (formData.numero.trim()) updateData.numero = formData.numero;
-    if (formData.complemento.trim()) updateData.complemento = formData.complemento;
-    if (formData.bairro.trim()) updateData.bairro = formData.bairro;
-    if (formData.cidade.trim()) updateData.cidade = formData.cidade;
-    if (formData.estado.trim()) updateData.estado = formData.estado;
-    if (formData.pais.trim()) updateData.pais = formData.pais;
-
-    const success = await updateProfile(updateData);
+  const handleSalvarDadosEmpresa = async () => {
+    const success = await updateProfile({
+      nome_empresa: dadosEmpresa.nomeEmpresa,
+      cnpj: dadosEmpresa.cnpj,
+      endereco: dadosEmpresa.endereco,
+      numero: dadosEmpresa.numero,
+      complemento: dadosEmpresa.complemento,
+      bairro: dadosEmpresa.bairro,
+      cidade: dadosEmpresa.cidade,
+      estado: dadosEmpresa.estado,
+      pais: dadosEmpresa.pais
+    });
 
     if (success) {
       toast({
         title: "Dados da empresa atualizados!",
         description: "As informações da empresa foram salvas com sucesso.",
       });
-      setShowCompanyConfirmation(false);
-      // Limpar os campos após salvar
-      setFormData(prev => ({
-        ...prev,
-        nome_empresa: '',
-        cnpj: '',
-        endereco: '',
-        numero: '',
-        complemento: '',
-        bairro: '',
-        cidade: '',
-        estado: ''
-      }));
     }
   };
 
-  const handleSavePersonalData = async () => {
-    // Preparar dados para confirmação
-    const changes = {
-      'Nome Completo': formData.nome || '(não alterado)',
-      'E-mail': formData.email || '(não alterado)',
-      'Telefone': formData.telefone || '(não alterado)'
-    };
-
-    setPendingPersonalChanges(changes);
-    setShowPersonalConfirmation(true);
-  };
-
-  const confirmPersonalChanges = async () => {
-    // Filtrar apenas campos preenchidos
-    const updateData: any = {};
-    
-    if (formData.nome.trim()) updateData.nome = formData.nome;
-    if (formData.email.trim()) updateData.email = formData.email;
-    if (formData.telefone.trim()) {
-      if (!isValidPhone(formData.telefone)) {
-        toast({
-          title: "Telefone inválido",
-          description: "O telefone deve ter 13 dígitos e começar com +55.",
-          variant: "destructive",
-        });
-        return;
-      }
-      updateData.telefone = unformatPhone(formData.telefone);
-    }
-
-    const success = await updateUserData(updateData);
-
-    if (success && user) {
-      // Atualizar o contexto do usuário
-      updateUser({
-        ...user,
-        name: updateData.nome || user.name,
-        email: updateData.email || user.email,
-        telefone: updateData.telefone || user.telefone
-      });
-      setShowPersonalConfirmation(false);
-      // Limpar os campos após salvar
-      setFormData(prev => ({
-        ...prev,
-        nome: '',
-        email: '',
-        telefone: ''
-      }));
-    }
-  };
-
-  const handleChangePassword = async () => {
-    if (formData.newPassword !== formData.confirmPassword) {
+  const handleAlterarSenha = async () => {
+    if (senhas.novaSenha !== senhas.confirmarSenha) {
       toast({
-        title: "Erro ao alterar senha",
-        description: "As senhas não coincidem.",
+        title: "Erro",
+        description: "A nova senha e a confirmação não coincidem.",
         variant: "destructive",
       });
       return;
     }
 
-    if (formData.newPassword.length < 6) {
+    if (senhas.novaSenha.length < 6) {
       toast({
-        title: "Senha muito curta",
-        description: "A senha deve ter pelo menos 6 caracteres.",
+        title: "Erro",
+        description: "A nova senha deve ter pelo menos 6 caracteres.",
         variant: "destructive",
       });
       return;
     }
 
-    const success = await updatePassword(formData.currentPassword, formData.newPassword);
+    const success = await updatePassword(senhas.senhaAtual, senhas.novaSenha);
     
     if (success) {
-      setFormData(prev => ({
-        ...prev,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      }));
+      setSenhas({ senhaAtual: '', novaSenha: '', confirmarSenha: '' });
     }
-  };
-
-  const handleImageChange = async (imageUrl: string) => {
-    setFormData(prev => ({ ...prev, imagem_perfil: imageUrl }));
   };
 
   return (
     <Layout title="Configurações">
-      <div className="space-y-6 animate-fade-in">
-        {/* Profile Image */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="mr-2 h-5 w-5 text-primary" />
-              Foto de Perfil
-            </CardTitle>
-            <CardDescription>
-              Atualize sua foto de perfil
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ImageUpload
-              currentImage={formData.imagem_perfil}
-              onImageChange={handleImageChange}
-              userName={user?.name || 'Usuário'}
-            />
-          </CardContent>
-        </Card>
+      <div className="container mx-auto max-w-4xl space-y-6">
+        <div className="flex items-center space-x-2">
+          <User className="h-6 w-6 text-primary" />
+          <h1 className="text-2xl font-bold text-gray-900">Configurações da Conta</h1>
+        </div>
 
-        {/* Company Profile */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Building className="mr-2 h-5 w-5 text-primary" />
-              Dados da Empresa
-            </CardTitle>
-            <CardDescription>
-              Informações básicas da sua empresa
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="nome_empresa">Nome da Empresa</Label>
-                <Input
-                  id="nome_empresa"
-                  value={formData.nome_empresa}
-                  onChange={(e) => handleInputChange('nome_empresa', e.target.value)}
-                  placeholder={profile?.nome_empresa || "Digite o nome da sua empresa"}
-                />
-                {profile?.nome_empresa && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.nome_empresa}</p>
+        <Tabs defaultValue="pessoais" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="pessoais">Dados Pessoais</TabsTrigger>
+            <TabsTrigger value="empresa">Empresa</TabsTrigger>
+            <TabsTrigger value="senha">Senha</TabsTrigger>
+            <TabsTrigger value="foto">Foto</TabsTrigger>
+            <TabsTrigger value="verificacoes">Verificações</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="pessoais" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <User className="mr-2 h-5 w-5" />
+                  Informações Pessoais
+                </CardTitle>
+                <CardDescription>
+                  Atualize suas informações pessoais de contato
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="nome">Nome Completo</Label>
+                    <Input
+                      id="nome"
+                      value={dadosPessoais.nome}
+                      onChange={(e) => setDadosPessoais(prev => ({ ...prev, nome: e.target.value }))}
+                      placeholder="Seu nome completo"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={dadosPessoais.email}
+                      onChange={(e) => setDadosPessoais(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="seu@email.com"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="telefone">Telefone</Label>
+                    <Input
+                      id="telefone"
+                      value={dadosPessoais.telefone}
+                      onChange={(e) => setDadosPessoais(prev => ({ ...prev, telefone: e.target.value }))}
+                      placeholder="(11) 99999-9999"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="cpf">CPF</Label>
+                    <Input
+                      id="cpf"
+                      value={dadosPessoais.cpf}
+                      onChange={(e) => setDadosPessoais(prev => ({ ...prev, cpf: e.target.value }))}
+                      placeholder="000.000.000-00"
+                    />
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div className="flex justify-end">
+                  <Button onClick={handleSalvarDadosPessoais} disabled={loading}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Salvar Alterações
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="empresa" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Building className="mr-2 h-5 w-5" />
+                  Informações da Empresa
+                </CardTitle>
+                <CardDescription>
+                  Configure os dados da sua imobiliária
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="nomeEmpresa">Nome da Empresa</Label>
+                    <Input
+                      id="nomeEmpresa"
+                      value={dadosEmpresa.nomeEmpresa}
+                      onChange={(e) => setDadosEmpresa(prev => ({ ...prev, nomeEmpresa: e.target.value }))}
+                      placeholder="Nome da sua imobiliária"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="cnpj">CNPJ</Label>
+                    <Input
+                      id="cnpj"
+                      value={dadosEmpresa.cnpj}
+                      onChange={(e) => setDadosEmpresa(prev => ({ ...prev, cnpj: e.target.value }))}
+                      placeholder="00.000.000/0001-00"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="endereco">Endereço</Label>
+                    <Input
+                      id="endereco"
+                      value={dadosEmpresa.endereco}
+                      onChange={(e) => setDadosEmpresa(prev => ({ ...prev, endereco: e.target.value }))}
+                      placeholder="Rua, Avenida..."
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="numero">Número</Label>
+                    <Input
+                      id="numero"
+                      value={dadosEmpresa.numero}
+                      onChange={(e) => setDadosEmpresa(prev => ({ ...prev, numero: e.target.value }))}
+                      placeholder="123"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="complemento">Complemento</Label>
+                    <Input
+                      id="complemento"
+                      value={dadosEmpresa.complemento}
+                      onChange={(e) => setDadosEmpresa(prev => ({ ...prev, complemento: e.target.value }))}
+                      placeholder="Sala, Andar..."
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="bairro">Bairro</Label>
+                    <Input
+                      id="bairro"
+                      value={dadosEmpresa.bairro}
+                      onChange={(e) => setDadosEmpresa(prev => ({ ...prev, bairro: e.target.value }))}
+                      placeholder="Centro, Vila..."
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="cidade">Cidade</Label>
+                    <Input
+                      id="cidade"
+                      value={dadosEmpresa.cidade}
+                      onChange={(e) => setDadosEmpresa(prev => ({ ...prev, cidade: e.target.value }))}
+                      placeholder="São Paulo"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="estado">Estado</Label>
+                    <Input
+                      id="estado"
+                      value={dadosEmpresa.estado}
+                      onChange={(e) => setDadosEmpresa(prev => ({ ...prev, estado: e.target.value }))}
+                      placeholder="SP"
+                    />
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div className="flex justify-end">
+                  <Button onClick={handleSalvarDadosEmpresa} disabled={loading}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Salvar Alterações
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="senha" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Lock className="mr-2 h-5 w-5" />
+                  Alterar Senha
+                </CardTitle>
+                <CardDescription>
+                  Mantenha sua conta segura com uma senha forte
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4 max-w-md">
+                  <div className="space-y-2">
+                    <Label htmlFor="senhaAtual">Senha Atual</Label>
+                    <Input
+                      id="senhaAtual"
+                      type="password"
+                      value={senhas.senhaAtual}
+                      onChange={(e) => setSenhas(prev => ({ ...prev, senhaAtual: e.target.value }))}
+                      placeholder="Digite sua senha atual"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="novaSenha">Nova Senha</Label>
+                    <Input
+                      id="novaSenha"
+                      type="password"
+                      value={senhas.novaSenha}
+                      onChange={(e) => setSenhas(prev => ({ ...prev, novaSenha: e.target.value }))}
+                      placeholder="Digite a nova senha"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmarSenha">Confirmar Nova Senha</Label>
+                    <Input
+                      id="confirmarSenha"
+                      type="password"
+                      value={senhas.confirmarSenha}
+                      onChange={(e) => setSenhas(prev => ({ ...prev, confirmarSenha: e.target.value }))}
+                      placeholder="Confirme a nova senha"
+                    />
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div className="flex justify-end">
+                  <Button onClick={handleAlterarSenha} disabled={loading}>
+                    <Lock className="mr-2 h-4 w-4" />
+                    Alterar Senha
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="foto" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Upload className="mr-2 h-5 w-5" />
+                  Foto de Perfil
+                </CardTitle>
+                <CardDescription>
+                  Adicione ou altere sua foto de perfil
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ImageUpload />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="verificacoes" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Shield className="mr-2 h-5 w-5" />
+                  Status de Verificações
+                </CardTitle>
+                <CardDescription>
+                  Verifique o status das suas verificações e documentos
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {statusLoading ? (
+                  <div className="flex items-center justify-center p-6">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
+                      <div className="flex items-center space-x-3">
+                        {imobiliariaStatus.emailVerificado ? (
+                          <CheckCircle className="h-6 w-6 text-green-600" />
+                        ) : (
+                          <XCircle className="h-6 w-6 text-red-600" />
+                        )}
+                        <div>
+                          <h3 className="font-medium">E-mail Verificado</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {imobiliariaStatus.emailVerificado 
+                              ? 'Seu e-mail foi verificado com sucesso' 
+                              : 'Seu e-mail ainda não foi verificado'
+                            }
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        imobiliariaStatus.emailVerificado 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {imobiliariaStatus.emailVerificado ? 'Verificado' : 'Pendente'}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
+                      <div className="flex items-center space-x-3">
+                        {imobiliariaStatus.contratoAssinado ? (
+                          <CheckCircle className="h-6 w-6 text-green-600" />
+                        ) : (
+                          <XCircle className="h-6 w-6 text-red-600" />
+                        )}
+                        <div>
+                          <h3 className="font-medium">Contrato de Parceria</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {imobiliariaStatus.contratoAssinado 
+                              ? 'Contrato de parceria assinado com sucesso' 
+                              : 'Contrato de parceria ainda não foi assinado'
+                            }
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        imobiliariaStatus.contratoAssinado 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {imobiliariaStatus.contratoAssinado ? 'Assinado' : 'Pendente'}
+                      </div>
+                    </div>
+
+                    {imobiliariaStatus.emailVerificado && imobiliariaStatus.contratoAssinado && (
+                      <div className="p-4 rounded-lg bg-green-50 border border-green-200">
+                        <div className="flex items-center space-x-3">
+                          <CheckCircle className="h-6 w-6 text-green-600" />
+                          <div>
+                            <h3 className="font-medium text-green-800">Conta Totalmente Verificada</h3>
+                            <p className="text-sm text-green-700">
+                              Parabéns! Sua conta está completamente verificada e pronta para uso.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
-              </div>
-              <div>
-                <Label htmlFor="cnpj">CNPJ</Label>
-                <Input
-                  id="cnpj"
-                  value={formData.cnpj}
-                  onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
-                  placeholder={currentCnpj ? formatCNPJ(currentCnpj) : "00.000.000/0000-00"}
-                  disabled={true}
-                  className="bg-gray-100 cursor-not-allowed"
-                />
-                <p className="text-xs text-gray-500">Campo não editável</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2">
-                <Label htmlFor="endereco">Endereço</Label>
-                <Input
-                  id="endereco"
-                  value={formData.endereco}
-                  onChange={(e) => handleInputChange('endereco', e.target.value)}
-                  placeholder={profile?.endereco || "Rua, Avenida, etc."}
-                />
-                {profile?.endereco && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.endereco}</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="numero">Número</Label>
-                <Input
-                  id="numero"
-                  value={formData.numero}
-                  onChange={(e) => handleInputChange('numero', e.target.value)}
-                  placeholder={profile?.numero || "123"}
-                />
-                {profile?.numero && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.numero}</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="complemento">Complemento</Label>
-              <Input
-                id="complemento"
-                value={formData.complemento}
-                onChange={(e) => handleInputChange('complemento', e.target.value)}
-                placeholder={profile?.complemento || "Sala, Andar, etc."}
-              />
-              {profile?.complemento && (
-                <p className="text-xs text-gray-500 mt-1">Atual: {profile.complemento}</p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="bairro">Bairro</Label>
-                <Input
-                  id="bairro"
-                  value={formData.bairro}
-                  onChange={(e) => handleInputChange('bairro', e.target.value)}
-                  placeholder={profile?.bairro || "Centro"}
-                />
-                {profile?.bairro && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.bairro}</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="cidade">Cidade</Label>
-                <Input
-                  id="cidade"
-                  value={formData.cidade}
-                  onChange={(e) => handleInputChange('cidade', e.target.value)}
-                  placeholder={profile?.cidade || "São Paulo"}
-                />
-                {profile?.cidade && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.cidade}</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="estado">Estado</Label>
-                <Input
-                  id="estado"
-                  value={formData.estado}
-                  onChange={(e) => handleInputChange('estado', e.target.value)}
-                  placeholder={profile?.estado || "SP"}
-                />
-                {profile?.estado && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.estado}</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="pais">País</Label>
-              <Input
-                id="pais"
-                value={formData.pais}
-                onChange={(e) => handleInputChange('pais', e.target.value)}
-                placeholder="Brasil"
-              />
-            </div>
-            
-            <Button 
-              onClick={handleSaveCompanyData} 
-              disabled={loading}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {loading ? 'Salvando...' : 'Salvar Dados da Empresa'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Personal Profile */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="mr-2 h-5 w-5 text-success" />
-              Dados Pessoais
-            </CardTitle>
-            <CardDescription>
-              Informações do responsável pela conta
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="nome">Nome Completo</Label>
-                <Input
-                  id="nome"
-                  value={formData.nome}
-                  onChange={(e) => handleInputChange('nome', e.target.value)}
-                  placeholder={user?.name || "Seu nome completo"}
-                />
-                {user?.name && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {user.name}</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder={user?.email || "seu@email.com"}
-                />
-                {user?.email && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {user.email}</p>
-                )}
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="telefone">Telefone</Label>
-              <Input
-                id="telefone"
-                value={formData.telefone}
-                onChange={(e) => handleInputChange('telefone', e.target.value)}
-                placeholder={user?.telefone ? formatPhone(user.telefone) : "+55 (11) 9 9999-9999"}
-              />
-              {user?.telefone && (
-                <p className="text-xs text-gray-500 mt-1">Atual: {formatPhone(user.telefone)}</p>
-              )}
-            </div>
-            
-            <Button 
-              onClick={handleSavePersonalData} 
-              disabled={loading}
-              className="bg-success hover:bg-success/90"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {loading ? 'Salvando...' : 'Salvar Dados Pessoais'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Security */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Shield className="mr-2 h-5 w-5 text-warning" />
-              Segurança
-            </CardTitle>
-            <CardDescription>
-              Altere sua senha de acesso
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="currentPassword">Senha Atual</Label>
-              <div className="relative">
-                <Input
-                  id="currentPassword"
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.currentPassword}
-                  onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-                  placeholder="Digite sua senha atual"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="newPassword">Nova Senha</Label>
-                <Input
-                  id="newPassword"
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.newPassword}
-                  onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                  placeholder="Digite sua nova senha"
-                />
-              </div>
-              <div>
-                <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
-                <Input
-                  id="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  placeholder="Confirme sua nova senha"
-                />
-              </div>
-            </div>
-            
-            <Button 
-              onClick={handleChangePassword} 
-              disabled={loading}
-              className="bg-warning hover:bg-warning/90 text-white"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {loading ? 'Alterando...' : 'Alterar Senha'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Notifications - Bloqueada */}
-        <Card className="opacity-60">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Bell className="mr-2 h-5 w-5" style={{ color: '#BC942C' }} />
-              Notificações
-              <AlertTriangle className="ml-2 h-4 w-4 text-red-500" />
-            </CardTitle>
-            <CardDescription>
-              <span className="text-red-600 font-medium">Esta opção ainda está em desenvolvimento</span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 pointer-events-none">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Notificações por E-mail</p>
-                <p className="text-sm text-gray-600">Receber notificações importantes por e-mail</p>
-              </div>
-              <Switch
-                checked={formData.emailNotifications}
-                disabled
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Notificações por SMS</p>
-                <p className="text-sm text-gray-600">Receber alertas urgentes por SMS</p>
-              </div>
-              <Switch
-                checked={formData.smsNotifications}
-                disabled
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Relatórios Semanais</p>
-                <p className="text-sm text-gray-600">Receber resumo semanal de atividades</p>
-              </div>
-              <Switch
-                checked={formData.weeklyReports}
-                disabled
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Relatórios Mensais</p>
-                <p className="text-sm text-gray-600">Receber relatório mensal detalhado</p>
-              </div>
-              <Switch
-                checked={formData.monthlyReports}
-                disabled
-              />
-            </div>
-            
-            <Button 
-              disabled
-              style={{ backgroundColor: '#BC942C' }} 
-              className="hover:opacity-90 text-white opacity-50"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Salvar Preferências
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Modais de Confirmação */}
-        <ConfirmationModal
-          isOpen={showCompanyConfirmation}
-          onClose={() => setShowCompanyConfirmation(false)}
-          onConfirm={confirmCompanyChanges}
-          title="Confirmar Alterações - Dados da Empresa"
-          description="Você está prestes a alterar os dados da empresa. Confirme as informações abaixo:"
-          changes={pendingCompanyChanges}
-          isLoading={loading}
-        />
-
-        <ConfirmationModal
-          isOpen={showPersonalConfirmation}
-          onClose={() => setShowPersonalConfirmation(false)}
-          onConfirm={confirmPersonalChanges}
-          title="Confirmar Alterações - Dados Pessoais"
-          description="Você está prestes a alterar seus dados pessoais. Confirme as informações abaixo:"
-          changes={pendingPersonalChanges}
-          isLoading={loading}
-        />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );

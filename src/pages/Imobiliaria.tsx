@@ -35,7 +35,7 @@ import {
 const Imobiliaria = () => {
   const { user } = useAuth();
   const { formatPhone } = usePhoneFormatter();
-  const { inquilinos, isLoading: inquilinosLoading, getStatusColor, getStatusLabel, getVerificationColor, getVerificationLabel } = useInquilinosImobiliaria();
+  const { inquilinos, isLoading: inquilinosLoading, getStatusColor, getStatusLabel, getVerificationColor, getVerificationLabel, stats } = useInquilinosImobiliaria();
   const { 
     verificarECriarContrato, 
     isLoading: contratosLoading, 
@@ -59,21 +59,20 @@ const Imobiliaria = () => {
     }
   }, [user, verificarECriarContrato, contratosLoading, contratosError]);
 
-  // Verificar se deve abrir o modal de contrato pendente
-  useEffect(() => {
-    if (!contratosLoading && temContratoPendente()) {
-      const timer = setTimeout(() => {
-        setContratoModalOpen(true);
-      }, 2000); // Aguardar 2 segundos após o carregamento
+  // Calcular inquilinos novos do mês atual
+  const getInquilinosNovosMes = () => {
+    const hoje = new Date();
+    const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    
+    return inquilinos.filter(inquilino => {
+      const dataInicio = new Date(inquilino.dataInicio);
+      return dataInicio >= inicioMes;
+    }).length;
+  };
 
-      return () => clearTimeout(timer);
-    }
-  }, [contratosLoading, temContratoPendente]);
-
-  // Dados mock para demonstração
+  // Dados mock para demonstração (mantendo apenas os que não têm dados reais)
   const dashboardData = {
     totalImoveis: 47,
-    inquilinosAtivos: 38,
     contratosPendentes: 5,
     receitaMensal: 85420,
     dadosGraficos: [
@@ -139,6 +138,7 @@ const Imobiliaria = () => {
   };
 
   const contratoPendente = getContratoPendente();
+  const inquilinosNovosMes = getInquilinosNovosMes();
 
   return (
     <Layout title={`Dashboard - ${user?.name || 'Imobiliária'}`}>
@@ -179,9 +179,9 @@ const Imobiliaria = () => {
               <Users className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">{dashboardData.inquilinosAtivos}</div>
+              <div className="text-2xl font-bold text-success">{stats.ativos}</div>
               <p className="text-xs text-muted-foreground">
-                +3 novos este mês
+                {inquilinosNovosMes > 0 ? `+${inquilinosNovosMes} novos este mês` : 'Nenhum novo este mês'}
               </p>
             </CardContent>
           </Card>
