@@ -310,8 +310,8 @@ const ConfiguracoesImobiliaria = () => {
                 <p className="font-medium">Contrato de Parceria LocarPay</p>
                 <p className="text-sm text-gray-600">Status da assinatura do contrato de parceria</p>
               </div>
-              <Badge className={!user?.primeiro_acesso ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                {!user?.primeiro_acesso ? (
+              <Badge className={!user?.firstLogin ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                {!user?.firstLogin ? (
                   <>
                     <CheckCircle className="mr-1 h-3 w-3" />
                     Assinado
