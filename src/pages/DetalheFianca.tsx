@@ -118,6 +118,40 @@ const DetalheFianca = () => {
     return 'Não atribuído';
   };
 
+  // Função para formatar método de pagamento
+  const getMetodoPagamentoTexto = (metodo: string) => {
+    switch (metodo) {
+      case 'transferencia_bancaria':
+        return 'Transferência Bancária';
+      case 'pix':
+        return 'PIX';
+      case 'cartao_credito':
+        return 'Cartão de Crédito';
+      case 'boleto':
+        return 'Boleto Bancário';
+      default:
+        return metodo;
+    }
+  };
+
+  // Função para formatar prazo de pagamento
+  const getPrazoPagamentoTexto = (prazo: string) => {
+    switch (prazo) {
+      case '1_dia':
+        return 'Até 1 dia útil';
+      case '2_dias':
+        return 'Até 2 dias úteis';
+      case '3_dias':
+        return 'Até 3 dias úteis';
+      case '5_dias':
+        return 'Até 5 dias úteis';
+      case '7_dias':
+        return 'Até 7 dias úteis';
+      default:
+        return prazo;
+    }
+  };
+
   if (isLoading) {
     return (
       <Layout title="Detalhes da Fiança">
@@ -406,8 +440,12 @@ const DetalheFianca = () => {
                 <h4 className="font-semibold text-gray-800 mb-3">Detalhes do Pagamento</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-gray-600"><strong>Método:</strong> Transferência Bancária</p>
-                    <p className="text-gray-600"><strong>Prazo:</strong> Até 2 dias úteis</p>
+                    <p className="text-gray-600">
+                      <strong>Método:</strong> {fianca.metodo_pagamento ? getMetodoPagamentoTexto(fianca.metodo_pagamento) : 'Não informado'}
+                    </p>
+                    <p className="text-gray-600">
+                      <strong>Prazo:</strong> {fianca.prazo_pagamento ? getPrazoPagamentoTexto(fianca.prazo_pagamento) : 'Não informado'}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-600"><strong>Situação:</strong> 
@@ -418,6 +456,13 @@ const DetalheFianca = () => {
                     <p className="text-gray-600"><strong>Atualizado em:</strong> {new Date(fianca.data_atualizacao).toLocaleDateString('pt-BR')}</p>
                   </div>
                 </div>
+                {fianca.link_pagamento && (
+                  <div className="mt-3 p-2 bg-blue-50 rounded border-l-4 border-blue-400">
+                    <p className="text-sm text-blue-800">
+                      <strong>Link:</strong> <a href={fianca.link_pagamento} target="_blank" rel="noopener noreferrer" className="underline">{fianca.link_pagamento}</a>
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

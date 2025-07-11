@@ -35,6 +35,39 @@ const Unauthorized = () => {
     }
   };
 
+  // Se o usuário não está logado, mostrar apenas botão para login
+  if (!user) {
+    return (
+      <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <Shield className="h-8 w-8 text-red-500" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-red-600">
+              Acesso Negado
+            </CardTitle>
+            <CardDescription>
+              Você precisa estar logado para acessar esta página
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600 text-center">
+              Faça login para continuar navegando no sistema.
+            </p>
+            <Button 
+              onClick={() => navigate('/login')}
+              className="w-full bg-primary hover:bg-primary/90"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar para Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">

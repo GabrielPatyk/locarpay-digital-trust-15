@@ -74,6 +74,38 @@ const AdicionarLinkPagamentoModal: React.FC<AdicionarLinkPagamentoModalProps> = 
     }
   };
 
+  const getMetodoTexto = (metodo: string) => {
+    switch (metodo) {
+      case 'transferencia_bancaria':
+        return 'Transferência Bancária';
+      case 'pix':
+        return 'PIX';
+      case 'cartao_credito':
+        return 'Cartão de Crédito';
+      case 'boleto':
+        return 'Boleto Bancário';
+      default:
+        return metodo;
+    }
+  };
+
+  const getPrazoTexto = (prazo: string) => {
+    switch (prazo) {
+      case '1_dia':
+        return 'Até 1 dia útil';
+      case '2_dias':
+        return 'Até 2 dias úteis';
+      case '3_dias':
+        return 'Até 3 dias úteis';
+      case '5_dias':
+        return 'Até 5 dias úteis';
+      case '7_dias':
+        return 'Até 7 dias úteis';
+      default:
+        return prazo;
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
