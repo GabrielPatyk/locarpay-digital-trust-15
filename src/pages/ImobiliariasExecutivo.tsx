@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useImobiliariasExecutivo, type NovaImobiliariaData, type ImobiliariaComPerfil } from '@/hooks/useImobiliariasExecutivo';
+import { useImobiliariaFiancas } from '@/hooks/useImobiliariaFiancas';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import { toast } from '@/hooks/use-toast';
 import { 
@@ -46,6 +46,7 @@ const ImobiliariasExecutivo = () => {
 
   const { formatPhone, formatCNPJ, unformatPhone, unformatCNPJ } = usePhoneFormatter();
   const { imobiliarias, stats, isLoading, criarImobiliaria, isCreating } = useImobiliariasExecutivo();
+  const { fiancas: fiancasImobiliaria, isLoading: isLoadingFiancas } = useImobiliariaFiancas(selectedImobiliaria?.id || '');
 
   const getStatusColor = (ativo: boolean) => {
     return ativo ? 'bg-success' : 'bg-red-500';
@@ -139,6 +140,36 @@ const ImobiliariasExecutivo = () => {
     if (!cnpj) return 'Não informado';
     const formatted = formatCNPJ(cnpj);
     return formatted;
+  };
+
+  const getStatusFiancaColor = (status: string) => {
+    switch (status) {
+      case 'aprovada':
+        return 'bg-green-100 text-green-800';
+      case 'rejeitada':
+        return 'bg-red-100 text-red-800';
+      case 'em_analise':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'ativa':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusFiancaText = (status: string) => {
+    switch (status) {
+      case 'aprovada':
+        return 'Aprovada';
+      case 'rejeitada':
+        return 'Rejeitada';
+      case 'em_analise':
+        return 'Em Análise';
+      case 'ativa':
+        return 'Ativa';
+      default:
+        return status;
+    }
   };
 
   if (isLoading) {
@@ -668,6 +699,80 @@ const ImobiliariasExecutivo = () => {
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Fianças da Imobiliária */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <FileText className="mr-2 h-5 w-5" />
+                      Fianças da Imobiliária
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingFiancas ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    ) : fiancasImobiliaria.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">Nenhuma fiança encontrada para esta imobiliária.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {fiancasImobiliaria.map((fianca) => (
+                          <div key={fianca.id} className="p-3 border rounded-lg">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              <div>
+                                <Label className="text-xs font-medium text-gray-600">ID da Fiança</Label>
+                                <p className="text-sm font-medium truncate">{fianca.id}</p>
+                              </div>
+                              <div>
+                                <Label className="text-xs font-medium text-gray-600">Inquilino</Label>
+                                <p className="text-sm font-medium">{fianca.inquilino_nome_completo}</p>
+                              </div>
+                              <div>
+                                <Label className="text-xs font-medium text-gray-600">CPF</Label>
+                                <p className="text-sm font-medium">{fianca.inquilino_cpf}</p>
+                              </div>
+                              <div>
+                                <Label className="text-xs font-medium text-gray-600">Status</Label>
+                                <Badge className={`${getStatusFiancaColor(fianca.status_fianca)} text-xs`}>
+                                  {getStatusFiancaText(fianca.status_fianca)}
+                                </Badge>
+                              </div>
+                              <div>
+                                <Label className="text-xs font-medium text-gray-600">Valor da Fiança</Label>
+                                <p className="text-sm font-medium text-success">
+                                  R$ {(fianca.valor_fianca || 0).toLocaleString()}
+                                </p>
+                              </div>
+                              <div>
+                                <Label className="text-xs font-medium text-gray-600">Valor do Aluguel</Label>
+                                <p className="text-sm font-medium">
+                                  R$ {(fianca.imovel_valor_aluguel || 0).toLocaleString()}
+                                </p>
+                              </div>
+                              <div>
+                                <Label className="text-xs font-medium text-gray-600">Tempo de Locação</Label>
+                                <p className="text-sm font-medium">{fianca.imovel_tempo_locacao} meses</p>
+                              </div>
+                              <div>
+                                <Label className="text-xs font-medium text-gray-600">Valor Total (Aluguel × Meses)</Label>
+                                <p className="text-sm font-medium text-primary">
+                                  R$ {((fianca.imovel_valor_aluguel || 0) * (fianca.imovel_tempo_locacao || 1)).toLocaleString()}
+                                </p>
+                              </div>
+                              <div>
+                                <Label className="text-xs font-medium text-gray-600">Data de Criação</Label>
+                                <p className="text-sm font-medium">
+                                  {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             )}
           </DialogContent>

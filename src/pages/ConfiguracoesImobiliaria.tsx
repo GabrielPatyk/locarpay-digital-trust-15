@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -12,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Building, 
@@ -21,7 +21,10 @@ import {
   Save,
   Eye,
   EyeOff,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  FileCheck
 } from 'lucide-react';
 
 const ConfiguracoesImobiliaria = () => {
@@ -247,6 +250,80 @@ const ConfiguracoesImobiliaria = () => {
               onImageChange={handleImageChange}
               userName={user?.name || 'Usuário'}
             />
+          </CardContent>
+        </Card>
+
+        {/* Account Verifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <FileCheck className="mr-2 h-5 w-5 text-primary" />
+              Verificações de Conta
+            </CardTitle>
+            <CardDescription>
+              Status das verificações da sua conta
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">E-mail Verificado</p>
+                <p className="text-sm text-gray-600">Status de verificação do seu e-mail</p>
+              </div>
+              <Badge className={user?.verificado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                {user?.verificado ? (
+                  <>
+                    <CheckCircle className="mr-1 h-3 w-3" />
+                    Verificado
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="mr-1 h-3 w-3" />
+                    Não Verificado
+                  </>
+                )}
+              </Badge>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Conta Ativa</p>
+                <p className="text-sm text-gray-600">Status da sua conta no sistema</p>
+              </div>
+              <Badge className={user?.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                {user?.ativo ? (
+                  <>
+                    <CheckCircle className="mr-1 h-3 w-3" />
+                    Ativa
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="mr-1 h-3 w-3" />
+                    Inativa
+                  </>
+                )}
+              </Badge>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Contrato de Parceria LocarPay</p>
+                <p className="text-sm text-gray-600">Status da assinatura do contrato de parceria</p>
+              </div>
+              <Badge className={!user?.primeiro_acesso ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                {!user?.primeiro_acesso ? (
+                  <>
+                    <CheckCircle className="mr-1 h-3 w-3" />
+                    Assinado
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="mr-1 h-3 w-3" />
+                    Pendente Assinatura
+                  </>
+                )}
+              </Badge>
+            </div>
           </CardContent>
         </Card>
 

@@ -38,16 +38,24 @@ const Unauthorized = () => {
   // Se o usuário não está logado, mostrar apenas botão para login
   if (!user) {
     return (
-      <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
+      <div 
+        className="min-h-screen w-full flex items-center justify-center p-4"
+        style={{
+          background: 'linear-gradient(135deg, rgba(12, 28, 46, 0.95) 0%, rgba(12, 28, 46, 0.8) 100%), url("/lovable-uploads/1fc475c2-f7e6-4e6e-bf1b-b349783c2b93.png")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+          <CardHeader className="text-center pb-6">
             <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
               <Shield className="h-8 w-8 text-red-500" />
             </div>
-            <CardTitle className="text-2xl font-bold text-red-600">
+            <CardTitle className="text-2xl font-bold text-[#0C1C2E]">
               Acesso Negado
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-600">
               Você precisa estar logado para acessar esta página
             </CardDescription>
           </CardHeader>
@@ -57,7 +65,7 @@ const Unauthorized = () => {
             </p>
             <Button 
               onClick={() => navigate('/login')}
-              className="w-full bg-primary hover:bg-primary/90"
+              className="w-full bg-gradient-to-r from-[#F4D573] to-[#BC942C] hover:from-[#E6C46E] hover:to-[#B48534] text-[#0C1C2E] font-medium"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar para Login
@@ -69,16 +77,24 @@ const Unauthorized = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
+    <div 
+      className="min-h-screen w-full flex items-center justify-center p-4"
+      style={{
+        background: 'linear-gradient(135deg, rgba(12, 28, 46, 0.95) 0%, rgba(12, 28, 46, 0.8) 100%), url("/lovable-uploads/1fc475c2-f7e6-4e6e-bf1b-b349783c2b93.png")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+        <CardHeader className="text-center pb-6">
           <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
             <Shield className="h-8 w-8 text-red-500" />
           </div>
-          <CardTitle className="text-2xl font-bold text-red-600">
+          <CardTitle className="text-2xl font-bold text-[#0C1C2E]">
             Acesso Negado
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-600">
             Você não tem permissão para acessar esta página
           </CardDescription>
         </CardHeader>
@@ -90,14 +106,14 @@ const Unauthorized = () => {
             <Button 
               onClick={() => navigate(-1)}
               variant="outline"
-              className="flex-1"
+              className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar
             </Button>
             <Button 
               onClick={() => navigate(getUserDashboard())}
-              className="flex-1 bg-primary hover:bg-primary/90"
+              className="flex-1 bg-gradient-to-r from-[#F4D573] to-[#BC942C] hover:from-[#E6C46E] hover:to-[#B48534] text-[#0C1C2E] font-medium"
             >
               Dashboard
             </Button>
