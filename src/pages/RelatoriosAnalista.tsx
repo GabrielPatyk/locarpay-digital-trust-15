@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,8 +36,8 @@ const RelatoriosAnalista = () => {
         .from('fiancas_locaticias')
         .select(`
           *,
-          usuarios!id_imobiliaria(nome),
-          usuarios!id_analista(nome)
+          imobiliaria:usuarios!id_imobiliaria(nome),
+          analista:usuarios!id_analista(nome)
         `)
         .order('data_criacao', { ascending: false });
 
@@ -60,7 +59,7 @@ const RelatoriosAnalista = () => {
     const aprovacoes = fiancasData.filter(f => f.status_fianca === 'aprovada').length;
     const reprovacoes = fiancasData.filter(f => f.status_fianca === 'rejeitada').length;
     const pendentes = fiancasData.filter(f => f.status_fianca === 'em_analise').length;
-    const taxaAprovacao = totalAnalises > 0 ? ((aprovacoes / totalAnalises) * 100).toFixed(1) : 0;
+    const taxaAprovacao = totalAnalises > 0 ? ((aprovacoes / totalAnalises) * 100).toFixed(1) : '0';
     
     const scoresValidos = fiancasData.filter(f => f.score_credito).map(f => f.score_credito);
     const scoreMedia = scoresValidos.length > 0 
@@ -153,7 +152,7 @@ const RelatoriosAnalista = () => {
               <Cell><Data ss:Type="String">${fianca.status_fianca}</Data></Cell>
               <Cell><Data ss:Type="String">${fianca.inquilino_nome_completo}</Data></Cell>
               <Cell><Data ss:Type="String">${fianca.inquilino_cpf}</Data></Cell>
-              <Cell><Data ss:Type="String">${fianca.usuarios?.nome || 'N/A'}</Data></Cell>
+              <Cell><Data ss:Type="String">${fianca.imobiliaria?.nome || 'N/A'}</Data></Cell>
               <Cell><Data ss:Type="String">${fianca.id_analista ? 'Analisado' : 'Pendente'}</Data></Cell>
               <Cell><Data ss:Type="Number">${fianca.score_credito || 0}</Data></Cell>
               <Cell><Data ss:Type="Number">${fianca.taxa_aplicada || 0}</Data></Cell>
