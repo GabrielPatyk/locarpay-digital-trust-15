@@ -27,7 +27,7 @@ import ImageUpload from '@/components/ImageUpload';
 
 const ConfiguracoesImobiliaria = () => {
   const { user, updateUser } = useAuth();
-  const { profile, updateProfile, isLoading: profileLoading } = useUserProfile();
+  const { profile, updateProfile, loading: profileLoading } = useUserProfile();
   const { contratoAssinado, loading: contratoLoading } = useContratoStatus();
   const { toast } = useToast();
   
@@ -159,9 +159,9 @@ const ConfiguracoesImobiliaria = () => {
               </CardHeader>
               <CardContent>
                 <ImageUpload
-                  currentImageUrl={user?.imagem_perfil}
-                  onImageUpload={handleImageUpload}
-                  className="w-24 h-24 mx-auto"
+                  currentImage={user?.imagem_perfil}
+                  onImageChange={handleImageUpload}
+                  userName={user?.name}
                 />
               </CardContent>
             </Card>

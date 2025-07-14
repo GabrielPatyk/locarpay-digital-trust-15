@@ -45,16 +45,6 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
     queryFn: async () => {
       if (!user?.id) return [];
 
-      // Definir o ID do usuário atual para o RLS
-      await supabase.rpc('set_claim', { 
-        claim: 'email', 
-        value: user.email 
-      }).then(() => {
-        console.log('User email set for RLS:', user.email);
-      }).catch((error) => {
-        console.warn('Could not set email claim, using direct query:', error);
-      });
-
       let query = supabase
         .from('imoveis_imobiliaria')
         .select('*')
@@ -95,17 +85,6 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
 
       console.log('Creating imovel for user:', user.id);
       console.log('Imovel data:', data);
-
-      // Tentar definir o contexto do usuário antes da inserção
-      try {
-        await supabase.rpc('set_claim', { 
-          claim: 'email', 
-          value: user.email 
-        });
-        console.log('User context set for insertion');
-      } catch (error) {
-        console.warn('Could not set user context:', error);
-      }
 
       const insertData = {
         ...data,
