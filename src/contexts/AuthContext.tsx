@@ -30,6 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
+        console.log('Loaded user from localStorage:', userData);
         setUser(userData);
       } catch (error) {
         console.error('Erro ao carregar usuário do localStorage:', error);
@@ -41,11 +42,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Mostrar modal de contrato se necessário
   useEffect(() => {
+    console.log('Checking if should show contract modal:', {
+      userType: user?.type,
+      contratoPendente,
+      assinado: contratoPendente?.assinado
+    });
+    
     if (user?.type === 'imobiliaria' && contratoPendente && 
         contratoPendente.modelo_contrato === 'imobiliaria_locarpay' && 
         !contratoPendente.assinado) {
+      console.log('Setting contract modal to true');
       setShowContractModal(true);
     } else {
+      console.log('Setting contract modal to false');
       setShowContractModal(false);
     }
   }, [user, contratoPendente]);
@@ -55,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Redirecionar para o link de assinatura
       window.open(contratoPendente.link_assinatura, '_blank');
     } else {
-      // Marcar o contrato como assinado (temporariamente até ter o sistema de assinatura)
+      // Marcar o contrato como assinado
       try {
         const { error } = await supabase
           .from('contratos_locarpay')

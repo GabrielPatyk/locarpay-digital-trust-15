@@ -45,6 +45,16 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
     queryFn: async () => {
       if (!user?.id) return [];
 
+      // Definir o ID do usuário atual para o RLS
+      await supabase.rpc('set_claim', { 
+        claim: 'email', 
+        value: user.email 
+      }).then(() => {
+        console.log('User email set for RLS:', user.email);
+      }).catch((error) => {
+        console.warn('Could not set email claim, using direct query:', error);
+      });
+
       let query = supabase
         .from('imoveis_imobiliaria')
         .select('*')
@@ -52,7 +62,10 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
 
       const { data, error } = await query.order('data_criacao', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching imoveis:', error);
+        throw error;
+      }
 
       let imoveisList = data || [];
 
@@ -80,16 +93,41 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
     mutationFn: async (data: CreateImovelData) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
+      console.log('Creating imovel for user:', user.id);
+      console.log('Imovel data:', data);
+
+      // Tentar definir o contexto do usuário antes da inserção
+      try {
+        await supabase.rpc('set_claim', { 
+          claim: 'email', 
+          value: user.email 
+        });
+        console.log('User context set for insertion');
+      } catch (error) {
+        console.warn('Could not set user context:', error);
+      }
+
+      const insertData = {
+        ...data,
+        id_imobiliaria: user.id,
+        pais: 'Brasil',
+        status: 'disponivel'
+      };
+
+      console.log('Final insert data:', insertData);
+
       const { data: novoImovel, error } = await supabase
         .from('imoveis_imobiliaria')
-        .insert({
-          ...data,
-          id_imobiliaria: user.id,
-        })
+        .insert(insertData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating imovel:', error);
+        throw error;
+      }
+      
+      console.log('Imovel created successfully:', novoImovel);
       return novoImovel;
     },
     onSuccess: () => {
@@ -100,6 +138,7 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
       });
     },
     onError: (error: any) => {
+      console.error('Mutation error:', error);
       toast({
         title: "Erro ao criar imóvel",
         description: error.message || "Tente novamente mais tarde.",
