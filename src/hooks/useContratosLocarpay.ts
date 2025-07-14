@@ -39,7 +39,7 @@ export const useContratosLocarpay = () => {
         .order('data_criacao', { ascending: false });
 
       if (error) throw error;
-      return data as ContratoLocarpay[];
+      return (data || []) as ContratoLocarpay[];
     },
     enabled: !!user?.id
   });
@@ -60,7 +60,7 @@ export const useContratosLocarpay = () => {
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      return data as ContratoLocarpay | null;
+      return (data || null) as ContratoLocarpay | null;
     },
     enabled: !!user?.id && user.type === 'imobiliaria'
   });
