@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,24 +26,45 @@ import {
   AlertTriangle,
   Calendar
 } from 'lucide-react';
-import type { Tables } from '@/integrations/supabase/types';
 
-type FiancaParaAnalise = Tables<'fiancas_para_analise'>;
+interface FiancaAnalise {
+  id: string;
+  data_criacao: string;
+  data_vencimento: string | null;
+  inquilino_nome_completo: string;
+  inquilino_cpf: string;
+  inquilino_email: string;
+  inquilino_whatsapp: string;
+  inquilino_renda_mensal: number;
+  inquilino_endereco: string;
+  inquilino_numero: string;
+  inquilino_bairro: string;
+  inquilino_cidade: string;
+  inquilino_estado: string;
+  imovel_tipo: string;
+  imovel_valor_aluguel: number;
+  imovel_endereco: string;
+  imovel_numero: string;
+  imovel_bairro: string;
+  imovel_cidade: string;
+  imovel_estado: string;
+  status_fianca: string;
+  imobiliaria_nome?: string;
+  imobiliaria_responsavel?: string;
+  score_credito?: number;
+  taxa_aplicada?: number;
+  motivo_reprovacao?: string;
+}
 
 const Analista = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const {
-    fiancasParaAnalise,
-    isLoadingFiancas,
-    estatisticas,
-    isLoadingStats,
-    updateScoreETaxa,
-    isUpdatingScore,
+    fiancas,
+    loading,
     aprovarFianca,
-    isApprovingFianca,
-    reprovarFianca,
-    isReprovingFianca
+    rejeitarFianca,
+    buscarFiancasPendentes
   } = useAnalista();
 
   const {
@@ -55,7 +77,7 @@ const Analista = () => {
     isLoading: isVerificationLoading,
   } = useInquilinoVerification();
 
-  const [selectedFianca, setSelectedFianca] = useState<FiancaParaAnalise | null>(null);
+  const [selectedFianca, setSelectedFianca] = useState<FiancaAnalise | null>(null);
   const [isConsultingScore, setIsConsultingScore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
@@ -80,7 +102,7 @@ const Analista = () => {
         whatsapp: selectedFianca.inquilino_whatsapp || '',
         endereco: selectedFianca.inquilino_endereco || '',
         numero: selectedFianca.inquilino_numero || '',
-        complemento: selectedFianca.inquilino_complemento || '',
+        complemento: '',
         bairro: selectedFianca.inquilino_bairro || '',
         cidade: selectedFianca.inquilino_cidade || '',
         estado: selectedFianca.inquilino_estado || '',
@@ -111,7 +133,7 @@ const Analista = () => {
       whatsapp: selectedFianca.inquilino_whatsapp || '',
       endereco: selectedFianca.inquilino_endereco || '',
       numero: selectedFianca.inquilino_numero || '',
-      complemento: selectedFianca.inquilino_complemento || '',
+      complemento: '',
       bairro: selectedFianca.inquilino_bairro || '',
       cidade: selectedFianca.inquilino_cidade || '',
       estado: selectedFianca.inquilino_estado || '',
@@ -146,13 +168,6 @@ const Analista = () => {
     setCurrentScore(score);
     setCurrentTaxa(taxa);
     
-    // Update in database
-    updateScoreETaxa.mutate({
-      id: selectedFianca.id!,
-      score,
-      taxa
-    });
-    
     setIsConsultingScore(false);
     
     toast({
@@ -167,27 +182,16 @@ const Analista = () => {
     setCurrentScore(score);
     setCurrentTaxa(taxa);
     
-    updateScoreETaxa.mutate({
-      id: selectedFianca.id!,
-      score,
-      taxa
-    });
-    
     toast({
       title: "Score e taxa atualizados!",
       description: `Novo score: ${score} | Nova taxa: ${taxa}%`,
     });
   };
 
-  const handleAprovarProposta = () => {
+  const handleAprovarProposta = async () => {
     if (!selectedFianca) return;
 
-    aprovarFianca.mutate({
-      id: selectedFianca.id!,
-      score: currentScore,
-      taxa: currentTaxa
-    });
-
+    await aprovarFianca(selectedFianca.id!, currentScore, currentTaxa);
     setSelectedFianca(null);
     
     toast({
@@ -196,16 +200,10 @@ const Analista = () => {
     });
   };
 
-  const handleReprovarProposta = (motivo: string) => {
+  const handleReprovarProposta = async (motivo: string) => {
     if (!selectedFianca) return;
 
-    reprovarFianca.mutate({
-      id: selectedFianca.id!,
-      motivo,
-      score: currentScore,
-      taxa: currentTaxa
-    });
-
+    await rejeitarFianca(selectedFianca.id!, motivo);
     setSelectedFianca(null);
     setShowRejectModal(false);
     
@@ -216,7 +214,7 @@ const Analista = () => {
     });
   };
 
-  const filteredFiancas = fiancasParaAnalise.filter(f => 
+  const filteredFiancas = fiancas.filter(f => 
     f.status_fianca === 'em_analise' && (
       f.inquilino_nome_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       f.inquilino_cpf?.includes(searchTerm) ||
@@ -248,19 +246,16 @@ const Analista = () => {
     });
   };
 
-  // Calcular valor total e valor da fiança
-  const calcularValorTotal = () => {
-    if (!selectedFianca) return 0;
-    return (selectedFianca.imovel_valor_aluguel || 0) * (selectedFianca.imovel_tempo_locacao || 0);
+  // Calcular estatísticas simples baseadas nas fianças carregadas
+  const estatisticas = {
+    pendentes: fiancas.filter(f => f.status_fianca === 'em_analise').length,
+    aprovadas: fiancas.filter(f => f.status_fianca === 'aprovada').length,
+    reprovadas: fiancas.filter(f => f.status_fianca === 'rejeitada').length,
+    taxaMedia: fiancas.length > 0 ? 
+      Math.round(fiancas.reduce((acc, f) => acc + (f.taxa_aplicada || 0), 0) / fiancas.length) : 0
   };
 
-  const calcularValorFianca = () => {
-    if (!selectedFianca || !currentTaxa) return 0;
-    const valorTotal = calcularValorTotal();
-    return (valorTotal * currentTaxa) / 100;
-  };
-
-  if (isLoadingFiancas || isLoadingStats) {
+  if (loading) {
     return (
       <Layout title="Dashboard - Analista">
         <div className="flex items-center justify-center h-64">
@@ -445,7 +440,6 @@ const Analista = () => {
                       <Label className="text-sm font-medium">Endereço do Inquilino</Label>
                       <p className="text-sm text-gray-900">
                         {selectedFianca.inquilino_endereco}, {selectedFianca.inquilino_numero}
-                        {selectedFianca.inquilino_complemento && `, ${selectedFianca.inquilino_complemento}`}
                         <br />
                         {selectedFianca.inquilino_bairro}, {selectedFianca.inquilino_cidade} - {selectedFianca.inquilino_estado}
                       </p>
@@ -470,24 +464,8 @@ const Analista = () => {
                         <p className="text-sm text-gray-900">{selectedFianca.imovel_tipo}</p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium">Tipo de Locação</Label>
-                        <p className="text-sm text-gray-900">{selectedFianca.imovel_tipo_locacao}</p>
-                      </div>
-                      <div>
                         <Label className="text-sm font-medium">Valor do Aluguel</Label>
                         <p className="text-sm text-gray-900">{formatCurrency(selectedFianca.imovel_valor_aluguel || 0)}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium">Valor Total</Label>
-                        <p className="text-sm text-gray-900 font-semibold text-blue-600">{formatCurrency(calcularValorTotal())}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium">Área (m²)</Label>
-                        <p className="text-sm text-gray-900">{selectedFianca.imovel_area_metros || 'Não informado'}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium">Tempo de Locação</Label>
-                        <p className="text-sm text-gray-900">{selectedFianca.imovel_tempo_locacao} meses</p>
                       </div>
                     </div>
 
@@ -495,18 +473,10 @@ const Analista = () => {
                       <Label className="text-sm font-medium">Endereço do Imóvel</Label>
                       <p className="text-sm text-gray-900">
                         {selectedFianca.imovel_endereco}, {selectedFianca.imovel_numero}
-                        {selectedFianca.imovel_complemento && `, ${selectedFianca.imovel_complemento}`}
                         <br />
                         {selectedFianca.imovel_bairro}, {selectedFianca.imovel_cidade} - {selectedFianca.imovel_estado}
                       </p>
                     </div>
-
-                    {selectedFianca.imovel_descricao && (
-                      <div className="mt-3">
-                        <Label className="text-sm font-medium">Descrição</Label>
-                        <p className="text-sm text-gray-900">{selectedFianca.imovel_descricao}</p>
-                      </div>
-                    )}
                   </div>
 
                   {/* Dados da Imobiliária */}
@@ -536,8 +506,7 @@ const Analista = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <strong>Score de Crédito:</strong> {currentScore} pontos<br />
-                            <strong>Taxa Aplicada:</strong> {currentTaxa}%<br />
-                            <strong>Valor da Fiança:</strong> {formatCurrency(calcularValorFianca())}
+                            <strong>Taxa Aplicada:</strong> {currentTaxa}%
                           </div>
                           <Button
                             variant="outline"
@@ -569,20 +538,18 @@ const Analista = () => {
                       <div className="flex space-x-2">
                         <Button
                           onClick={handleAprovarProposta}
-                          disabled={isApprovingFianca}
                           className="flex-1 bg-success hover:bg-success/90"
                         >
                           <CheckCircle className="mr-2 h-4 w-4" />
-                          {isApprovingFianca ? 'Aprovando...' : 'Aprovar'}
+                          Aprovar
                         </Button>
                         <Button
                           onClick={() => setShowRejectModal(true)}
-                          disabled={isReprovingFianca}
                           variant="destructive"
                           className="flex-1"
                         >
                           <XCircle className="mr-2 h-4 w-4" />
-                          {isReprovingFianca ? 'Reprovando...' : 'Reprovar'}
+                          Reprovar
                         </Button>
                       </div>
                     )}
@@ -605,7 +572,7 @@ const Analista = () => {
           currentScore={currentScore}
           currentTaxa={currentTaxa}
           onSave={handleEditScore}
-          isLoading={isUpdatingScore}
+          isLoading={false}
         />
 
         {/* Reject Reason Modal */}
@@ -613,7 +580,7 @@ const Analista = () => {
           isOpen={showRejectModal}
           onClose={() => setShowRejectModal(false)}
           onConfirm={handleReprovarProposta}
-          isLoading={isReprovingFianca}
+          isLoading={false}
         />
       </div>
     </Layout>
