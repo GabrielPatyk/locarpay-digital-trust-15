@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -87,51 +86,6 @@ export const useImobiliariasExecutivo = () => {
     enabled: !!user?.id
   });
 
-  const {
-    data: stats = {
-      totalImobiliarias: 0,
-      ativas: 0,
-      totalFiancas: 0
-    },
-    isLoading: isLoadingStats
-  } = useQuery({
-    queryKey: ['stats-executivo', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return { totalImobiliarias: 0, ativas: 0, totalFiancas: 0 };
-
-      const { data: imobiliariasData, error } = await supabase
-        .from('usuarios')
-        .select('id, ativo')
-        .eq('criado_por', user.id)
-        .eq('cargo', 'imobiliaria');
-
-      if (error) throw error;
-
-      const totalImobiliarias = imobiliariasData.length;
-      const ativas = imobiliariasData.filter(i => i.ativo).length;
-
-      // Buscar total de fianças de todas as imobiliárias do executivo
-      if (imobiliariasData.length > 0) {
-        const imobiliariaIds = imobiliariasData.map(i => i.id);
-        const { data: fiancasData, error: fiancasError } = await supabase
-          .from('fiancas_locaticias')
-          .select('id')
-          .in('id_imobiliaria', imobiliariaIds);
-
-        if (fiancasError) throw fiancasError;
-
-        return {
-          totalImobiliarias,
-          ativas,
-          totalFiancas: fiancasData.length
-        };
-      }
-
-      return { totalImobiliarias, ativas, totalFiancas: 0 };
-    },
-    enabled: !!user?.id
-  });
-
   const criarImobiliaria = useMutation({
     mutationFn: async (dados: NovaImobiliariaData) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
@@ -175,14 +129,18 @@ export const useImobiliariasExecutivo = () => {
 
       if (perfilError) throw perfilError;
 
+      // O contrato será criado automaticamente pelo trigger
+      console.log('Imobiliária criada com sucesso. Contrato será criado automaticamente.');
+
       return novoUsuario;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['imobiliarias-executivo'] });
       queryClient.invalidateQueries({ queryKey: ['stats-executivo'] });
+      queryClient.invalidateQueries({ queryKey: ['contratos-locarpay'] });
       toast({
         title: "Sucesso!",
-        description: "Imobiliária cadastrada com sucesso.",
+        description: "Imobiliária cadastrada com sucesso. O contrato de parceria foi gerado automaticamente.",
       });
     },
     onError: (error) => {
@@ -193,6 +151,51 @@ export const useImobiliariasExecutivo = () => {
         variant: "destructive",
       });
     }
+  });
+
+  const {
+    data: stats = {
+      totalImobiliarias: 0,
+      ativas: 0,
+      totalFiancas: 0
+    },
+    isLoading: isLoadingStats
+  } = useQuery({
+    queryKey: ['stats-executivo', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return { totalImobiliarias: 0, ativas: 0, totalFiancas: 0 };
+
+      const { data: imobiliariasData, error } = await supabase
+        .from('usuarios')
+        .select('id, ativo')
+        .eq('criado_por', user.id)
+        .eq('cargo', 'imobiliaria');
+
+      if (error) throw error;
+
+      const totalImobiliarias = imobiliariasData.length;
+      const ativas = imobiliariasData.filter(i => i.ativo).length;
+
+      // Buscar total de fianças de todas as imobiliárias do executivo
+      if (imobiliariasData.length > 0) {
+        const imobiliariaIds = imobiliariasData.map(i => i.id);
+        const { data: fiancasData, error: fiancasError } = await supabase
+          .from('fiancas_locaticias')
+          .select('id')
+          .in('id_imobiliaria', imobiliariaIds);
+
+        if (fiancasError) throw fiancasError;
+
+        return {
+          totalImobiliarias,
+          ativas,
+          totalFiancas: fiancasData.length
+        };
+      }
+
+      return { totalImobiliarias, ativas, totalFiancas: 0 };
+    },
+    enabled: !!user?.id
   });
 
   return {
