@@ -5,21 +5,21 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCargoRedirect } from '@/hooks/useCargoRedirect';
 
 export const useAuthRedirect = () => {
-  const { isAuthenticated, isLoading, contratoPendente } = useAuth();
+  const { isAuthenticated, isLoading, user, contratoPendente } = useAuth();
   const navigate = useNavigate();
   const { getCargoHomePage } = useCargoRedirect();
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      // Se há contrato pendente, não redirecionar (o modal irá bloquear)
-      if (contratoPendente && !contratoPendente.assinado) {
+      // If user is imobiliaria and has a pending contract, don't redirect (the modal will block)
+      if (user?.type === 'imobiliaria' && contratoPendente && !contratoPendente.assinado) {
         return;
       }
       
       const redirectPath = getCargoHomePage();
       navigate(redirectPath, { replace: true });
     }
-  }, [isAuthenticated, isLoading, navigate, getCargoHomePage, contratoPendente]);
+  }, [isAuthenticated, isLoading, navigate, getCargoHomePage, user, contratoPendente]);
 
   return { isAuthenticated, isLoading };
 };

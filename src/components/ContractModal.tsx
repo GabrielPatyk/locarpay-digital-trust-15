@@ -58,12 +58,15 @@ const ContractModal: React.FC<ContractModalProps> = ({ isOpen, user, onAccept })
 
   const getContractText = () => {
     const nomeImobiliaria = userProfile?.nome_empresa || user.name;
-    const cnpjImobiliaria = userProfile?.cnpj || 'A DEFINIR';
+    const cnpjImobiliaria = userProfile?.cnpj || '';
     const enderecoImobiliaria = userProfile ? 
       `${userProfile.endereco || ''}, ${userProfile.numero || ''} - ${userProfile.bairro || ''}, ${userProfile.cidade || ''} - ${userProfile.estado || ''}, CEP ${userProfile.cep || ''}`.replace(/, ,/g, ',').replace(/^, |, $/g, '') 
-      : 'A DEFINIR';
+      : '';
     const representanteImobiliaria = user.name;
+    const emailImobiliaria = user.email;
+    const telefoneImobiliaria = user.telefone || '';
     const dataHoje = getCurrentDate();
+    const cidade = userProfile?.cidade || 'Balneário Camboriú';
 
     return `CONTRATO DE PARCERIA E DISPONIBILIZAÇÃO DE PLATAFORMA
 ENTRE LOCARPAY E IMOBILIÁRIA
@@ -191,25 +194,32 @@ CLÁUSULA DÉCIMA SEXTA – DO USO INDEVIDO E SEGURANÇA DOS ACESSOS
 
 E, por estarem justas e contratadas, firmam o presente contrato em 2 (duas) vias de igual teor.
 
-Balneário Camboriú, ${dataHoje}
+${cidade}, ${dataHoje}
 
 LOCARPAY SOLUÇÕES EM GARANTIAS LOCATÍCIAS LTDA
 Marcelo Scos
-Diretor Geral
+Diretor Executivo
 
 ${nomeImobiliaria}
-${representanteImobiliaria}`;
+${representanteImobiliaria}
+Representante Legal
+${emailImobiliaria}
+${telefoneImobiliaria}`;
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0" onPointerDownOutside={(e) => e.preventDefault()}>
+    <Dialog open={isOpen} onOpenChange={() => {}} modal>
+      <DialogContent 
+        className="max-w-4xl max-h-[90vh] p-0 z-[9999]" 
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader className="p-6 pb-4">
           <DialogTitle className="text-xl font-bold text-[#0C1C2E]">
             Contrato de Parceria LOCARPAY
           </DialogTitle>
           <DialogDescription className="text-gray-600">
-            Por favor, leia todo o contrato para continuar
+            Por favor, leia todo o contrato para continuar usando a plataforma
           </DialogDescription>
         </DialogHeader>
         
