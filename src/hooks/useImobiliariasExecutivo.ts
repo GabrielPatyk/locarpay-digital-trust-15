@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -86,73 +87,6 @@ export const useImobiliariasExecutivo = () => {
     enabled: !!user?.id
   });
 
-  const criarImobiliaria = useMutation({
-    mutationFn: async (dados: NovaImobiliariaData) => {
-      if (!user?.id) throw new Error('Usuário não autenticado');
-
-      // Gerar senha temporária
-      const senhaTemporaria = Math.random().toString(36).slice(-8);
-
-      // Criar usuário imobiliária
-      const { data: novoUsuario, error: usuarioError } = await supabase
-        .from('usuarios')
-        .insert({
-          nome: dados.nome,
-          email: dados.email,
-          telefone: dados.telefone,
-          cargo: 'imobiliaria',
-          senha: senhaTemporaria, // Será hasheada pelo trigger
-          criado_por: user.id,
-          verificado: false,
-          ativo: true
-        })
-        .select()
-        .single();
-
-      if (usuarioError) throw usuarioError;
-
-      // Criar perfil da imobiliária
-      const { error: perfilError } = await supabase
-        .from('perfil_usuario')
-        .insert({
-          usuario_id: novoUsuario.id,
-          nome_empresa: dados.nome,
-          cnpj: dados.cnpj,
-          endereco: dados.endereco,
-          numero: dados.numero,
-          complemento: dados.complemento,
-          bairro: dados.bairro,
-          cidade: dados.cidade,
-          estado: dados.estado,
-          pais: dados.pais
-        });
-
-      if (perfilError) throw perfilError;
-
-      // O contrato será criado automaticamente pelo trigger
-      console.log('Imobiliária criada com sucesso. Contrato será criado automaticamente.');
-
-      return novoUsuario;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['imobiliarias-executivo'] });
-      queryClient.invalidateQueries({ queryKey: ['stats-executivo'] });
-      queryClient.invalidateQueries({ queryKey: ['contratos-locarpay'] });
-      toast({
-        title: "Sucesso!",
-        description: "Imobiliária cadastrada com sucesso. O contrato de parceria foi gerado automaticamente.",
-      });
-    },
-    onError: (error) => {
-      console.error('Erro ao criar imobiliária:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao cadastrar imobiliária. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  });
-
   const {
     data: stats = {
       totalImobiliarias: 0,
@@ -196,6 +130,69 @@ export const useImobiliariasExecutivo = () => {
       return { totalImobiliarias, ativas, totalFiancas: 0 };
     },
     enabled: !!user?.id
+  });
+
+  const criarImobiliaria = useMutation({
+    mutationFn: async (dados: NovaImobiliariaData) => {
+      if (!user?.id) throw new Error('Usuário não autenticado');
+
+      // Gerar senha temporária
+      const senhaTemporaria = Math.random().toString(36).slice(-8);
+
+      // Criar usuário imobiliária
+      const { data: novoUsuario, error: usuarioError } = await supabase
+        .from('usuarios')
+        .insert({
+          nome: dados.nome,
+          email: dados.email,
+          telefone: dados.telefone,
+          cargo: 'imobiliaria',
+          senha: senhaTemporaria, // Será hasheada pelo trigger
+          criado_por: user.id,
+          verificado: false,
+          ativo: true
+        })
+        .select()
+        .single();
+
+      if (usuarioError) throw usuarioError;
+
+      // Criar perfil da imobiliária
+      const { error: perfilError } = await supabase
+        .from('perfil_usuario')
+        .insert({
+          usuario_id: novoUsuario.id,
+          nome_empresa: dados.nome,
+          cnpj: dados.cnpj,
+          endereco: dados.endereco,
+          numero: dados.numero,
+          complemento: dados.complemento,
+          bairro: dados.bairro,
+          cidade: dados.cidade,
+          estado: dados.estado,
+          pais: dados.pais
+        });
+
+      if (perfilError) throw perfilError;
+
+      return novoUsuario;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['imobiliarias-executivo'] });
+      queryClient.invalidateQueries({ queryKey: ['stats-executivo'] });
+      toast({
+        title: "Sucesso!",
+        description: "Imobiliária cadastrada com sucesso.",
+      });
+    },
+    onError: (error) => {
+      console.error('Erro ao criar imobiliária:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao cadastrar imobiliária. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   });
 
   return {
