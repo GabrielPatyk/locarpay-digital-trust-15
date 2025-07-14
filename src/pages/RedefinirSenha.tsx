@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
@@ -11,9 +12,6 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const RedefinirSenha = () => {
-  // Hook para redirecionar se já estiver logado
-  const { isLoading: authLoading } = useAuthRedirect();
-  
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -29,60 +27,54 @@ const RedefinirSenha = () => {
 
   const token = searchParams.get('token');
 
-  // Se está verificando autenticação, mostrar loading
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#BC942C]"></div>
-      </div>
-    );
-  }
+  // Hook para redirecionar se já estiver logado - sempre chamado
+  const { isLoading: authLoading } = useAuthRedirect();
 
   useEffect(() => {
+    const validateToken = async () => {
+      if (!token) {
+        setError('Token não encontrado na URL.');
+        setIsValidating(false);
+        return;
+      }
+
+      try {
+        // Verificar se o token existe, não foi usado e foi criado há menos de 30 minutos
+        const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+        
+        const { data: tokenData, error: tokenError } = await supabase
+          .from('tokens_redefinicao_senha')
+          .select('usuario_id, usado, criado_em')
+          .eq('token', token)
+          .eq('usado', false)
+          .gte('criado_em', thirtyMinutesAgo)
+          .maybeSingle();
+
+        if (tokenError) {
+          console.error('Erro ao validar token:', tokenError);
+          setError('Erro ao validar token.');
+          setIsValidating(false);
+          return;
+        }
+
+        if (!tokenData) {
+          setError('Link inválido ou expirado. Solicite uma nova redefinição de senha.');
+          setIsValidating(false);
+          return;
+        }
+
+        setTokenValid(true);
+        setUserId(tokenData.usuario_id);
+      } catch (err) {
+        console.error('Erro na validação:', err);
+        setError('Erro ao validar token.');
+      } finally {
+        setIsValidating(false);
+      }
+    };
+
     validateToken();
   }, [token]);
-
-  const validateToken = async () => {
-    if (!token) {
-      setError('Token não encontrado na URL.');
-      setIsValidating(false);
-      return;
-    }
-
-    try {
-      // Verificar se o token existe, não foi usado e foi criado há menos de 30 minutos
-      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-      
-      const { data: tokenData, error: tokenError } = await supabase
-        .from('tokens_redefinicao_senha')
-        .select('usuario_id, usado, criado_em')
-        .eq('token', token)
-        .eq('usado', false)
-        .gte('criado_em', thirtyMinutesAgo)
-        .maybeSingle();
-
-      if (tokenError) {
-        console.error('Erro ao validar token:', tokenError);
-        setError('Erro ao validar token.');
-        setIsValidating(false);
-        return;
-      }
-
-      if (!tokenData) {
-        setError('Link inválido ou expirado. Solicite uma nova redefinição de senha.');
-        setIsValidating(false);
-        return;
-      }
-
-      setTokenValid(true);
-      setUserId(tokenData.usuario_id);
-    } catch (err) {
-      console.error('Erro na validação:', err);
-      setError('Erro ao validar token.');
-    } finally {
-      setIsValidating(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,6 +149,16 @@ const RedefinirSenha = () => {
     navigate('/login');
   };
 
+  // Se está verificando autenticação, mostrar loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#BC942C]"></div>
+      </div>
+    );
+  }
+
+  // Loading state para validação do token
   if (isValidating) {
     return (
       <div className="min-h-screen w-full relative overflow-hidden">
