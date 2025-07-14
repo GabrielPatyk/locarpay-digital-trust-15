@@ -1,9 +1,11 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   BarChart3, 
   Download, 
@@ -12,51 +14,39 @@ import {
   TrendingDown,
   Users,
   FileText,
-  DollarSign
+  DollarSign,
+  Filter
 } from 'lucide-react';
+import { useRelatoriosAnalista } from '@/hooks/useRelatoriosAnalista';
 
 const RelatoriosAnalista = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState('mensal');
+  const {
+    fiancas,
+    relatoriosDisponiveis,
+    loading,
+    dataInicio,
+    dataFim,
+    setDataInicio,
+    setDataFim,
+    buscarAnalises,
+    gerarRelatorioXML,
+    downloadRelatorio
+  } = useRelatoriosAnalista();
 
+  // Calcular estatísticas com base nos dados filtrados
   const estatisticas = {
-    totalAnalises: 156,
-    aprovacoes: 98,
-    reprovacoes: 35,
-    pendentes: 23,
-    taxaAprovacao: 72.8,
-    scoreMedia: 642,
-    valorMedio: 3250
+    totalAnalises: fiancas.length,
+    aprovacoes: fiancas.filter(f => f.status_fianca === 'aprovada').length,
+    reprovacoes: fiancas.filter(f => f.status_fianca === 'rejeitada').length,
+    pendentes: fiancas.filter(f => f.status_fianca === 'em_analise').length,
+    taxaAprovacao: fiancas.length > 0 ? ((fiancas.filter(f => f.status_fianca === 'aprovada').length / fiancas.length) * 100).toFixed(1) : '0',
+    scoreMedia: fiancas.length > 0 ? Math.round(fiancas.reduce((acc, f) => acc + (f.score_credito || 0), 0) / fiancas.length) : 0,
+    valorMedio: fiancas.length > 0 ? Math.round(fiancas.reduce((acc, f) => acc + f.imovel_valor_aluguel, 0) / fiancas.length) : 0
   };
 
-  const relatoriosDisponiveis = [
-    {
-      id: 1,
-      titulo: 'Relatório Mensal de Análises',
-      descricao: 'Resumo completo das análises realizadas no mês',
-      periodo: 'Janeiro 2024',
-      tipo: 'PDF',
-      tamanho: '2.3 MB',
-      dataGeracao: '2024-02-01'
-    },
-    {
-      id: 2,
-      titulo: 'Relatório de Performance',
-      descricao: 'Indicadores de performance e produtividade',
-      periodo: 'Janeiro 2024',
-      tipo: 'Excel',
-      tamanho: '1.8 MB',
-      dataGeracao: '2024-02-01'
-    },
-    {
-      id: 3,
-      titulo: 'Análise de Scores',
-      descricao: 'Distribuição e análise dos scores de crédito',
-      periodo: 'Janeiro 2024',
-      tipo: 'PDF',
-      tamanho: '3.1 MB',
-      dataGeracao: '2024-02-01'
-    }
-  ];
+  const handleFiltrar = () => {
+    buscarAnalises();
+  };
 
   return (
     <Layout title="Relatórios">
@@ -64,13 +54,51 @@ const RelatoriosAnalista = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Relatórios</h1>
-            <p className="text-gray-600">Acompanhe métricas e gere relatórios detalhados</p>
+            <p className="text-gray-600">Acompanhe suas métricas e gere relatórios detalhados</p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90">
-            <Download className="mr-2 h-4 w-4" />
-            Gerar Novo Relatório
-          </Button>
         </div>
+
+        {/* Filtros de Data */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filtros
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="dataInicio">Data de Início</Label>
+                <Input
+                  id="dataInicio"
+                  type="date"
+                  value={dataInicio.toISOString().split('T')[0]}
+                  onChange={(e) => setDataInicio(new Date(e.target.value))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="dataFim">Data de Fim</Label>
+                <Input
+                  id="dataFim"
+                  type="date"
+                  value={dataFim.toISOString().split('T')[0]}
+                  onChange={(e) => setDataFim(new Date(e.target.value))}
+                />
+              </div>
+              <div className="flex items-end gap-2">
+                <Button onClick={handleFiltrar} disabled={loading}>
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Filtrar Análises
+                </Button>
+                <Button onClick={gerarRelatorioXML} disabled={loading || fiancas.length === 0} variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Gerar Relatório XML
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Estatísticas Resumidas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -159,46 +187,63 @@ const RelatoriosAnalista = () => {
           </Card>
         </div>
 
-        {/* Lista de Relatórios */}
+        {/* Lista de Relatórios Disponíveis */}
         <Card>
           <CardHeader>
             <CardTitle>Relatórios Disponíveis</CardTitle>
             <CardDescription>
-              Faça download dos relatórios gerados anteriormente
+              Seus relatórios gerados anteriormente estão disponíveis para download
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {relatoriosDisponiveis.map((relatorio) => (
-                <div key={relatorio.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-primary/10 p-2 rounded-full">
-                      <FileText className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">{relatorio.titulo}</h4>
-                      <p className="text-sm text-gray-600">{relatorio.descricao}</p>
-                      <div className="flex items-center space-x-4 mt-1">
-                        <span className="text-xs text-gray-500">Período: {relatorio.periodo}</span>
-                        <Badge variant="outline">{relatorio.tipo}</Badge>
-                        <span className="text-xs text-gray-500">{relatorio.tamanho}</span>
+              {relatoriosDisponiveis.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum relatório disponível</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Use os filtros acima para gerar seus primeiros relatórios.
+                  </p>
+                </div>
+              ) : (
+                relatoriosDisponiveis.map((relatorio) => (
+                  <div key={relatorio.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-primary/10 p-2 rounded-full">
+                        <FileText className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">{relatorio.nome_arquivo}</h4>
+                        <p className="text-sm text-gray-600">Relatório de análises do período selecionado</p>
+                        <div className="flex items-center space-x-4 mt-1">
+                          <Badge variant="outline">XML</Badge>
+                          {relatorio.periodo_inicio && relatorio.periodo_fim && (
+                            <span className="text-xs text-gray-500">
+                              Período: {relatorio.periodo_inicio} a {relatorio.periodo_fim}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-right mr-4">
-                      <p className="text-sm text-gray-600">Gerado em</p>
-                      <p className="text-sm font-medium">
-                        {new Date(relatorio.dataGeracao).toLocaleDateString('pt-BR')}
-                      </p>
+                    <div className="flex items-center space-x-2">
+                      <div className="text-right mr-4">
+                        <p className="text-sm text-gray-600">Gerado em</p>
+                        <p className="text-sm font-medium">
+                          {relatorio.data_geracao ? new Date(relatorio.data_geracao).toLocaleDateString('pt-BR') : 'N/A'}
+                        </p>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => downloadRelatorio(relatorio.nome_arquivo)}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Download
+                      </Button>
                     </div>
-                    <Button variant="outline" size="sm">
-                      <Download className="mr-2 h-4 w-4" />
-                      Download
-                    </Button>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
