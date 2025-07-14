@@ -3,7 +3,6 @@ import React from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/AppSidebar';
 import { Toaster } from '@/components/ui/toaster';
-import InactivityWarningModal from '@/components/InactivityWarningModal';
 import ContratoChecker from '@/components/ContratoChecker';
 
 interface LayoutProps {
@@ -28,7 +27,6 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
         </main>
       </div>
       <Toaster />
-      <InactivityWarningModal />
       <ContratoChecker />
     </SidebarProvider>
   );
