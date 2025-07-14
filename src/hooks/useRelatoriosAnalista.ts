@@ -67,7 +67,7 @@ export const useRelatoriosAnalista = () => {
           imovel_bairro,
           imovel_cidade,
           imovel_estado,
-          imobiliaria:usuarios!id_imobiliaria(nome)
+          imobiliaria:usuarios!fiancas_locaticias_id_imobiliaria_fkey(nome)
         `)
         .eq('id_analista', user.id)
         .gte('data_analise', dataInicio.toISOString().split('T')[0])
