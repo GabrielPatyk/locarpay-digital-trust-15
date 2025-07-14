@@ -48,6 +48,9 @@ export const useRelatoriosAnalista = () => {
 
     setLoading(true);
     try {
+      console.log('Buscando análises do analista:', user.id);
+      console.log('Período:', dataInicio.toISOString().split('T')[0], 'a', dataFim.toISOString().split('T')[0]);
+
       const { data, error } = await supabase
         .from('fiancas_locaticias')
         .select(`
@@ -75,9 +78,17 @@ export const useRelatoriosAnalista = () => {
         .not('data_analise', 'is', null)
         .order('data_analise', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro na query:', error);
+        throw error;
+      }
 
+      console.log('Dados retornados:', data);
       setFiancas(data || []);
+      
+      if (!data || data.length === 0) {
+        toast.info('Nenhuma análise encontrada para o período selecionado');
+      }
     } catch (error) {
       console.error('Erro ao buscar análises:', error);
       toast.error('Erro ao carregar análises');
@@ -97,7 +108,10 @@ export const useRelatoriosAnalista = () => {
           sortBy: { column: 'created_at', order: 'desc' }
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar relatórios:', error);
+        return;
+      }
 
       const relatorios = data?.map(file => ({
         id: file.name,

@@ -45,7 +45,13 @@ const RelatoriosAnalista = () => {
   };
 
   const handleFiltrar = () => {
+    console.log('Filtrando dados...');
     buscarAnalises();
+  };
+
+  const handleGerarRelatorio = () => {
+    console.log('Gerando relatório...');
+    gerarRelatorioXML();
   };
 
   return (
@@ -89,9 +95,9 @@ const RelatoriosAnalista = () => {
               <div className="flex items-end gap-2">
                 <Button onClick={handleFiltrar} disabled={loading}>
                   <Calendar className="mr-2 h-4 w-4" />
-                  Filtrar Análises
+                  {loading ? 'Carregando...' : 'Filtrar Análises'}
                 </Button>
-                <Button onClick={gerarRelatorioXML} disabled={loading || fiancas.length === 0} variant="outline">
+                <Button onClick={handleGerarRelatorio} disabled={loading || fiancas.length === 0} variant="outline">
                   <Download className="mr-2 h-4 w-4" />
                   Gerar Relatório XML
                 </Button>
@@ -186,6 +192,47 @@ const RelatoriosAnalista = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Lista de Análises */}
+        {fiancas.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Análises do Período</CardTitle>
+              <CardDescription>
+                {fiancas.length} análise{fiancas.length > 1 ? 's' : ''} encontrada{fiancas.length > 1 ? 's' : ''} no período selecionado
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {fiancas.map((fianca) => (
+                  <div key={fianca.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div>
+                        <h4 className="font-medium">{fianca.inquilino_nome_completo}</h4>
+                        <p className="text-sm text-gray-600">{fianca.inquilino_cpf}</p>
+                        <p className="text-sm text-gray-600">
+                          {fianca.imovel_endereco}, {fianca.imovel_numero} - {fianca.imovel_cidade}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="text-right">
+                        <p className="text-sm font-medium">R$ {fianca.imovel_valor_aluguel.toLocaleString()}</p>
+                        <p className="text-sm text-gray-600">Score: {fianca.score_credito || 'N/A'}</p>
+                      </div>
+                      <Badge variant={
+                        fianca.status_fianca === 'aprovada' ? 'default' :
+                        fianca.status_fianca === 'rejeitada' ? 'destructive' : 'secondary'
+                      }>
+                        {fianca.status_fianca}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Lista de Relatórios Disponíveis */}
         <Card>
