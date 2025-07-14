@@ -22,14 +22,12 @@ export const useContratoPendente = (user: User | null) => {
 
   const verificarContratoPendente = async () => {
     if (!user || user.type !== 'imobiliaria') {
-      console.log('User is not imobiliaria or is null:', user);
       setContratoPendente(null);
       return;
     }
 
     try {
       setLoading(true);
-      console.log('Checking contract for user:', user.id);
       
       const { data, error } = await supabase
         .from('contratos_locarpay')
@@ -37,14 +35,13 @@ export const useContratoPendente = (user: User | null) => {
         .eq('id_imobiliaria', user.id)
         .eq('modelo_contrato', 'imobiliaria_locarpay')
         .eq('assinado', false)
-        .maybeSingle();
+        .single();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Erro ao verificar contrato pendente:', error);
         return;
       }
 
-      console.log('Contract data found:', data);
       setContratoPendente(data || null);
     } catch (err) {
       console.error('Erro ao verificar contrato pendente:', err);
@@ -54,7 +51,6 @@ export const useContratoPendente = (user: User | null) => {
   };
 
   useEffect(() => {
-    console.log('useContratoPendente effect triggered, user:', user);
     verificarContratoPendente();
   }, [user]);
 

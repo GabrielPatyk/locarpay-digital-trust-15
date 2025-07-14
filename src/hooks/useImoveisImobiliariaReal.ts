@@ -52,10 +52,7 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
 
       const { data, error } = await query.order('data_criacao', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching imoveis:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       let imoveisList = data || [];
 
@@ -83,30 +80,16 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
     mutationFn: async (data: CreateImovelData) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
-      console.log('Creating imovel for user:', user.id);
-      console.log('Imovel data:', data);
-
-      const insertData = {
-        ...data,
-        id_imobiliaria: user.id,
-        pais: 'Brasil',
-        status: 'disponivel'
-      };
-
-      console.log('Final insert data:', insertData);
-
       const { data: novoImovel, error } = await supabase
         .from('imoveis_imobiliaria')
-        .insert(insertData)
+        .insert({
+          ...data,
+          id_imobiliaria: user.id,
+        })
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating imovel:', error);
-        throw error;
-      }
-      
-      console.log('Imovel created successfully:', novoImovel);
+      if (error) throw error;
       return novoImovel;
     },
     onSuccess: () => {
@@ -117,7 +100,6 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
       });
     },
     onError: (error: any) => {
-      console.error('Mutation error:', error);
       toast({
         title: "Erro ao criar imóvel",
         description: error.message || "Tente novamente mais tarde.",
