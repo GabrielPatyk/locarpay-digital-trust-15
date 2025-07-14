@@ -60,7 +60,7 @@ const ContratoAssinaturaModal: React.FC<ContratoAssinaturaModalProps> = ({
   const cnpjImobiliaria = user?.cnpj || '[CNPJ DA IMOBILIÁRIA]';
   const enderecoImobiliaria = user?.address || '[ENDEREÇO DA IMOBILIÁRIA]';
   const emailImobiliaria = contrato?.dados_contrato?.email_imobiliaria || user?.email || '[EMAIL DA IMOBILIÁRIA]';
-  const telefoneImobiliaria = contrato?.dados_contrato?.telefone_imobiliaria || user?.phone || '[TELEFONE DA IMOBILIÁRIA]';
+  const telefoneImobiliaria = contrato?.dados_contrato?.telefone_imobiliaria || user?.telefone || '[TELEFONE DA IMOBILIÁRIA]';
 
   const contractText = `
 CONTRATO DE PARCERIA E DISPONIBILIZAÇÃO DE PLATAFORMA
@@ -153,7 +153,7 @@ CLÁUSULA DÉCIMA PRIMEIRA – DA RESPONSABILIDADE LIMITADA
 
 11.1. A LOCARPAY não se responsabiliza por decisões da IMOBILIÁRIA ou de seus clientes com base em informações fornecidas pela plataforma.
 
-11.2. A IMOBILIÁRIA é responsável pelo correto uso da plataforma e pelas informações transmitidas por meio dela.
+11.2. A IMOBILIÁRIA é responsável pelo correto uso da plataforma e pelas informações transmitidas por meio ela.
 
 CLÁUSULA DÉCIMA SEGUNDA – DAS ATUALIZAÇÕES E DISPONIBILIDADE DA PLATAFORMA
 

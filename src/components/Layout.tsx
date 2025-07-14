@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
+import AppSidebar from '@/components/AppSidebar';
 import { Toaster } from '@/components/ui/toaster';
-import { InactivityWarningModal } from '@/components/InactivityWarningModal';
+import InactivityWarningModal from '@/components/InactivityWarningModal';
 import ContratoChecker from '@/components/ContratoChecker';
 
 interface LayoutProps {
