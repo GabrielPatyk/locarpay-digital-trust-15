@@ -33,6 +33,7 @@ export const useContratoPendente = (user: User | null) => {
         .from('contratos_locarpay')
         .select('*')
         .eq('id_imobiliaria', user.id)
+        .eq('modelo_contrato', 'imobiliaria_locarpay')
         .eq('assinado', false)
         .single();
 

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
@@ -11,15 +12,133 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const ForgotPassword = () => {
-  // Hook para redirecionar se já estiver logado
-  const { isLoading: authLoading } = useAuthRedirect();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
-  const { toast } = useToast();
+
+  // Hook para redirecionar se já estiver logado
+  const { isLoading: authLoading } = useAuthRedirect();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    if (!email.trim()) {
+      setError('Por favor, digite seu e-mail.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Verificar se o usuário existe
+      const { data: userData, error: userError } = await supabase
+        .from('usuarios')
+        .select('id, nome, email')
+        .eq('email', email.trim())
+        .single();
+
+      if (userError || !userData) {
+        setError('E-mail não encontrado em nosso sistema.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Gerar token único
+      const token = crypto.randomUUID();
+
+      // Salvar token na tabela
+      const { error: tokenError } = await supabase
+        .from('tokens_redefinicao_senha')
+        .insert({
+          usuario_id: userData.id,
+          token: token
+        });
+
+      if (tokenError) {
+        console.error('Erro ao salvar token:', tokenError);
+        throw new Error('Erro interno. Tente novamente.');
+      }
+
+      // Criar o link de redefinição
+      const resetLink = `${window.location.origin}/redefinir-senha?token=${token}`;
+
+      // Enviar e-mail via edge function
+      const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
+        body: {
+          to: email.trim(),
+          subject: 'Redefinição de Senha - LocarPay',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #F4D573 0%, #BC942C 100%); padding: 30px; text-align: center;">
+                <h1 style="color: #0C1C2E; margin: 0; font-size: 28px;">LocarPay</h1>
+                <p style="color: #0C1C2E; margin: 10px 0 0 0; opacity: 0.8;">Redefinição de Senha</p>
+              </div>
+              
+              <div style="padding: 40px 30px; background: white;">
+                <h2 style="color: #0C1C2E; margin-bottom: 20px;">Olá, ${userData.nome}!</h2>
+                
+                <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
+                  Recebemos uma solicitação para redefinir a senha da sua conta na LocarPay.
+                  Se você não fez esta solicitação, pode ignorar este e-mail.
+                </p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${resetLink}" 
+                     style="background: linear-gradient(135deg, #F4D573 0%, #BC942C 100%); 
+                            color: #0C1C2E; 
+                            padding: 15px 30px; 
+                            text-decoration: none; 
+                            border-radius: 8px; 
+                            font-weight: bold; 
+                            display: inline-block;">
+                    Redefinir Senha
+                  </a>
+                </div>
+                
+                <p style="color: #999; font-size: 14px; line-height: 1.5;">
+                  Este link expira em 30 minutos por motivos de segurança.<br>
+                  Se o botão não funcionar, copie e cole este link no seu navegador:<br>
+                  <span style="word-break: break-all;">${resetLink}</span>
+                </p>
+              </div>
+              
+              <div style="background: #f8f9fa; padding: 20px; text-align: center;">
+                <p style="color: #999; margin: 0; font-size: 12px;">
+                  Este é um e-mail automático. Não responda a esta mensagem.
+                </p>
+              </div>
+            </div>
+          `
+        }
+      });
+
+      if (emailError) {
+        console.error('Erro ao enviar e-mail:', emailError);
+        throw new Error('Erro ao enviar e-mail. Tente novamente.');
+      }
+
+      setSuccess(true);
+      toast({
+        title: "E-mail enviado!",
+        description: "Verifique sua caixa de entrada para redefinir sua senha.",
+      });
+
+    } catch (err: any) {
+      console.error('Erro ao solicitar redefinição:', err);
+      setError(err.message || 'Erro ao enviar e-mail. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    navigate('/login');
+  };
 
   // Se está verificando autenticação, mostrar loading
   if (authLoading) {
@@ -29,69 +148,6 @@ const ForgotPassword = () => {
       </div>
     );
   }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    try {
-      // Verificar se o usuário existe
-      const { data: userExists, error: userError } = await supabase
-        .from('usuarios')
-        .select('id, nome')
-        .eq('email', email)
-        .single();
-
-      if (userError && userError.code !== 'PGRST116') {
-        throw new Error('Erro ao verificar usuário');
-      }
-
-      if (!userExists) {
-        setError('E-mail não encontrado em nossa base de dados.');
-        setIsLoading(false);
-        return;
-      }
-
-      // Gerar token único
-      const token = crypto.randomUUID();
-
-      // Salvar token na tabela de tokens
-      const { error: tokenError } = await supabase
-        .from('tokens_redefinicao_senha')
-        .insert({
-          usuario_id: userExists.id,
-          token: token
-        });
-
-      if (tokenError) {
-        throw new Error('Erro ao gerar token de redefinição');
-      }
-
-      // Criar link de redefinição
-      const resetUrl = `${window.location.origin}/redefinir-senha?token=${token}`;
-
-      // Aqui você enviaria o e-mail (simulação)
-      console.log('Link de redefinição:', resetUrl);
-      console.log('Usuário:', userExists.nome);
-
-      setSuccess(true);
-      toast({
-        title: "E-mail enviado!",
-        description: "Verifique sua caixa de entrada para redefinir sua senha.",
-      });
-
-    } catch (err: any) {
-      console.error('Erro ao solicitar redefinição de senha:', err);
-      setError('Erro ao processar solicitação. Tente novamente.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleBackToLogin = () => {
-    navigate('/login');
-  };
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
@@ -132,7 +188,7 @@ const ForgotPassword = () => {
                 <p className="text-sm text-[#0C1C2E]/70">
                   {success 
                     ? 'Verifique sua caixa de entrada'
-                    : 'Digite seu e-mail para receber o link de redefinição'
+                    : 'Digite seu e-mail para redefinir sua senha'
                   }
                 </p>
               </div>
@@ -145,7 +201,7 @@ const ForgotPassword = () => {
                   </div>
                   <h3 className="text-lg font-semibold text-[#0C1C2E] mb-2">E-mail enviado com sucesso!</h3>
                   <p className="text-sm text-[#0C1C2E]/70">
-                    Verifique sua caixa de entrada e clique no link para redefinir sua senha.
+                    Verifique sua caixa de entrada (e spam) para o link de redefinição.
                   </p>
                 </div>
               ) : (
@@ -177,7 +233,7 @@ const ForgotPassword = () => {
                     className="w-full bg-gradient-to-r from-[#F4D573] to-[#BC942C] hover:from-[#E6C46E] hover:to-[#B48534] text-[#0C1C2E] font-semibold shadow-lg"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Enviando...' : 'Enviar Link de Redefinição'}
+                    {isLoading ? 'Enviando...' : 'Enviar link de redefinição'}
                   </Button>
                 </form>
               )}
@@ -195,7 +251,7 @@ const ForgotPassword = () => {
                     className="flex items-center justify-center w-full text-[#0C1C2E] font-semibold text-sm hover:text-[#0C1C2E]/80 transition-colors"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    {success ? 'Ir para login' : 'Voltar para login'}
+                    Voltar para login
                   </button>
                 </div>
               </div>

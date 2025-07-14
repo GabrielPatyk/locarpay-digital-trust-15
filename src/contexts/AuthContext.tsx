@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserType } from '@/types/user';
@@ -42,20 +41,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Mostrar modal de contrato se necessário
   useEffect(() => {
-    if (user?.type === 'imobiliaria' && contratoPendente && !contratoPendente.assinado) {
+    if (user?.type === 'imobiliaria' && contratoPendente && 
+        contratoPendente.modelo_contrato === 'imobiliaria_locarpay' && 
+        !contratoPendente.assinado) {
       setShowContractModal(true);
     } else {
       setShowContractModal(false);
     }
   }, [user, contratoPendente]);
 
-  const handleContractAccept = () => {
+  const handleContractAccept = async () => {
     if (contratoPendente?.link_assinatura) {
       // Redirecionar para o link de assinatura
       window.open(contratoPendente.link_assinatura, '_blank');
     } else {
-      // Mostrar mensagem que o link ainda não está disponível
-      alert('O link para assinatura ainda não está disponível. Tente novamente mais tarde.');
+      // Marcar o contrato como assinado (temporariamente até ter o sistema de assinatura)
+      try {
+        const { error } = await supabase
+          .from('contratos_locarpay')
+          .update({ 
+            assinado: true,
+            data_assinatura: new Date().toISOString()
+          })
+          .eq('id', contratoPendente.id);
+
+        if (error) {
+          console.error('Erro ao atualizar contrato:', error);
+          alert('Erro ao processar aceitação do contrato. Tente novamente.');
+          return;
+        }
+
+        // Atualizar o status do contrato
+        await atualizarStatusContrato();
+        setShowContractModal(false);
+        
+        alert('Contrato aceito com sucesso! Bem-vindo à LOCARPAY!');
+      } catch (err) {
+        console.error('Erro ao aceitar contrato:', err);
+        alert('Erro ao processar aceitação do contrato. Tente novamente.');
+      }
     }
   };
 
