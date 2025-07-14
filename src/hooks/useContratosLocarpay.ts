@@ -34,7 +34,7 @@ export const useContratosLocarpay = () => {
       if (!user?.id) return [];
 
       const { data, error } = await supabase
-        .from('contratos_locarpay' as any)
+        .from('contratos_locarpay')
         .select('*')
         .order('data_criacao', { ascending: false });
 
@@ -53,7 +53,7 @@ export const useContratosLocarpay = () => {
       if (!user?.id || user.type !== 'imobiliaria') return null;
 
       const { data, error } = await supabase
-        .from('contratos_locarpay' as any)
+        .from('contratos_locarpay')
         .select('*')
         .eq('id_imobiliaria', user.id)
         .eq('modelo_contrato', 'imobiliaria_locarpay')
@@ -68,7 +68,7 @@ export const useContratosLocarpay = () => {
   const assinarContrato = useMutation({
     mutationFn: async (contratoId: string) => {
       const { data, error } = await supabase
-        .from('contratos_locarpay' as any)
+        .from('contratos_locarpay')
         .update({
           assinado: true,
           data_assinatura: new Date().toISOString()
