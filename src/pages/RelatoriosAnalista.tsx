@@ -1,10 +1,9 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { 
   BarChart3, 
   Download, 
@@ -13,188 +12,20 @@ import {
   TrendingDown,
   Users,
   FileText,
-  DollarSign,
-  Filter
+  DollarSign
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
 
 const RelatoriosAnalista = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('mensal');
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
-  const [filtroAplicado, setFiltroAplicado] = useState(false);
-  const { toast } = useToast();
 
-  // Query para buscar dados das fianças com filtro de data
-  const { data: fiancasData = [], isLoading: isLoadingFiancas } = useQuery({
-    queryKey: ['relatorios-analista-fiancas', dataInicio, dataFim, filtroAplicado],
-    queryFn: async () => {
-      let query = supabase
-        .from('fiancas_locaticias')
-        .select(`
-          *,
-          imobiliaria:usuarios!id_imobiliaria(nome),
-          analista:usuarios!id_analista(nome)
-        `)
-        .order('data_criacao', { ascending: false });
-
-      if (filtroAplicado && dataInicio && dataFim) {
-        query = query
-          .gte('data_criacao', dataInicio)
-          .lte('data_criacao', dataFim + 'T23:59:59.999Z');
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
-    }
-  });
-
-  // Calcular estatísticas baseadas nos dados filtrados
-  const estatisticas = React.useMemo(() => {
-    const totalAnalises = fiancasData.length;
-    const aprovacoes = fiancasData.filter(f => f.status_fianca === 'aprovada').length;
-    const reprovacoes = fiancasData.filter(f => f.status_fianca === 'rejeitada').length;
-    const pendentes = fiancasData.filter(f => f.status_fianca === 'em_analise').length;
-    const taxaAprovacao = totalAnalises > 0 ? ((aprovacoes / totalAnalises) * 100).toFixed(1) : '0';
-    
-    const scoresValidos = fiancasData.filter(f => f.score_credito).map(f => f.score_credito);
-    const scoreMedia = scoresValidos.length > 0 
-      ? Math.round(scoresValidos.reduce((a, b) => a + b, 0) / scoresValidos.length)
-      : 0;
-    
-    const valoresValidos = fiancasData.filter(f => f.imovel_valor_aluguel).map(f => f.imovel_valor_aluguel);
-    const valorMedio = valoresValidos.length > 0
-      ? Math.round(valoresValidos.reduce((a, b) => a + b, 0) / valoresValidos.length)
-      : 0;
-
-    return {
-      totalAnalises,
-      aprovacoes,
-      reprovacoes,
-      pendentes,
-      taxaAprovacao: parseFloat(taxaAprovacao),
-      scoreMedia,
-      valorMedio
-    };
-  }, [fiancasData]);
-
-  const handleGerarRelatorio = () => {
-    if (!dataInicio || !dataFim) {
-      toast({
-        title: "Erro",
-        description: "Por favor, selecione as datas de início e fim.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (new Date(dataInicio) > new Date(dataFim)) {
-      toast({
-        title: "Erro",
-        description: "A data de início deve ser anterior à data de fim.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setFiltroAplicado(true);
-    toast({
-      title: "Relatório Gerado",
-      description: "Dados filtrados com sucesso para o período selecionado."
-    });
-  };
-
-  const exportarParaExcel = () => {
-    if (!filtroAplicado || fiancasData.length === 0) {
-      toast({
-        title: "Aviso",
-        description: "Gere um relatório primeiro ou certifique-se de que há dados para exportar.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      // Criar XML compatível com Excel
-      let xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
-      <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-                xmlns:o="urn:schemas-microsoft-com:office:office"
-                xmlns:x="urn:schemas-microsoft-com:office:excel"
-                xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
-                xmlns:html="http://www.w3.org/TR/REC-html40">
-        <Worksheet ss:Name="Relatório Analista">
-          <Table>
-            <Row>
-              <Cell><Data ss:Type="String">ID Fiança</Data></Cell>
-              <Cell><Data ss:Type="String">Data Criação</Data></Cell>
-              <Cell><Data ss:Type="String">Status</Data></Cell>
-              <Cell><Data ss:Type="String">Inquilino</Data></Cell>
-              <Cell><Data ss:Type="String">CPF Inquilino</Data></Cell>
-              <Cell><Data ss:Type="String">Imobiliária</Data></Cell>
-              <Cell><Data ss:Type="String">Analista</Data></Cell>
-              <Cell><Data ss:Type="String">Score Crédito</Data></Cell>
-              <Cell><Data ss:Type="String">Taxa Aplicada</Data></Cell>
-              <Cell><Data ss:Type="String">Valor Aluguel</Data></Cell>
-              <Cell><Data ss:Type="String">Valor Fiança</Data></Cell>
-              <Cell><Data ss:Type="String">Tipo Imóvel</Data></Cell>
-              <Cell><Data ss:Type="String">Endereço Imóvel</Data></Cell>
-            </Row>`;
-
-      fiancasData.forEach(fianca => {
-        xmlContent += `
-            <Row>
-              <Cell><Data ss:Type="String">${fianca.id}</Data></Cell>
-              <Cell><Data ss:Type="String">${format(new Date(fianca.data_criacao), 'dd/MM/yyyy HH:mm')}</Data></Cell>
-              <Cell><Data ss:Type="String">${fianca.status_fianca}</Data></Cell>
-              <Cell><Data ss:Type="String">${fianca.inquilino_nome_completo}</Data></Cell>
-              <Cell><Data ss:Type="String">${fianca.inquilino_cpf}</Data></Cell>
-              <Cell><Data ss:Type="String">${fianca.imobiliaria?.nome || 'N/A'}</Data></Cell>
-              <Cell><Data ss:Type="String">${fianca.id_analista ? 'Analisado' : 'Pendente'}</Data></Cell>
-              <Cell><Data ss:Type="Number">${fianca.score_credito || 0}</Data></Cell>
-              <Cell><Data ss:Type="Number">${fianca.taxa_aplicada || 0}</Data></Cell>
-              <Cell><Data ss:Type="Number">${fianca.imovel_valor_aluguel}</Data></Cell>
-              <Cell><Data ss:Type="Number">${fianca.valor_fianca || 0}</Data></Cell>
-              <Cell><Data ss:Type="String">${fianca.imovel_tipo}</Data></Cell>
-              <Cell><Data ss:Type="String">${fianca.imovel_endereco}, ${fianca.imovel_numero} - ${fianca.imovel_bairro}, ${fianca.imovel_cidade}/${fianca.imovel_estado}</Data></Cell>
-            </Row>`;
-      });
-
-      xmlContent += `
-          </Table>
-        </Worksheet>
-      </Workbook>`;
-
-      // Criar blob e download
-      const blob = new Blob([xmlContent], { type: 'application/vnd.ms-excel' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      
-      const dataInicioFormatada = format(new Date(dataInicio), 'yyyy-MM-dd');
-      const dataFimFormatada = format(new Date(dataFim), 'yyyy-MM-dd');
-      link.download = `relatorio-analista-${dataInicioFormatada}-${dataFimFormatada}.xml`;
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      toast({
-        title: "Exportação Concluída",
-        description: "Relatório exportado com sucesso!"
-      });
-    } catch (error) {
-      console.error('Erro ao exportar:', error);
-      toast({
-        title: "Erro na Exportação",
-        description: "Ocorreu um erro ao exportar o relatório.",
-        variant: "destructive"
-      });
-    }
+  const estatisticas = {
+    totalAnalises: 156,
+    aprovacoes: 98,
+    reprovacoes: 35,
+    pendentes: 23,
+    taxaAprovacao: 72.8,
+    scoreMedia: 642,
+    valorMedio: 3250
   };
 
   const relatoriosDisponiveis = [
@@ -235,71 +66,11 @@ const RelatoriosAnalista = () => {
             <h1 className="text-2xl font-bold text-gray-900">Relatórios</h1>
             <p className="text-gray-600">Acompanhe métricas e gere relatórios detalhados</p>
           </div>
-          <div className="flex gap-2">
-            <Button 
-              onClick={exportarParaExcel}
-              className="bg-green-600 hover:bg-green-700 text-white"
-              disabled={!filtroAplicado || fiancasData.length === 0}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              📤 Exportar Relatório
-            </Button>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Download className="mr-2 h-4 w-4" />
-              Gerar Novo Relatório
-            </Button>
-          </div>
+          <Button className="bg-primary hover:bg-primary/90">
+            <Download className="mr-2 h-4 w-4" />
+            Gerar Novo Relatório
+          </Button>
         </div>
-
-        {/* Filtro por Data */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filtros de Data
-            </CardTitle>
-            <CardDescription>
-              Selecione o período para gerar relatórios personalizados
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-              <div>
-                <Label htmlFor="data-inicio">Data de Início</Label>
-                <Input
-                  id="data-inicio"
-                  type="date"
-                  value={dataInicio}
-                  onChange={(e) => setDataInicio(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="data-fim">Data de Fim</Label>
-                <Input
-                  id="data-fim"
-                  type="date"
-                  value={dataFim}
-                  onChange={(e) => setDataFim(e.target.value)}
-                />
-              </div>
-              <Button 
-                onClick={handleGerarRelatorio}
-                className="bg-primary hover:bg-primary/90"
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                Gerar Relatório
-              </Button>
-            </div>
-            {filtroAplicado && (
-              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-800">
-                  📊 Relatório gerado para o período de {format(new Date(dataInicio), 'dd/MM/yyyy')} até {format(new Date(dataFim), 'dd/MM/yyyy')}
-                  {fiancasData.length === 0 && " - Nenhum dado encontrado para este período."}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Estatísticas Resumidas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
