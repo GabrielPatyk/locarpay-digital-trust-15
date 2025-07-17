@@ -67,70 +67,95 @@ const ForgotPassword = () => {
       // Criar o link de redefinição
       const resetLink = `${window.location.origin}/redefinir-senha?token=${token}`;
 
-      // Enviar e-mail via edge function
-      const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
-        body: {
-          to: email.trim(),
-          subject: 'Redefinição de Senha - LocarPay',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background: linear-gradient(135deg, #F4D573 0%, #BC942C 100%); padding: 30px; text-align: center;">
-                <h1 style="color: #0C1C2E; margin: 0; font-size: 28px;">LocarPay</h1>
-                <p style="color: #0C1C2E; margin: 10px 0 0 0; opacity: 0.8;">Redefinição de Senha</p>
-              </div>
-              
-              <div style="padding: 40px 30px; background: white;">
-                <h2 style="color: #0C1C2E; margin-bottom: 20px;">Olá, ${userData.nome}!</h2>
-                
-                <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
-                  Recebemos uma solicitação para redefinir a senha da sua conta na LocarPay.
-                  Se você não fez esta solicitação, pode ignorar este e-mail.
-                </p>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${resetLink}" 
-                     style="background: linear-gradient(135deg, #F4D573 0%, #BC942C 100%); 
-                            color: #0C1C2E; 
-                            padding: 15px 30px; 
-                            text-decoration: none; 
-                            border-radius: 8px; 
-                            font-weight: bold; 
-                            display: inline-block;">
-                    Redefinir Senha
-                  </a>
+      // Disparar webhook
+      try {
+        const webhookData = {
+          email: email.trim(),
+          token: token,
+          usuario_id: userData.id,
+          link: resetLink
+        };
+
+        const webhookResponse = await fetch('https://webhook.lesenechal.com.br/webhook/Esqueci-A-Minha-Senha-LocarPay-Webhook', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(webhookData)
+        });
+
+        if (!webhookResponse.ok) {
+          console.error('Erro no webhook:', webhookResponse.status);
+        }
+      } catch (webhookError) {
+        console.error('Erro ao disparar webhook:', webhookError);
+        // Não falhar se o webhook não funcionar, continuar com o processo
+      }
+
+      // Enviar e-mail via edge function (backup)
+      try {
+        await supabase.functions.invoke('send-verification-email', {
+          body: {
+            to: email.trim(),
+            subject: 'Redefinição de Senha - LocarPay',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #F4D573 0%, #BC942C 100%); padding: 30px; text-align: center;">
+                  <h1 style="color: #0C1C2E; margin: 0; font-size: 28px;">LocarPay</h1>
+                  <p style="color: #0C1C2E; margin: 10px 0 0 0; opacity: 0.8;">Redefinição de Senha</p>
                 </div>
                 
-                <p style="color: #999; font-size: 14px; line-height: 1.5;">
-                  Este link expira em 30 minutos por motivos de segurança.<br>
-                  Se o botão não funcionar, copie e cole este link no seu navegador:<br>
-                  <span style="word-break: break-all;">${resetLink}</span>
-                </p>
+                <div style="padding: 40px 30px; background: white;">
+                  <h2 style="color: #0C1C2E; margin-bottom: 20px;">Olá, ${userData.nome}!</h2>
+                  
+                  <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
+                    Recebemos uma solicitação para redefinir a senha da sua conta na LocarPay.
+                    Se você não fez esta solicitação, pode ignorar este e-mail.
+                  </p>
+                  
+                  <div style="text-align: center; margin: 30px 0;">
+                    <a href="${resetLink}" 
+                       style="background: linear-gradient(135deg, #F4D573 0%, #BC942C 100%); 
+                              color: #0C1C2E; 
+                              padding: 15px 30px; 
+                              text-decoration: none; 
+                              border-radius: 8px; 
+                              font-weight: bold; 
+                              display: inline-block;">
+                      Redefinir Senha
+                    </a>
+                  </div>
+                  
+                  <p style="color: #999; font-size: 14px; line-height: 1.5;">
+                    Este link expira em 30 minutos por motivos de segurança.<br>
+                    Se o botão não funcionar, copie e cole este link no seu navegador:<br>
+                    <span style="word-break: break-all;">${resetLink}</span>
+                  </p>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; text-align: center;">
+                  <p style="color: #999; margin: 0; font-size: 12px;">
+                    Este é um e-mail automático. Não responda a esta mensagem.
+                  </p>
+                </div>
               </div>
-              
-              <div style="background: #f8f9fa; padding: 20px; text-align: center;">
-                <p style="color: #999; margin: 0; font-size: 12px;">
-                  Este é um e-mail automático. Não responda a esta mensagem.
-                </p>
-              </div>
-            </div>
-          `
-        }
-      });
-
-      if (emailError) {
+            `
+          }
+        });
+      } catch (emailError) {
         console.error('Erro ao enviar e-mail:', emailError);
-        throw new Error('Erro ao enviar e-mail. Tente novamente.');
+        // Não falhar se o e-mail não for enviado, o webhook já foi disparado
       }
 
       setSuccess(true);
       toast({
-        title: "E-mail enviado!",
-        description: "Verifique sua caixa de entrada para redefinir sua senha.",
+        title: "Solicitação enviada!",
+        description: "O processo de redefinição foi iniciado. Verifique sua caixa de entrada.",
       });
 
     } catch (err: any) {
       console.error('Erro ao solicitar redefinição:', err);
-      setError(err.message || 'Erro ao enviar e-mail. Tente novamente.');
+      setError(err.message || 'Erro ao processar solicitação. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -183,11 +208,11 @@ const ForgotPassword = () => {
                   />
                 </div>
                 <h1 className="text-2xl font-bold text-[#0C1C2E] mb-2">
-                  {success ? 'E-mail Enviado!' : 'Esqueceu sua senha?'}
+                  {success ? 'Solicitação Enviada!' : 'Esqueceu sua senha?'}
                 </h1>
                 <p className="text-sm text-[#0C1C2E]/70">
                   {success 
-                    ? 'Verifique sua caixa de entrada'
+                    ? 'O processo foi iniciado com sucesso'
                     : 'Digite seu e-mail para redefinir sua senha'
                   }
                 </p>
@@ -199,9 +224,9 @@ const ForgotPassword = () => {
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="h-8 w-8 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-[#0C1C2E] mb-2">E-mail enviado com sucesso!</h3>
+                  <h3 className="text-lg font-semibold text-[#0C1C2E] mb-2">Solicitação processada!</h3>
                   <p className="text-sm text-[#0C1C2E]/70">
-                    Verifique sua caixa de entrada (e spam) para o link de redefinição.
+                    O processo de redefinição de senha foi iniciado. Aguarde as instruções.
                   </p>
                 </div>
               ) : (
@@ -233,7 +258,7 @@ const ForgotPassword = () => {
                     className="w-full bg-gradient-to-r from-[#F4D573] to-[#BC942C] hover:from-[#E6C46E] hover:to-[#B48534] text-[#0C1C2E] font-semibold shadow-lg"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Enviando...' : 'Enviar link de redefinição'}
+                    {isLoading ? 'Enviando...' : 'Enviar solicitação'}
                   </Button>
                 </form>
               )}
