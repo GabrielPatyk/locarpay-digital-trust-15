@@ -8,7 +8,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { InactivityProvider } from "@/contexts/InactivityContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppSidebar from "@/components/AppSidebar";
-import ContractGuard from "@/components/ContractGuard";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -76,8 +75,7 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <InactivityProvider>
-              <ContractGuard>
-                <div className="min-h-screen flex w-full">
+              <div className="min-h-screen flex w-full">
                 <SidebarProvider>
                   <Routes>
                     {/* Public routes without sidebar */}
@@ -389,8 +387,7 @@ function App() {
                     <Route path="/detalhe-fianca/:id" element={<ProtectedRoute><DetalheFianca /></ProtectedRoute>} />
                   </Routes>
                 </SidebarProvider>
-                </div>
-              </ContractGuard>
+              </div>
             </InactivityProvider>
           </AuthProvider>
         </BrowserRouter>

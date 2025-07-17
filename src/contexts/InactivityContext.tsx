@@ -11,7 +11,7 @@ interface InactivityContextType {
 const InactivityContext = createContext<InactivityContextType | undefined>(undefined);
 
 export const InactivityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { logout, isLoading } = useAuth();
+  const { logout } = useAuth();
   const [showWarning, setShowWarning] = useState(false);
 
   const handleWarning = () => {
@@ -28,18 +28,12 @@ export const InactivityProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     resetTimer();
   };
 
-  // Always call useInactivityLogout to maintain consistent hook order
   const { resetTimer } = useInactivityLogout({
     onWarning: handleWarning,
     onLogout: handleLogout,
     inactivityTime: 60 * 60 * 1000, // 60 minutos
     warningTime: 5 * 60 * 1000 // 5 minutos
   });
-
-  // If auth is still loading, render children without the inactivity features
-  if (isLoading) {
-    return <>{children}</>;
-  }
 
   return (
     <InactivityContext.Provider value={{ resetTimer }}>
