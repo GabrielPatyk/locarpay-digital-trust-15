@@ -37,7 +37,7 @@ export const useContratoPendente = (user: User | null) => {
         .eq('id_imobiliaria', user.id)
         .eq('modelo_contrato', 'imobiliaria_locarpay')
         .eq('assinado', false)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Erro ao verificar contrato pendente:', error);

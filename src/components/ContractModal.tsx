@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, ExternalLink } from 'lucide-react';
 import { User } from '@/types/user';
@@ -26,6 +26,9 @@ const ContractModal: React.FC<ContractModalProps> = ({
           <DialogTitle className="text-xl font-bold text-[#0C1C2E] text-center">
             CONTRATO DE PARCERIA E DISPONIBILIZAÇÃO DE PLATAFORMA ENTRE LOCARPAY E IMOBILIÁRIA
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Modal para assinatura de contrato de parceria entre LocarPay e Imobiliária
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">
