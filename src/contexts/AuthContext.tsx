@@ -237,6 +237,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isOpen={showContractModal}
           user={user}
           onAccept={handleContractAccept}
+          linkAssinatura={contratoPendente?.link_assinatura}
         />
       )}
     </AuthContext.Provider>

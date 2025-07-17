@@ -1,74 +1,26 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle, ExternalLink } from 'lucide-react';
 import { User } from '@/types/user';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ContractModalProps {
   isOpen: boolean;
   user: User;
   onAccept: () => void;
+  linkAssinatura?: string | null;
 }
 
-const ContractModal: React.FC<ContractModalProps> = ({ isOpen, user, onAccept }) => {
-  const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  const getCurrentDate = () => {
-    return new Date().toLocaleDateString('pt-BR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  };
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (user?.id) {
-        const { data } = await supabase
-          .from('perfil_usuario')
-          .select('*')
-          .eq('usuario_id', user.id)
-          .single();
-        
-        setUserProfile(data);
-      }
-    };
-
-    if (isOpen) {
-      fetchUserProfile();
-    }
-  }, [isOpen, user?.id]);
-
-  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
-    
-    if (isAtBottom && !hasScrolledToEnd) {
-      setHasScrolledToEnd(true);
-    }
-  };
-
-  useEffect(() => {
-    setHasScrolledToEnd(false);
-  }, [isOpen]);
-
-  const getContractText = () => {
-    const nomeImobiliaria = userProfile?.nome_empresa || user.name;
-    const cnpjImobiliaria = userProfile?.cnpj || '';
-    const enderecoImobiliaria = userProfile ? 
-      `${userProfile.endereco || ''}, ${userProfile.numero || ''} - ${userProfile.bairro || ''}, ${userProfile.cidade || ''} - ${userProfile.estado || ''}, CEP ${userProfile.cep || ''}`.replace(/, ,/g, ',').replace(/^, |, $/g, '') 
-      : '';
-    const representanteImobiliaria = user.name;
-    const emailImobiliaria = user.email;
-    const telefoneImobiliaria = user.telefone || '';
-    const dataHoje = getCurrentDate();
-    const cidade = userProfile?.cidade || 'Balneário Camboriú';
-
-    return `CONTRATO DE PARCERIA E DISPONIBILIZAÇÃO DE PLATAFORMA
+const ContractModal: React.FC<ContractModalProps> = ({ 
+  isOpen, 
+  user, 
+  onAccept,
+  linkAssinatura 
+}) => {
+  const contractContent = `
+CONTRATO DE PARCERIA E DISPONIBILIZAÇÃO DE PLATAFORMA
 ENTRE LOCARPAY E IMOBILIÁRIA
 
 Pelo presente instrumento particular, de um lado:
@@ -77,7 +29,7 @@ LOCARPAY SOLUÇÕES EM GARANTIAS LOCATÍCIAS LTDA, pessoa jurídica de direito p
 
 E, de outro lado:
 
-${nomeImobiliaria}, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº ${cnpjImobiliaria}, com sede na ${enderecoImobiliaria}, neste ato representada por seu representante legal infra-assinado, doravante denominada simplesmente "IMOBILIÁRIA";
+${user?.name || 'IMOBILIÁRIA'}, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº [CNPJ DA IMOBILIÁRIA], com sede na [ENDEREÇO DA IMOBILIÁRIA], neste ato representada por seu representante legal infra-assinado, doravante denominada simplesmente "IMOBILIÁRIA";
 
 Celebram o presente Contrato de Parceria e Disponibilização de Plataforma, mediante as seguintes cláusulas e condições:
 
@@ -194,61 +146,61 @@ CLÁUSULA DÉCIMA SEXTA – DO USO INDEVIDO E SEGURANÇA DOS ACESSOS
 
 E, por estarem justas e contratadas, firmam o presente contrato em 2 (duas) vias de igual teor.
 
-${cidade}, ${dataHoje}
+[Local], [Data].
 
 LOCARPAY SOLUÇÕES EM GARANTIAS LOCATÍCIAS LTDA
-Marcelo Scos
-Diretor Executivo
+[REPRESENTANTE LOCARPAY]
+[CARGO LOCARPAY]
 
-${nomeImobiliaria}
-${representanteImobiliaria}
-Representante Legal
-${emailImobiliaria}
-${telefoneImobiliaria}`;
-  };
+${user?.name || 'IMOBILIÁRIA'}
+[REPRESENTANTE IMOBILIÁRIA]
+[CARGO IMOBILIÁRIA]
+${user?.email || '[E-MAIL IMOBILIÁRIA]'}
+[TELEFONE IMOBILIÁRIA]
+  `;
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}} modal>
-      <DialogContent 
-        className="max-w-4xl max-h-[90vh] p-0 z-[9999]" 
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader className="p-6 pb-4">
+    <Dialog open={isOpen} onOpenChange={() => {}}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
           <DialogTitle className="text-xl font-bold text-[#0C1C2E]">
-            Contrato de Parceria LOCARPAY
+            CONTRATO DE PARCERIA E DISPONIBILIZAÇÃO DE PLATAFORMA ENTRE LOCARPAY E IMOBILIÁRIA
           </DialogTitle>
-          <DialogDescription className="text-gray-600">
-            Por favor, leia todo o contrato para continuar usando a plataforma
-          </DialogDescription>
         </DialogHeader>
         
-        <div className="px-6 flex-1">
-          <ScrollArea 
-            className="h-[60vh] w-full border rounded-md p-4"
-            onScrollCapture={handleScroll}
-          >
-            <div className="whitespace-pre-line text-sm leading-relaxed">
-              {getContractText()}
-            </div>
-          </ScrollArea>
-        </div>
+        <div className="space-y-6">
+          <Alert className="border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-700">
+              <strong>Assinatura do contrato está pendente.</strong><br />
+              A plataforma continuará bloqueada até que o contrato seja assinado.
+            </AlertDescription>
+          </Alert>
 
-        <div className="p-6 pt-4 border-t">
-          {!hasScrolledToEnd && (
-            <p className="text-sm text-amber-600 mb-4 text-center">
-              Role até o final do documento para aceitar o contrato
-            </p>
-          )}
-          
-          <div className="flex justify-center">
-            <Button
-              onClick={onAccept}
-              disabled={!hasScrolledToEnd}
-              className="bg-[#F4D573] text-[#0C1C2E] hover:bg-[#BC942C] hover:text-white font-semibold px-8 py-2"
-            >
-              Aceito o contrato
-            </Button>
+          <div className="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+            {contractContent}
+          </div>
+
+          <div className="flex flex-col space-y-4">
+            {linkAssinatura ? (
+              <Button 
+                onClick={onAccept}
+                className="w-full bg-gradient-to-r from-[#F4D573] to-[#BC942C] hover:from-[#E6C46E] hover:to-[#B48534] text-[#0C1C2E] font-semibold"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Assinar Contrato
+              </Button>
+            ) : (
+              <Alert className="border-orange-200 bg-orange-50">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-700">
+                  <strong>Estamos validando suas informações.</strong><br />
+                  O link de assinatura do contrato ainda não está disponível.<br />
+                  Pedimos um prazo de até 2 horas para a geração do link, mas ele pode ser disponibilizado antes disso.<br />
+                  Fique atento ao seu e-mail e também à plataforma para acompanhar a liberação.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         </div>
       </DialogContent>
