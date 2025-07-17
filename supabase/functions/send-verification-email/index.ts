@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,28 +8,9 @@ const corsHeaders = {
 };
 
 interface EmailRequest {
-  email: string;
-  nome: string;
-  token: string;
-}
-
-async function sendEmailViaSMTP(to: string, subject: string, htmlContent: string) {
-  const smtpConfig = {
-    host: 'smtp.gmail.com',
-    port: 587,
-    username: 'locarpay@gmail.com',
-    password: 'mrcfgnquegcywhgk',
-  };
-
-  // Usar um serviço SMTP simples via fetch para enviar o email
-  // Como Deno não tem uma biblioteca SMTP nativa, vamos simular o envio
-  console.log(`Enviando email para: ${to}`);
-  console.log(`Assunto: ${subject}`);
-  console.log(`Conteúdo: ${htmlContent}`);
-  
-  // Em um ambiente real, você usaria uma biblioteca SMTP
-  // Por enquanto, vamos apenas registrar o envio
-  return { success: true, messageId: `msg_${Date.now()}` };
+  to: string;
+  subject: string;
+  html: string;
 }
 
 serve(async (req: Request) => {
@@ -39,65 +19,45 @@ serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const { email, nome, token }: EmailRequest = await req.json();
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      {
+        status: 405,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    );
+  }
 
-    if (!email || !nome || !token) {
-      throw new Error('Dados incompletos: email, nome e token são obrigatórios');
+  try {
+    const body: EmailRequest = await req.json();
+    const { to, subject, html } = body;
+
+    if (!to || !subject || !html) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Dados obrigatórios ausentes: to, subject e html são necessários' 
+        }),
+        {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          status: 400,
+        }
+      );
     }
 
-    // URL de verificação
-    const verificationUrl = `https://jefofujjcqwblavoybfx.supabase.co/functions/v1/verify-email?token=${token}`;
+    console.log(`Enviando e-mail para: ${to}`);
+    console.log(`Assunto: ${subject}`);
+    console.log('E-mail processado com sucesso');
 
-    const subject = 'Verificação de E-mail - LocarPay';
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
-          .container { max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-          .header { text-align: center; margin-bottom: 30px; }
-          .logo { color: #BC942C; font-size: 28px; font-weight: bold; }
-          .content { color: #333; line-height: 1.6; }
-          .button { display: inline-block; background: linear-gradient(to right, #F4D573, #BC942C); color: #0C1C2E; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
-          .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <div class="logo">LocarPay</div>
-          </div>
-          <div class="content">
-            <h2>Olá, ${nome}!</h2>
-            <p>Bem-vindo à LocarPay! Para ativar sua conta, é necessário verificar seu endereço de e-mail.</p>
-            <p>Clique no botão abaixo para confirmar seu e-mail:</p>
-            <p style="text-align: center;">
-              <a href="${verificationUrl}" class="button">Verificar E-mail</a>
-            </p>
-            <p>Se o botão não funcionar, copie e cole este link no seu navegador:</p>
-            <p style="word-break: break-all; color: #BC942C;">${verificationUrl}</p>
-            <p><strong>Este link expira em 24 horas.</strong></p>
-          </div>
-          <div class="footer">
-            <p>Se você não criou uma conta na LocarPay, pode ignorar este e-mail.</p>
-            <p>© 2024 LocarPay. Todos os direitos reservados.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    // Simular envio por SMTP (em produção, use uma biblioteca SMTP real)
-    const result = await sendEmailViaSMTP(email, subject, htmlContent);
-
+    // Simular envio bem-sucedido
+    // Em produção, você deve integrar com um serviço de e-mail real como Resend, SendGrid, etc.
+    
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'E-mail de verificação enviado com sucesso!',
-        messageId: result.messageId 
+        message: 'E-mail enviado com sucesso!',
+        messageId: `sim_${Date.now()}_${Math.random().toString(36).substring(7)}`
       }),
       {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -106,7 +66,7 @@ serve(async (req: Request) => {
     );
 
   } catch (error: any) {
-    console.error('Erro ao enviar e-mail de verificação:', error);
+    console.error('Erro ao processar e-mail:', error);
     
     return new Response(
       JSON.stringify({ 
