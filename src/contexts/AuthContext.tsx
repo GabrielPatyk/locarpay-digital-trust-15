@@ -1,8 +1,7 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserType } from '@/types/user';
-import { useContratoPendente } from '@/hooks/useContratoPendente';
-import ContractModal from '@/components/ContractModal';
 
 interface AuthContextType {
   user: User | null;
@@ -11,8 +10,6 @@ interface AuthContextType {
   updateUser: (updatedUser: User) => void;
   isAuthenticated: boolean;
   isLoading: boolean;
-  contratoPendente: any;
-  atualizarStatusContrato: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,9 +17,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showContractModal, setShowContractModal] = useState(false);
-  
-  const { contratoPendente, atualizarStatusContrato } = useContratoPendente(user);
 
   useEffect(() => {
     // Verificar se há um usuário salvo no localStorage
@@ -38,50 +32,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setIsLoading(false);
   }, []);
-
-  // Mostrar modal de contrato se necessário
-  useEffect(() => {
-    if (user?.type === 'imobiliaria' && contratoPendente && 
-        contratoPendente.modelo_contrato === 'imobiliaria_locarpay' && 
-        !contratoPendente.assinado) {
-      setShowContractModal(true);
-    } else {
-      setShowContractModal(false);
-    }
-  }, [user, contratoPendente]);
-
-  const handleContractAccept = async () => {
-    if (contratoPendente?.link_assinatura) {
-      // Redirecionar para o link de assinatura
-      window.open(contratoPendente.link_assinatura, '_blank');
-    } else {
-      // Marcar o contrato como assinado (temporariamente até ter o sistema de assinatura)
-      try {
-        const { error } = await supabase
-          .from('contratos_locarpay')
-          .update({ 
-            assinado: true,
-            data_assinatura: new Date().toISOString()
-          })
-          .eq('id', contratoPendente.id);
-
-        if (error) {
-          console.error('Erro ao atualizar contrato:', error);
-          alert('Erro ao processar aceitação do contrato. Tente novamente.');
-          return;
-        }
-
-        // Atualizar o status do contrato
-        await atualizarStatusContrato();
-        setShowContractModal(false);
-        
-        alert('Contrato aceito com sucesso! Bem-vindo à LOCARPAY!');
-      } catch (err) {
-        console.error('Erro ao aceitar contrato:', err);
-        alert('Erro ao processar aceitação do contrato. Tente novamente.');
-      }
-    }
-  };
 
   const login = async (email: string, password: string): Promise<{ success: boolean; redirectPath?: string; needsVerification?: boolean; userName?: string; isInactive?: boolean }> => {
     try {
@@ -225,20 +175,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout, 
       updateUser, 
       isAuthenticated, 
-      isLoading,
-      contratoPendente,
-      atualizarStatusContrato
+      isLoading
     }}>
       {children}
-      
-      {/* Modal de contrato que bloqueia o acesso */}
-      {showContractModal && user && (
-        <ContractModal
-          isOpen={showContractModal}
-          user={user}
-          onAccept={handleContractAccept}
-        />
-      )}
     </AuthContext.Provider>
   );
 };
