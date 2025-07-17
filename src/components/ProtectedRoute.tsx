@@ -37,9 +37,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // If user is imobiliaria and has a pending contract, block access to platform
-  if (user?.type === 'imobiliaria' && contratoPendente && 
-      contratoPendente.modelo_contrato === 'imobiliaria_locarpay' && 
-      !contratoPendente.assinado) {
+  if (user?.type === 'imobiliaria' && contratoPendente && !contratoPendente.assinado) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center p-8">
