@@ -21,28 +21,22 @@ export const useContratoPendente = (user: User | null) => {
       setLoading(true);
       console.log('Verificando contrato pendente para imobiliária:', user.id);
       
-      // Buscar todos os contratos da imobiliária
-      const { data: contratos, error } = await supabase
+      // Buscar contrato não assinado da imobiliária
+      const { data: contrato, error } = await supabase
         .from('contratos_imobiliaria_locarpay')
         .select('*')
-        .eq('id_imobiliaria', user.id);
+        .eq('id_imobiliaria', user.id)
+        .eq('assinado', false)
+        .maybeSingle();
 
       if (error) {
-        console.error('Erro ao verificar contratos:', error);
+        console.error('Erro ao verificar contrato pendente:', error);
         return;
       }
 
-      console.log('Todos os contratos encontrados:', contratos);
+      console.log('Contrato pendente encontrado:', contrato);
 
-      // Filtrar contrato específico não assinado
-      const contratoPendente = contratos?.find(c => 
-        c.modelo_contrato === 'imobiliaria_locarpay' && 
-        c.assinado === false
-      );
-
-      if (contratoPendente) {
-        console.log('Contrato pendente encontrado:', contratoPendente.modelo_contrato);
-        
+      if (contrato) {
         // Enviar webhook quando encontrar contrato pendente
         try {
           await fetch('https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6', {
@@ -53,8 +47,8 @@ export const useContratoPendente = (user: User | null) => {
             body: JSON.stringify({
               evento: 'contrato_pendente_detectado',
               id_imobiliaria: user.id,
-              id_contrato: contratoPendente.id,
-              modelo_contrato: contratoPendente.modelo_contrato,
+              id_contrato: contrato.id,
+              modelo_contrato: contrato.modelo_contrato,
               timestamp: new Date().toISOString()
             })
           });
@@ -66,7 +60,7 @@ export const useContratoPendente = (user: User | null) => {
         console.log('Nenhum contrato pendente encontrado');
       }
 
-      setContratoPendente(contratoPendente || null);
+      setContratoPendente(contrato);
     } catch (err) {
       console.error('Erro ao verificar contrato pendente:', err);
     } finally {

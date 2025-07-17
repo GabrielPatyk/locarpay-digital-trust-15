@@ -14,7 +14,7 @@ const Index = () => {
   }
 
   if (isAuthenticated) {
-    // If user is imobiliaria and has a pending contract, stay here to show the modal
+    // Se o usuário é imobiliária e tem contrato pendente, mostrar modal
     if (user?.type === 'imobiliaria' && contratoPendente && !contratoPendente.assinado) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -31,7 +31,19 @@ const Index = () => {
       );
     }
     
-    return <Navigate to="/dashboard" replace />;
+    // Define redirect path based on user type
+    const redirectPaths: Record<string, string> = {
+      inquilino: '/inquilino',
+      imobiliaria: '/imobiliaria',
+      analista: '/analista',
+      juridico: '/juridico',
+      sdr: '/sdr',
+      executivo: '/executivo',
+      financeiro: '/financeiro',
+      admin: '/admin'
+    };
+    
+    return <Navigate to={redirectPaths[user.type] || '/dashboard'} replace />;
   }
 
   return <Navigate to="/login" replace />;

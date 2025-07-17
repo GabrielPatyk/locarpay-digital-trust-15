@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import ContractPendingModal from '@/components/ContractPendingModal';
 
@@ -11,7 +12,6 @@ const ContractGuard: React.FC<ContractGuardProps> = ({ children }) => {
   // Verificar se é imobiliária com contrato pendente
   const hasContractPending = user?.type === 'imobiliaria' && 
     contratoPendente && 
-    contratoPendente.modelo_contrato === 'imobiliaria_locarpay' && 
     !contratoPendente.assinado;
 
   if (hasContractPending) {
