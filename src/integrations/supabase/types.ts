@@ -14,76 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      contratos_imobiliaria_locarpay: {
-        Row: {
-          arquivo_download: string | null
-          assinado: boolean
-          criado_por: string | null
-          dados_contrato: Json | null
-          data_assinatura: string | null
-          data_atualizacao: string
-          data_criacao: string
-          id: string
-          id_executivo: string | null
-          id_imobiliaria: string
-          link_assinatura: string | null
-          modelo_contrato: string
-          observacoes: string | null
-        }
-        Insert: {
-          arquivo_download?: string | null
-          assinado?: boolean
-          criado_por?: string | null
-          dados_contrato?: Json | null
-          data_assinatura?: string | null
-          data_atualizacao?: string
-          data_criacao?: string
-          id?: string
-          id_executivo?: string | null
-          id_imobiliaria: string
-          link_assinatura?: string | null
-          modelo_contrato: string
-          observacoes?: string | null
-        }
-        Update: {
-          arquivo_download?: string | null
-          assinado?: boolean
-          criado_por?: string | null
-          dados_contrato?: Json | null
-          data_assinatura?: string | null
-          data_atualizacao?: string
-          data_criacao?: string
-          id?: string
-          id_executivo?: string | null
-          id_imobiliaria?: string
-          link_assinatura?: string | null
-          modelo_contrato?: string
-          observacoes?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contratos_locarpay_criado_por_fkey"
-            columns: ["criado_por"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contratos_locarpay_id_executivo_fkey"
-            columns: ["id_executivo"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contratos_locarpay_id_imobiliaria_fkey"
-            columns: ["id_imobiliaria"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       fiancas_locaticias: {
         Row: {
           comprovante_pagamento: string | null
@@ -345,8 +275,13 @@ export type Database = {
           id: string
           id_imobiliaria: string
           inquilino_nome: string | null
+          midias_urls: string[] | null
+          nome_imovel: string | null
           numero: string
           pais: string
+          proprietario_email: string | null
+          proprietario_nome: string | null
+          proprietario_whatsapp: string | null
           status: string
           tipo: string
           valor_aluguel: number
@@ -364,8 +299,13 @@ export type Database = {
           id?: string
           id_imobiliaria: string
           inquilino_nome?: string | null
+          midias_urls?: string[] | null
+          nome_imovel?: string | null
           numero: string
           pais?: string
+          proprietario_email?: string | null
+          proprietario_nome?: string | null
+          proprietario_whatsapp?: string | null
           status?: string
           tipo: string
           valor_aluguel: number
@@ -383,8 +323,13 @@ export type Database = {
           id?: string
           id_imobiliaria?: string
           inquilino_nome?: string | null
+          midias_urls?: string[] | null
+          nome_imovel?: string | null
           numero?: string
           pais?: string
+          proprietario_email?: string | null
+          proprietario_nome?: string | null
+          proprietario_whatsapp?: string | null
           status?: string
           tipo?: string
           valor_aluguel?: number

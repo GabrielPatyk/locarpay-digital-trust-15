@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -5,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface ImovelImobiliaria {
   id: string;
+  nome_imovel?: string;
   endereco: string;
   numero: string;
   complemento?: string;
@@ -18,11 +20,16 @@ export interface ImovelImobiliaria {
   descricao?: string;
   status: 'disponivel' | 'ocupado' | 'manutencao';
   inquilino_nome?: string;
+  midias_urls?: string[];
+  proprietario_nome?: string;
+  proprietario_email?: string;
+  proprietario_whatsapp?: string;
   data_criacao: string;
   data_atualizacao: string;
 }
 
 export interface CreateImovelData {
+  nome_imovel?: string;
   endereco: string;
   numero: string;
   complemento?: string;
@@ -33,6 +40,10 @@ export interface CreateImovelData {
   area_metros?: number;
   valor_aluguel: number;
   descricao?: string;
+  midias_urls?: string[];
+  proprietario_nome?: string;
+  proprietario_email?: string;
+  proprietario_whatsapp?: string;
 }
 
 export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter: string = '') => {
@@ -62,7 +73,9 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
           imovel.endereco.toLowerCase().includes(searchTerm.toLowerCase()) ||
           imovel.bairro.toLowerCase().includes(searchTerm.toLowerCase()) ||
           imovel.tipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          imovel.cidade.toLowerCase().includes(searchTerm.toLowerCase())
+          imovel.cidade.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (imovel.nome_imovel && imovel.nome_imovel.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (imovel.proprietario_nome && imovel.proprietario_nome.toLowerCase().includes(searchTerm.toLowerCase()))
         );
       }
 

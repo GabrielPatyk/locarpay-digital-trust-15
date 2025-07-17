@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useImoveisImobiliariaReal } from '@/hooks/useImoveisImobiliariaReal';
@@ -20,7 +21,10 @@ import {
   User,
   Loader2,
   Home,
-  Ruler
+  Ruler,
+  Phone,
+  Mail,
+  ImageIcon
 } from 'lucide-react';
 
 const ImoveisImobiliaria = () => {
@@ -127,7 +131,7 @@ const ImoveisImobiliaria = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
-                    placeholder="Buscar por endereço, bairro, cidade ou tipo..."
+                    placeholder="Buscar por nome, endereço, bairro, cidade, tipo ou proprietário..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -182,86 +186,150 @@ const ImoveisImobiliaria = () => {
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {imoveis.map((imovel) => (
-                  <div
-                    key={imovel.id}
-                    className="p-4 rounded-lg border hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2 sm:gap-0">
-                      <div>
-                        <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                          <Home className="h-4 w-4" />
-                          {imovel.endereco}, {imovel.numero}
-                        </h4>
-                        <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                          <MapPin className="h-3 w-3" />
-                          {imovel.bairro}, {imovel.cidade} - {imovel.estado}
-                        </p>
-                        {imovel.complemento && (
-                          <p className="text-sm text-gray-500">{imovel.complemento}</p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Badge className={getStatusColor(imovel.status)}>
-                          {getStatusLabel(imovel.status)}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-3">
-                      <div>
-                        <p className="text-sm text-gray-500">Tipo</p>
-                        <p className="text-sm font-medium">{imovel.tipo}</p>
-                      </div>
-                      {imovel.area_metros && (
-                        <div>
-                          <p className="text-sm text-gray-500">Área</p>
-                          <p className="text-sm font-medium flex items-center gap-1">
-                            <Ruler className="h-3 w-3" />
-                            {imovel.area_metros}m²
-                          </p>
+                  <Card key={imovel.id} className="border hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col lg:flex-row gap-6">
+                        {/* Seção de Mídias */}
+                        <div className="lg:w-1/4">
+                          {imovel.midias_urls && imovel.midias_urls.length > 0 ? (
+                            <div className="grid grid-cols-2 gap-2">
+                              {imovel.midias_urls.slice(0, 4).map((url, index) => (
+                                <img
+                                  key={index}
+                                  src={url}
+                                  alt={`Mídia ${index + 1}`}
+                                  className="w-full h-20 object-cover rounded border"
+                                />
+                              ))}
+                              {imovel.midias_urls.length > 4 && (
+                                <div className="w-full h-20 bg-gray-100 rounded border flex items-center justify-center text-sm text-gray-600">
+                                  +{imovel.midias_urls.length - 4} fotos
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="h-20 bg-gray-100 rounded border flex items-center justify-center">
+                              <ImageIcon className="h-8 w-8 text-gray-400" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                      <div>
-                        <p className="text-sm text-gray-500">Valor do Aluguel</p>
-                        <p className="text-sm font-medium text-success flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          R$ {imovel.valor_aluguel.toLocaleString()}
-                        </p>
-                      </div>
-                      {imovel.inquilino_nome && (
-                        <div>
-                          <p className="text-sm text-gray-500">Inquilino</p>
-                          <p className="text-sm font-medium">{imovel.inquilino_nome}</p>
+
+                        {/* Informações Principais */}
+                        <div className="lg:w-3/4 space-y-4">
+                          <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2 sm:gap-0">
+                            <div>
+                              <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                                <Home className="h-4 w-4" />
+                                {imovel.nome_imovel || `${imovel.endereco}, ${imovel.numero}`}
+                              </h4>
+                              <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                                <MapPin className="h-3 w-3" />
+                                {imovel.endereco}, {imovel.numero} - {imovel.bairro}, {imovel.cidade} - {imovel.estado}
+                              </p>
+                              {imovel.complemento && (
+                                <p className="text-sm text-gray-500">{imovel.complemento}</p>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <Badge className={getStatusColor(imovel.status)}>
+                                {getStatusLabel(imovel.status)}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                              <p className="text-sm text-gray-500">Tipo</p>
+                              <p className="text-sm font-medium">{imovel.tipo}</p>
+                            </div>
+                            {imovel.area_metros && (
+                              <div>
+                                <p className="text-sm text-gray-500">Área</p>
+                                <p className="text-sm font-medium flex items-center gap-1">
+                                  <Ruler className="h-3 w-3" />
+                                  {imovel.area_metros}m²
+                                </p>
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-sm text-gray-500">Valor do Aluguel</p>
+                              <p className="text-sm font-medium text-success flex items-center gap-1">
+                                <DollarSign className="h-3 w-3" />
+                                R$ {imovel.valor_aluguel.toLocaleString()}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Cadastrado em</p>
+                              <p className="text-sm font-medium">
+                                {new Date(imovel.data_criacao).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Dados do Proprietário */}
+                          {(imovel.proprietario_nome || imovel.proprietario_email || imovel.proprietario_whatsapp) && (
+                            <div className="bg-gray-50 p-3 rounded">
+                              <h5 className="text-sm font-medium text-gray-900 mb-2">Dados do Proprietário</h5>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {imovel.proprietario_nome && (
+                                  <div>
+                                    <p className="text-xs text-gray-500">Nome</p>
+                                    <p className="text-sm font-medium">{imovel.proprietario_nome}</p>
+                                  </div>
+                                )}
+                                {imovel.proprietario_email && (
+                                  <div>
+                                    <p className="text-xs text-gray-500">Email</p>
+                                    <p className="text-sm font-medium flex items-center gap-1">
+                                      <Mail className="h-3 w-3" />
+                                      {imovel.proprietario_email}
+                                    </p>
+                                  </div>
+                                )}
+                                {imovel.proprietario_whatsapp && (
+                                  <div>
+                                    <p className="text-xs text-gray-500">WhatsApp</p>
+                                    <p className="text-sm font-medium flex items-center gap-1">
+                                      <Phone className="h-3 w-3" />
+                                      {imovel.proprietario_whatsapp}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Inquilino se houver */}
+                          {imovel.inquilino_nome && (
+                            <div>
+                              <p className="text-sm text-gray-500">Inquilino</p>
+                              <p className="text-sm font-medium">{imovel.inquilino_nome}</p>
+                            </div>
+                          )}
+
+                          {imovel.descricao && (
+                            <div>
+                              <p className="text-sm text-gray-500">Descrição</p>
+                              <p className="text-sm text-gray-700">{imovel.descricao}</p>
+                            </div>
+                          )}
+
+                          <div className="flex flex-wrap gap-2 pt-2">
+                            <Button variant="outline" size="sm">
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver Detalhes
+                            </Button>
+                            <Button variant="outline" size="sm">
+                              <Edit className="mr-2 h-4 w-4" />
+                              Editar
+                            </Button>
+                          </div>
                         </div>
-                      )}
-                      <div>
-                        <p className="text-sm text-gray-500">Cadastrado em</p>
-                        <p className="text-sm font-medium">
-                          {new Date(imovel.data_criacao).toLocaleDateString()}
-                        </p>
                       </div>
-                    </div>
-
-                    {imovel.descricao && (
-                      <div className="mb-3">
-                        <p className="text-sm text-gray-500">Descrição</p>
-                        <p className="text-sm text-gray-700">{imovel.descricao}</p>
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap gap-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="mr-2 h-4 w-4" />
-                        Ver Detalhes
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Edit className="mr-2 h-4 w-4" />
-                        Editar
-                      </Button>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             )}
