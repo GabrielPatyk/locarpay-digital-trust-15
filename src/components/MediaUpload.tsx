@@ -24,6 +24,16 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Função para sanitizar nome do arquivo
+  const sanitizeFileName = (fileName: string): string => {
+    // Remove caracteres especiais e acentos, mantém apenas letras, números, pontos e hifens
+    return fileName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^a-zA-Z0-9.-]/g, '_') // Substitui caracteres especiais por underscore
+      .toLowerCase();
+  };
+
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     
@@ -53,19 +63,29 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
           throw new Error(`Tipo de arquivo não permitido para ${file.name}. Aceitos: JPG, PNG, WEBP`);
         }
 
-        const fileName = `${Date.now()}-${Math.random()}-${file.name}`;
+        // Sanitizar nome do arquivo
+        const sanitizedFileName = sanitizeFileName(file.name);
+        const fileName = `${Date.now()}-${Math.random()}-${sanitizedFileName}`;
         const filePath = `${user?.id}/${fileName}`;
+
+        console.log('Fazendo upload do arquivo:', filePath);
 
         const { data, error } = await supabase.storage
           .from('imoveis-midias')
           .upload(filePath, file);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erro no upload:', error);
+          throw error;
+        }
+
+        console.log('Upload realizado com sucesso:', data);
 
         const { data: urlData } = supabase.storage
           .from('imoveis-midias')
           .getPublicUrl(filePath);
 
+        console.log('URL pública gerada:', urlData.publicUrl);
         return urlData.publicUrl;
       });
 
@@ -88,6 +108,10 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
       });
     } finally {
       setIsUploading(false);
+      // Limpar o input para permitir selecionar os mesmos arquivos novamente se necessário
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -98,6 +122,7 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
         const pathMatch = urlToRemove.match(/\/storage\/v1\/object\/public\/imoveis-midias\/(.+)$/);
         if (pathMatch) {
           const filePath = pathMatch[1];
+          console.log('Removendo arquivo do storage:', filePath);
           await supabase.storage
             .from('imoveis-midias')
             .remove([filePath]);
@@ -166,6 +191,10 @@ const MediaUpload: React.FC<MediaUploadProps> = ({
                 src={url}
                 alt={`Mídia ${index + 1}`}
                 className="w-full h-24 object-cover rounded-lg border"
+                onError={(e) => {
+                  console.error('Erro ao carregar imagem:', url);
+                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMiAxNkw4IDEySDExVjhIMTNWMTJIMTZMMTIgMTZaIiBmaWxsPSIjOUI5Qjk5Ii8+Cjx0ZXh0IHg9IjEyIiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOUI5Qjk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5FcnJvPC90ZXh0Pgo8L3N2Zz4K';
+                }}
               />
               <button
                 type="button"
