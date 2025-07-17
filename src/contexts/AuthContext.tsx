@@ -44,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user?.type === 'imobiliaria' && contratoPendente && 
         contratoPendente.modelo_contrato === 'imobiliaria_locarpay' && 
         !contratoPendente.assinado) {
+      console.log('Mostrando modal de contrato para imobiliária:', user.id);
       setShowContractModal(true);
     } else {
       setShowContractModal(false);
@@ -54,32 +55,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (contratoPendente?.link_assinatura) {
       // Redirecionar para o link de assinatura
       window.open(contratoPendente.link_assinatura, '_blank');
-    } else {
-      // Marcar o contrato como assinado (temporariamente até ter o sistema de assinatura)
-      try {
-        const { error } = await supabase
-          .from('contratos_locarpay')
-          .update({ 
-            assinado: true,
-            data_assinatura: new Date().toISOString()
-          })
-          .eq('id', contratoPendente.id);
-
-        if (error) {
-          console.error('Erro ao atualizar contrato:', error);
-          alert('Erro ao processar aceitação do contrato. Tente novamente.');
-          return;
-        }
-
-        // Atualizar o status do contrato
+      
+      // Atualizar o status do contrato após alguns segundos para verificar se foi assinado
+      setTimeout(async () => {
         await atualizarStatusContrato();
-        setShowContractModal(false);
-        
-        alert('Contrato aceito com sucesso! Bem-vindo à LOCARPAY!');
-      } catch (err) {
-        console.error('Erro ao aceitar contrato:', err);
-        alert('Erro ao processar aceitação do contrato. Tente novamente.');
-      }
+      }, 3000);
     }
   };
 

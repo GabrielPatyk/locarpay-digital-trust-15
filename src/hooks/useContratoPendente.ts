@@ -29,6 +29,8 @@ export const useContratoPendente = (user: User | null) => {
     try {
       setLoading(true);
       
+      console.log('Verificando contrato pendente para imobiliária:', user.id);
+      
       const { data, error } = await supabase
         .from('contratos_locarpay')
         .select('*')
@@ -42,6 +44,7 @@ export const useContratoPendente = (user: User | null) => {
         return;
       }
 
+      console.log('Contrato pendente encontrado:', data);
       setContratoPendente(data || null);
     } catch (err) {
       console.error('Erro ao verificar contrato pendente:', err);

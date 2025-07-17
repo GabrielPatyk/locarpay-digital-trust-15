@@ -15,7 +15,9 @@ const Index = () => {
 
   if (isAuthenticated) {
     // If user is imobiliaria and has a pending contract, stay here to show the modal
-    if (user?.type === 'imobiliaria' && contratoPendente && !contratoPendente.assinado) {
+    if (user?.type === 'imobiliaria' && contratoPendente && 
+        contratoPendente.modelo_contrato === 'imobiliaria_locarpay' && 
+        !contratoPendente.assinado) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center p-8">
