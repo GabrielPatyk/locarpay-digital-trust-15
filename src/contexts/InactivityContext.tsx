@@ -14,11 +14,6 @@ export const InactivityProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const { logout, isLoading } = useAuth();
   const [showWarning, setShowWarning] = useState(false);
 
-  // Don't render anything while auth is loading to prevent useAuth errors
-  if (isLoading) {
-    return <>{children}</>;
-  }
-
   const handleWarning = () => {
     setShowWarning(true);
   };
@@ -33,12 +28,18 @@ export const InactivityProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     resetTimer();
   };
 
+  // Always call useInactivityLogout to maintain consistent hook order
   const { resetTimer } = useInactivityLogout({
     onWarning: handleWarning,
     onLogout: handleLogout,
     inactivityTime: 60 * 60 * 1000, // 60 minutos
     warningTime: 5 * 60 * 1000 // 5 minutos
   });
+
+  // If auth is still loading, render children without the inactivity features
+  if (isLoading) {
+    return <>{children}</>;
+  }
 
   return (
     <InactivityContext.Provider value={{ resetTimer }}>
