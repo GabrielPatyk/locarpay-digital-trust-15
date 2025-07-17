@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Marcar o contrato como assinado (temporariamente até ter o sistema de assinatura)
       try {
         const { error } = await supabase
-          .from('contratos_locarpay')
+          .from('contratos_imobiliaria_locarpay')
           .update({ 
             assinado: true,
             data_assinatura: new Date().toISOString()

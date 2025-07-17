@@ -11,8 +11,13 @@ interface InactivityContextType {
 const InactivityContext = createContext<InactivityContextType | undefined>(undefined);
 
 export const InactivityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { logout } = useAuth();
+  const { logout, isLoading } = useAuth();
   const [showWarning, setShowWarning] = useState(false);
+
+  // Don't render anything while auth is loading to prevent useAuth errors
+  if (isLoading) {
+    return <>{children}</>;
+  }
 
   const handleWarning = () => {
     setShowWarning(true);

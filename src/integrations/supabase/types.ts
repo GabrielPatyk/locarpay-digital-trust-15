@@ -14,7 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      contratos_locarpay: {
+      contratos_imobiliaria_locarpay: {
         Row: {
           arquivo_download: string | null
           assinado: boolean

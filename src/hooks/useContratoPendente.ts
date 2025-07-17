@@ -2,19 +2,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/user';
+import { Tables } from '@/integrations/supabase/types';
 
-interface ContratoPendente {
-  id: string;
-  id_imobiliaria: string;
-  id_executivo: string;
-  criado_por: string;
-  data_criacao: string;
-  modelo_contrato: string;
-  link_assinatura: string | null;
-  arquivo_download: string | null;
-  assinado: boolean;
-  dados_contrato: any;
-}
+type ContratoPendente = Tables<'contratos_imobiliaria_locarpay'>;
 
 export const useContratoPendente = (user: User | null) => {
   const [contratoPendente, setContratoPendente] = useState<ContratoPendente | null>(null);
@@ -30,7 +20,7 @@ export const useContratoPendente = (user: User | null) => {
       setLoading(true);
       
       const { data, error } = await supabase
-        .from('contratos_locarpay')
+        .from('contratos_imobiliaria_locarpay')
         .select('*')
         .eq('id_imobiliaria', user.id)
         .eq('modelo_contrato', 'imobiliaria_locarpay')
