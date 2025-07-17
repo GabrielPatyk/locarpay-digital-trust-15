@@ -31,57 +31,59 @@ export const useContratoPendente = (user: User | null) => {
       
       console.log('Verificando contrato pendente para imobiliária:', user.id);
       
-      // Query direta sem usar RLS para debug
-      const { data: allContracts, error } = await supabase
+      // Buscar todos os contratos da imobiliária
+      const { data: contratos, error } = await supabase
         .from('contratos_locarpay')
         .select('*')
         .eq('id_imobiliaria', user.id);
 
-      console.log('Todos os contratos encontrados:', allContracts);
+      console.log('Contratos encontrados:', contratos);
 
-      // Filtrar contrato específico
-      const contratoImobiliaria = allContracts?.find(contract => 
-        contract.modelo_contrato === 'imobiliaria_locarpay'
-      );
-
-      if (contratoImobiliaria) {
-        console.log('Contrato pendente encontrado:', contratoImobiliaria.modelo_contrato);
-        console.log('Status assinado:', contratoImobiliaria.assinado);
-        
-        setContratoPendente(contratoImobiliaria);
-        
-        // Disparar webhook se contrato não assinado
-        if (contratoImobiliaria.modelo_contrato === 'imobiliaria_locarpay' && contratoImobiliaria.assinado === false) {
-          console.log('Disparando webhook...');
-          try {
-            const response = await fetch('https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                id_imobiliaria: contratoImobiliaria.id_imobiliaria,
-                modelo_contrato: contratoImobiliaria.modelo_contrato,
-                assinado: contratoImobiliaria.assinado,
-                contrato_id: contratoImobiliaria.id,
-                timestamp: new Date().toISOString()
-              })
-            });
-            console.log('Webhook disparado com sucesso:', response.status);
-          } catch (webhookError) {
-            console.error('Erro ao disparar webhook:', webhookError);
-          }
-        }
-      } else {
-        console.log('Contrato pendente encontrado: null');
-        setContratoPendente(null);
-      }
-      
       if (error) {
         console.error('Erro ao verificar contrato pendente:', error);
+        setContratoPendente(null);
+        return;
+      }
+
+      // Verificar se existe contrato pendente específico
+      const contratoPendente = contratos?.find(c => 
+        c.modelo_contrato === 'imobiliaria_locarpay' && 
+        c.assinado === false
+      );
+
+      if (contratoPendente) {
+        console.log('Contrato pendente encontrado:', contratoPendente.modelo_contrato);
+        console.log('Status assinado:', contratoPendente.assinado);
+        
+        setContratoPendente(contratoPendente);
+        
+        // Disparar webhook para contrato pendente
+        console.log('Disparando webhook para contrato pendente...');
+        try {
+          const response = await fetch('https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id_imobiliaria: contratoPendente.id_imobiliaria,
+              modelo_contrato: contratoPendente.modelo_contrato,
+              assinado: contratoPendente.assinado,
+              contrato_id: contratoPendente.id,
+              timestamp: new Date().toISOString()
+            })
+          });
+          console.log('Webhook disparado com sucesso:', response.status);
+        } catch (webhookError) {
+          console.error('Erro ao disparar webhook:', webhookError);
+        }
+      } else {
+        console.log('Nenhum contrato pendente encontrado');
+        setContratoPendente(null);
       }
     } catch (err) {
       console.error('Erro ao verificar contrato pendente:', err);
+      setContratoPendente(null);
     } finally {
       setLoading(false);
     }
