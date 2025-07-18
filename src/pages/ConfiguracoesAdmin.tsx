@@ -153,6 +153,9 @@ const ConfiguracoesAdmin = () => {
 
   const handleImageChange = async (imageUrl: string) => {
     setFormData(prev => ({ ...prev, imagem_perfil: imageUrl }));
+    if (user) {
+      updateUser({ ...user, imagem_perfil: imageUrl });
+    }
   };
 
   return (
@@ -171,7 +174,7 @@ const ConfiguracoesAdmin = () => {
           </CardHeader>
           <CardContent>
             <ImageUpload
-              currentImage={formData.imagem_perfil}
+              currentImage={user?.imagem_perfil || ''}
               onImageChange={handleImageChange}
               userName={user?.name || 'Usuário'}
             />
@@ -235,8 +238,8 @@ const ConfiguracoesAdmin = () => {
                 <p className="font-medium">Perfil Administrativo</p>
                 <p className="text-sm text-gray-600">Status do seu perfil de administrador</p>
               </div>
-              <Badge className={user?.cargo === 'admin' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                {user?.cargo === 'admin' ? (
+              <Badge className={user?.type === 'admin' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                {user?.type === 'admin' ? (
                   <>
                     <CheckCircle className="mr-1 h-3 w-3" />
                     Administrador
@@ -244,7 +247,7 @@ const ConfiguracoesAdmin = () => {
                 ) : (
                   <>
                     <AlertTriangle className="mr-1 h-3 w-3" />
-                    {user?.cargo || 'Não Definido'}
+                    {user?.type || 'Não Definido'}
                   </>
                 )}
               </Badge>
