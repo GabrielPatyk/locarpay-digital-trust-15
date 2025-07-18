@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,16 +10,23 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Copy, RefreshCw, Eye, EyeOff, User, Building, DollarSign, Settings, Bell, Shield, Camera } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 
 const ConfiguracoesAdmin = () => {
   const { toast } = useToast();
+  const { user, updateUser } = useAuth();
+  const { profile, updateUserData } = useUserProfile();
+  const { formatPhone, isValidPhone } = usePhoneFormatter();
+  
   const [showToken, setShowToken] = useState(false);
   const [apiToken, setApiToken] = useState('lcp_test_1234567890abcdef1234567890abcdef');
   
   const [dadosPessoais, setDadosPessoais] = useState({
-    nome: 'Administrador Sistema',
-    email: 'admin@locarpay.com',
-    telefone: '(11) 99999-9999',
+    nome: '',
+    email: '',
+    telefone: '',
     cargo: 'Administrador'
   });
 
@@ -34,11 +41,45 @@ const ConfiguracoesAdmin = () => {
     mensagemManutencao: 'Sistema em manutenção. Retornaremos em breve.'
   });
 
-  const salvarDadosPessoais = () => {
-    toast({
-      title: "Dados pessoais salvos!",
-      description: "Suas informações foram atualizadas com sucesso.",
+  // Carregar dados do usuário ao montar o componente
+  useEffect(() => {
+    if (user) {
+      setDadosPessoais({
+        nome: user.name || '',
+        email: user.email || '',
+        telefone: user.telefone ? formatPhone(user.telefone) : '+55 ',
+        cargo: 'Administrador'
+      });
+    }
+  }, [user, formatPhone]);
+
+  const salvarDadosPessoais = async () => {
+    const telefoneNumbers = dadosPessoais.telefone.replace(/\D/g, '');
+    
+    if (!isValidPhone(dadosPessoais.telefone)) {
+      toast({
+        title: "Telefone inválido",
+        description: "Por favor, insira um telefone válido no formato brasileiro.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const success = await updateUserData({
+      nome: dadosPessoais.nome,
+      email: dadosPessoais.email,
+      telefone: telefoneNumbers
     });
+
+    if (success && user) {
+      // Atualizar o contexto do usuário
+      updateUser({
+        ...user,
+        name: dadosPessoais.nome,
+        email: dadosPessoais.email,
+        telefone: telefoneNumbers
+      });
+    }
   };
 
   const salvarConfiguracoes = () => {
@@ -67,10 +108,11 @@ const ConfiguracoesAdmin = () => {
 
   const handleImageChange = (imageUrl: string) => {
     console.log('Imagem de perfil atualizada:', imageUrl);
-    toast({
-      title: "Foto de perfil atualizada!",
-      description: "Sua nova foto de perfil foi salva com sucesso.",
-    });
+  };
+
+  const handleTelefoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value);
+    setDadosPessoais(prev => ({ ...prev, telefone: formatted }));
   };
 
   return (
@@ -90,6 +132,7 @@ const ConfiguracoesAdmin = () => {
           <CardContent>
             <ImageUpload 
               onImageChange={handleImageChange}
+              currentImage={user?.imagem_perfil}
               userName={dadosPessoais.nome}
             />
           </CardContent>
@@ -114,7 +157,13 @@ const ConfiguracoesAdmin = () => {
                   id="nome"
                   value={dadosPessoais.nome}
                   onChange={(e) => setDadosPessoais(prev => ({ ...prev, nome: e.target.value }))}
+                  placeholder={user?.name || 'Digite seu nome completo'}
                 />
+                {user?.name && (
+                  <p className="text-xs text-gray-500">
+                    Atual: {user.name}
+                  </p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -124,7 +173,13 @@ const ConfiguracoesAdmin = () => {
                   type="email"
                   value={dadosPessoais.email}
                   onChange={(e) => setDadosPessoais(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder={user?.email || 'Digite seu e-mail'}
                 />
+                {user?.email && (
+                  <p className="text-xs text-gray-500">
+                    Atual: {user.email}
+                  </p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -132,8 +187,14 @@ const ConfiguracoesAdmin = () => {
                 <Input
                   id="telefone"
                   value={dadosPessoais.telefone}
-                  onChange={(e) => setDadosPessoais(prev => ({ ...prev, telefone: e.target.value }))}
+                  onChange={handleTelefoneChange}
+                  placeholder="+55 (00) 0 0000-0000"
                 />
+                {user?.telefone && (
+                  <p className="text-xs text-gray-500">
+                    Atual: {formatPhone(user.telefone)}
+                  </p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -327,7 +388,6 @@ const ConfiguracoesAdmin = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Documentação da API */}
             <div className="space-y-4">
               <h4 className="text-lg font-semibold">Documentação da API</h4>
               <div className="bg-gray-50 p-4 rounded-lg space-y-3">
