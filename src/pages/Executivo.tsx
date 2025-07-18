@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { useDashboardExecutivo } from '@/hooks/useDashboardExecutivo';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import { toast } from '@/hooks/use-toast';
+import ImobiliariaDetalhesModal from '@/components/ImobiliariaDetalhesModal';
+import type { ImobiliariaComPerfil } from '@/hooks/useImobiliariasExecutivo';
 import { 
   Building, 
   Users, 
@@ -23,6 +25,8 @@ import {
 const Executivo = () => {
   const { dashboardData, isLoading } = useDashboardExecutivo();
   const { formatPhone, formatCNPJ } = usePhoneFormatter();
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedImobiliaria, setSelectedImobiliaria] = useState<ImobiliariaComPerfil | null>(null);
 
   const handleLigar = (telefone: string) => {
     if (telefone) {
@@ -49,10 +53,8 @@ const Executivo = () => {
   };
 
   const handleVerDetalhes = (imobiliaria: any) => {
-    toast({
-      title: "Detalhes da Imobiliária",
-      description: `${imobiliaria.nome} - ${imobiliaria.totalFiancas} fianças ativas`,
-    });
+    setSelectedImobiliaria(imobiliaria);
+    setShowDetailModal(true);
   };
 
   const getStatusColor = (ativo: boolean) => {
@@ -307,6 +309,13 @@ const Executivo = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Modal de Detalhes da Imobiliária */}
+        <ImobiliariaDetalhesModal
+          isOpen={showDetailModal}
+          onClose={() => setShowDetailModal(false)}
+          imobiliaria={selectedImobiliaria}
+        />
       </div>
     </Layout>
   );
