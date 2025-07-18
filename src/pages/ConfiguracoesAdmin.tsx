@@ -65,7 +65,7 @@ const ConfiguracoesAdmin = () => {
     });
   };
 
-  const handleImageUpload = (imageUrl: string) => {
+  const handleImageChange = (imageUrl: string) => {
     console.log('Imagem de perfil atualizada:', imageUrl);
     toast({
       title: "Foto de perfil atualizada!",
@@ -88,7 +88,10 @@ const ConfiguracoesAdmin = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ImageUpload onImageUpload={handleImageUpload} />
+            <ImageUpload 
+              onImageChange={handleImageChange}
+              userName={dadosPessoais.nome}
+            />
           </CardContent>
         </Card>
 
@@ -370,7 +373,6 @@ const ConfiguracoesAdmin = () => {
               </div>
             </div>
 
-            {/* Geração de Token */}
             <div className="space-y-4">
               <h4 className="text-lg font-semibold">Token de Acesso</h4>
               <div className="space-y-3">
@@ -413,7 +415,6 @@ const ConfiguracoesAdmin = () => {
               </div>
             </div>
 
-            {/* Webhooks */}
             <div className="space-y-4">
               <h4 className="text-lg font-semibold">Webhooks</h4>
               <div className="bg-gray-50 p-4 rounded-lg">
