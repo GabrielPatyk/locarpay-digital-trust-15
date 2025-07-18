@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Copy, RefreshCw, Eye, EyeOff, User, Building, DollarSign, Settings, Bell, Shield } from 'lucide-react';
+import { Copy, RefreshCw, Eye, EyeOff, User, Building, DollarSign, Settings, Bell, Shield, Camera } from 'lucide-react';
+import ImageUpload from '@/components/ImageUpload';
 
 const ConfiguracoesAdmin = () => {
   const { toast } = useToast();
@@ -64,9 +65,33 @@ const ConfiguracoesAdmin = () => {
     });
   };
 
+  const handleImageUpload = (imageUrl: string) => {
+    console.log('Imagem de perfil atualizada:', imageUrl);
+    toast({
+      title: "Foto de perfil atualizada!",
+      description: "Sua nova foto de perfil foi salva com sucesso.",
+    });
+  };
+
   return (
     <Layout title="Configurações">
       <div className="space-y-6">
+        {/* Foto de Perfil */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Foto de Perfil
+            </CardTitle>
+            <CardDescription>
+              Personalize sua foto de perfil
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ImageUpload onImageUpload={handleImageUpload} />
+          </CardContent>
+        </Card>
+
         {/* Dados Pessoais */}
         <Card>
           <CardHeader>
