@@ -1,502 +1,471 @@
 
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import Layout from '@/components/Layout';
+import ImageUpload from '@/components/ImageUpload';
+import ConfirmationModal from '@/components/ConfirmationModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Copy, RefreshCw, Eye, EyeOff, User, Building, DollarSign, Settings, Bell, Shield, Camera } from 'lucide-react';
-import ImageUpload from '@/components/ImageUpload';
-import { useAuth } from '@/contexts/AuthContext';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
+import { 
+  User, 
+  Bell, 
+  Shield, 
+  Save,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  FileCheck
+} from 'lucide-react';
 
 const ConfiguracoesAdmin = () => {
-  const { toast } = useToast();
   const { user, updateUser } = useAuth();
-  const { profile, updateUserData } = useUserProfile();
-  const { formatPhone, isValidPhone } = usePhoneFormatter();
+  const { profile, updateProfile, updateUserData, updatePassword, loading } = useUserProfile();
+  const { formatPhone, unformatPhone, isValidPhone } = usePhoneFormatter();
+  const { toast } = useToast();
   
-  const [showToken, setShowToken] = useState(false);
-  const [apiToken, setApiToken] = useState('lcp_test_1234567890abcdef1234567890abcdef');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPersonalConfirmation, setShowPersonalConfirmation] = useState(false);
+  const [pendingPersonalChanges, setPendingPersonalChanges] = useState<Record<string, string>>({});
   
-  const [dadosPessoais, setDadosPessoais] = useState({
+  const [formData, setFormData] = useState({
+    // Dados pessoais - campos vazios para edição
     nome: '',
     email: '',
     telefone: '',
-    cargo: 'Administrador'
-  });
-
-  const [configuracoes, setConfiguracoes] = useState({
-    scoreMinimo: 500,
-    taxaMinima: 8,
-    taxaMaxima: 15,
-    emailNotificacao: 'admin@locarpay.com',
-    notificacoesEmail: true,
-    notificacoesSMS: false,
-    manutencaoAtiva: false,
-    mensagemManutencao: 'Sistema em manutenção. Retornaremos em breve.'
-  });
-
-  // Carregar dados do usuário ao montar o componente
-  useEffect(() => {
-    if (user) {
-      setDadosPessoais({
-        nome: user.name || '',
-        email: user.email || '',
-        telefone: user.telefone ? formatPhone(user.telefone) : '+55 ',
-        cargo: 'Administrador'
-      });
-    }
-  }, [user, formatPhone]);
-
-  const salvarDadosPessoais = async () => {
-    const telefoneNumbers = dadosPessoais.telefone.replace(/\D/g, '');
+    imagem_perfil: user?.imagem_perfil || '',
     
-    if (!isValidPhone(dadosPessoais.telefone)) {
-      toast({
-        title: "Telefone inválido",
-        description: "Por favor, insira um telefone válido no formato brasileiro.",
-        variant: "destructive",
-      });
-      return;
+    // Segurança
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    
+    // Notificações
+    emailNotifications: true,
+    smsNotifications: false,
+    weeklyReports: true,
+    monthlyReports: true
+  });
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    if (field === 'telefone') {
+      setFormData(prev => ({
+        ...prev,
+        [field]: formatPhone(value as string)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
+
+  const handleSavePersonalData = async () => {
+    // Preparar dados para confirmação
+    const changes = {
+      'Nome Completo': formData.nome || '(não alterado)',
+      'E-mail': formData.email || '(não alterado)',
+      'Telefone': formData.telefone || '(não alterado)'
+    };
+
+    setPendingPersonalChanges(changes);
+    setShowPersonalConfirmation(true);
+  };
+
+  const confirmPersonalChanges = async () => {
+    // Filtrar apenas campos preenchidos
+    const updateData: any = {};
+    
+    if (formData.nome.trim()) updateData.nome = formData.nome;
+    if (formData.email.trim()) updateData.email = formData.email;
+    if (formData.telefone.trim()) {
+      if (!isValidPhone(formData.telefone)) {
+        toast({
+          title: "Telefone inválido",
+          description: "O telefone deve ter 13 dígitos e começar com +55.",
+          variant: "destructive",
+        });
+        return;
+      }
+      updateData.telefone = unformatPhone(formData.telefone);
     }
 
-    const success = await updateUserData({
-      nome: dadosPessoais.nome,
-      email: dadosPessoais.email,
-      telefone: telefoneNumbers
-    });
+    const success = await updateUserData(updateData);
 
     if (success && user) {
       // Atualizar o contexto do usuário
       updateUser({
         ...user,
-        name: dadosPessoais.nome,
-        email: dadosPessoais.email,
-        telefone: telefoneNumbers
+        name: updateData.nome || user.name,
+        email: updateData.email || user.email,
+        telefone: updateData.telefone || user.telefone
       });
+      setShowPersonalConfirmation(false);
+      // Limpar os campos após salvar
+      setFormData(prev => ({
+        ...prev,
+        nome: '',
+        email: '',
+        telefone: ''
+      }));
     }
   };
 
-  const salvarConfiguracoes = () => {
-    toast({
-      title: "Configurações salvas!",
-      description: "As configurações do sistema foram atualizadas com sucesso.",
-    });
+  const handleChangePassword = async () => {
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast({
+        title: "Erro ao alterar senha",
+        description: "As senhas não coincidem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.newPassword.length < 6) {
+      toast({
+        title: "Senha muito curta",
+        description: "A senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const success = await updatePassword(formData.currentPassword, formData.newPassword);
+    
+    if (success) {
+      setFormData(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }));
+    }
   };
 
-  const gerarNovoToken = () => {
-    const newToken = 'lcp_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    setApiToken(newToken);
-    toast({
-      title: "Token gerado!",
-      description: "Um novo token de acesso foi gerado com sucesso.",
-    });
-  };
-
-  const copiarToken = () => {
-    navigator.clipboard.writeText(apiToken);
-    toast({
-      title: "Token copiado!",
-      description: "O token foi copiado para a área de transferência.",
-    });
-  };
-
-  const handleImageChange = (imageUrl: string) => {
-    console.log('Imagem de perfil atualizada:', imageUrl);
-  };
-
-  const handleTelefoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhone(e.target.value);
-    setDadosPessoais(prev => ({ ...prev, telefone: formatted }));
+  const handleImageChange = async (imageUrl: string) => {
+    setFormData(prev => ({ ...prev, imagem_perfil: imageUrl }));
   };
 
   return (
     <Layout title="Configurações">
-      <div className="space-y-6">
-        {/* Foto de Perfil */}
+      <div className="space-y-6 animate-fade-in">
+        {/* Profile Image */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Camera className="h-5 w-5" />
+            <CardTitle className="flex items-center">
+              <User className="mr-2 h-5 w-5 text-primary" />
               Foto de Perfil
             </CardTitle>
             <CardDescription>
-              Personalize sua foto de perfil
+              Atualize sua foto de perfil
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ImageUpload 
+            <ImageUpload
+              currentImage={formData.imagem_perfil}
               onImageChange={handleImageChange}
-              currentImage={user?.imagem_perfil}
-              userName={dadosPessoais.nome}
+              userName={user?.name || 'Usuário'}
             />
           </CardContent>
         </Card>
 
-        {/* Dados Pessoais */}
+        {/* Account Verifications */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
+            <CardTitle className="flex items-center">
+              <FileCheck className="mr-2 h-5 w-5 text-primary" />
+              Verificações de Conta
+            </CardTitle>
+            <CardDescription>
+              Status das verificações da sua conta
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">E-mail Verificado</p>
+                <p className="text-sm text-gray-600">Status de verificação do seu e-mail</p>
+              </div>
+              <Badge className={user?.verificado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                {user?.verificado ? (
+                  <>
+                    <CheckCircle className="mr-1 h-3 w-3" />
+                    Verificado
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="mr-1 h-3 w-3" />
+                    Não Verificado
+                  </>
+                )}
+              </Badge>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Conta Ativa</p>
+                <p className="text-sm text-gray-600">Status da sua conta no sistema</p>
+              </div>
+              <Badge className={user?.ativo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                {user?.ativo ? (
+                  <>
+                    <CheckCircle className="mr-1 h-3 w-3" />
+                    Ativa
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="mr-1 h-3 w-3" />
+                    Inativa
+                  </>
+                )}
+              </Badge>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Perfil Administrativo</p>
+                <p className="text-sm text-gray-600">Status do seu perfil de administrador</p>
+              </div>
+              <Badge className={user?.cargo === 'admin' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                {user?.cargo === 'admin' ? (
+                  <>
+                    <CheckCircle className="mr-1 h-3 w-3" />
+                    Administrador
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="mr-1 h-3 w-3" />
+                    {user?.cargo || 'Não Definido'}
+                  </>
+                )}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Personal Profile */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <User className="mr-2 h-5 w-5 text-success" />
               Dados Pessoais
             </CardTitle>
             <CardDescription>
-              Gerencie suas informações pessoais e dados de acesso
+              Informações do responsável pela conta
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="nome">Nome Completo</Label>
                 <Input
                   id="nome"
-                  value={dadosPessoais.nome}
-                  onChange={(e) => setDadosPessoais(prev => ({ ...prev, nome: e.target.value }))}
-                  placeholder={user?.name || 'Digite seu nome completo'}
+                  value={formData.nome}
+                  onChange={(e) => handleInputChange('nome', e.target.value)}
+                  placeholder={user?.name || "Seu nome completo"}
                 />
                 {user?.name && (
-                  <p className="text-xs text-gray-500">
-                    Atual: {user.name}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Atual: {user.name}</p>
                 )}
               </div>
-              
               <div className="space-y-2">
                 <Label htmlFor="email">E-mail</Label>
                 <Input
                   id="email"
                   type="email"
-                  value={dadosPessoais.email}
-                  onChange={(e) => setDadosPessoais(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder={user?.email || 'Digite seu e-mail'}
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder={user?.email || "seu@email.com"}
                 />
                 {user?.email && (
-                  <p className="text-xs text-gray-500">
-                    Atual: {user.email}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Atual: {user.email}</p>
                 )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="telefone">Telefone</Label>
-                <Input
-                  id="telefone"
-                  value={dadosPessoais.telefone}
-                  onChange={handleTelefoneChange}
-                  placeholder="+55 (00) 0 0000-0000"
-                />
-                {user?.telefone && (
-                  <p className="text-xs text-gray-500">
-                    Atual: {formatPhone(user.telefone)}
-                  </p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="cargo">Cargo</Label>
-                <Input
-                  id="cargo"
-                  value={dadosPessoais.cargo}
-                  disabled
-                  className="bg-gray-50"
-                />
               </div>
             </div>
             
-            <div className="flex justify-end">
-              <Button onClick={salvarDadosPessoais}>
-                Salvar Dados Pessoais
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Configurações de Análise */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Configurações de Análise
-            </CardTitle>
-            <CardDescription>
-              Configure parâmetros para análise de fianças
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="scoreMinimo">Score Mínimo para Aprovação</Label>
-                <Input
-                  id="scoreMinimo"
-                  type="number"
-                  value={configuracoes.scoreMinimo}
-                  onChange={(e) => setConfiguracoes(prev => ({ 
-                    ...prev, 
-                    scoreMinimo: parseInt(e.target.value) 
-                  }))}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="taxaMinima">Taxa Mínima de Fiança (%)</Label>
-                <Input
-                  id="taxaMinima"
-                  type="number"
-                  step="0.1"
-                  value={configuracoes.taxaMinima}
-                  onChange={(e) => setConfiguracoes(prev => ({ 
-                    ...prev, 
-                    taxaMinima: parseFloat(e.target.value) 
-                  }))}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="taxaMaxima">Taxa Máxima de Fiança (%)</Label>
-                <Input
-                  id="taxaMaxima"
-                  type="number"
-                  step="0.1"
-                  value={configuracoes.taxaMaxima}
-                  onChange={(e) => setConfiguracoes(prev => ({ 
-                    ...prev, 
-                    taxaMaxima: parseFloat(e.target.value) 
-                  }))}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Configurações de Notificações */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
-              Notificações
-            </CardTitle>
-            <CardDescription>
-              Configure como e quando receber notificações
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="emailNotificacao">E-mail para Notificações</Label>
+              <Label htmlFor="telefone">Telefone</Label>
               <Input
-                id="emailNotificacao"
-                type="email"
-                value={configuracoes.emailNotificacao}
-                onChange={(e) => setConfiguracoes(prev => ({ 
-                  ...prev, 
-                  emailNotificacao: e.target.value 
-                }))}
+                id="telefone"
+                value={formData.telefone}
+                onChange={(e) => handleInputChange('telefone', e.target.value)}
+                placeholder={user?.telefone ? formatPhone(user.telefone) : "+55 (11) 9 9999-9999"}
               />
+              {user?.telefone && (
+                <p className="text-xs text-gray-500 mt-1">Atual: {formatPhone(user.telefone)}</p>
+              )}
             </div>
             
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Notificações por E-mail</Label>
-                  <p className="text-sm text-gray-500">
-                    Receber notificações importantes por e-mail
-                  </p>
-                </div>
-                <Switch
-                  checked={configuracoes.notificacoesEmail}
-                  onCheckedChange={(checked) => setConfiguracoes(prev => ({ 
-                    ...prev, 
-                    notificacoesEmail: checked 
-                  }))}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Notificações por SMS</Label>
-                  <p className="text-sm text-gray-500">
-                    Receber notificações urgentes por SMS
-                  </p>
-                </div>
-                <Switch
-                  checked={configuracoes.notificacoesSMS}
-                  onCheckedChange={(checked) => setConfiguracoes(prev => ({ 
-                    ...prev, 
-                    notificacoesSMS: checked 
-                  }))}
-                />
-              </div>
-            </div>
+            <Button 
+              onClick={handleSavePersonalData} 
+              disabled={loading}
+              className="bg-success hover:bg-success/90"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {loading ? 'Salvando...' : 'Salvar Dados Pessoais'}
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Modo Manutenção */}
+        {/* Security */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Sistema & Manutenção
+            <CardTitle className="flex items-center">
+              <Shield className="mr-2 h-5 w-5 text-warning" />
+              Segurança
             </CardTitle>
             <CardDescription>
-              Configure aspectos técnicos da plataforma
+              Altere sua senha de acesso
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="currentPassword">Senha Atual</Label>
+              <div className="relative">
+                <Input
+                  id="currentPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.currentPassword}
+                  onChange={(e) => handleInputChange('currentPassword', e.target.value)}
+                  placeholder="Digite sua senha atual"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="newPassword">Nova Senha</Label>
+                <Input
+                  id="newPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.newPassword}
+                  onChange={(e) => handleInputChange('newPassword', e.target.value)}
+                  placeholder="Digite sua nova senha"
+                />
+              </div>
+              <div>
+                <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                <Input
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  placeholder="Confirme sua nova senha"
+                />
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleChangePassword} 
+              disabled={loading}
+              className="bg-warning hover:bg-warning/90 text-white"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {loading ? 'Alterando...' : 'Alterar Senha'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Notifications - Bloqueada */}
+        <Card className="opacity-60">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Bell className="mr-2 h-5 w-5" style={{ color: '#BC942C' }} />
+              Notificações
+              <AlertTriangle className="ml-2 h-4 w-4 text-red-500" />
+            </CardTitle>
+            <CardDescription>
+              <span className="text-red-600 font-medium">Esta opção ainda está em desenvolvimento</span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 pointer-events-none">
             <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Modo Manutenção</Label>
-                <p className="text-sm text-gray-500">
-                  Ativar modo de manutenção para todos os usuários
-                </p>
+              <div>
+                <p className="font-medium">Notificações por E-mail</p>
+                <p className="text-sm text-gray-600">Receber notificações importantes por e-mail</p>
               </div>
               <Switch
-                checked={configuracoes.manutencaoAtiva}
-                onCheckedChange={(checked) => setConfiguracoes(prev => ({ 
-                  ...prev, 
-                  manutencaoAtiva: checked 
-                }))}
+                checked={formData.emailNotifications}
+                disabled
               />
             </div>
             
-            {configuracoes.manutencaoAtiva && (
-              <div className="space-y-2">
-                <Label htmlFor="mensagemManutencao">Mensagem de Manutenção</Label>
-                <Textarea
-                  id="mensagemManutencao"
-                  value={configuracoes.mensagemManutencao}
-                  onChange={(e) => setConfiguracoes(prev => ({ 
-                    ...prev, 
-                    mensagemManutencao: e.target.value 
-                  }))}
-                  placeholder="Digite a mensagem que será exibida durante a manutenção"
-                />
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Notificações por SMS</p>
+                <p className="text-sm text-gray-600">Receber alertas urgentes por SMS</p>
               </div>
-            )}
+              <Switch
+                checked={formData.smsNotifications}
+                disabled
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Relatórios Semanais</p>
+                <p className="text-sm text-gray-600">Receber resumo semanal de atividades</p>
+              </div>
+              <Switch
+                checked={formData.weeklyReports}
+                disabled
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Relatórios Mensais</p>
+                <p className="text-sm text-gray-600">Receber relatório mensal detalhado</p>
+              </div>
+              <Switch
+                checked={formData.monthlyReports}
+                disabled
+              />
+            </div>
+            
+            <Button 
+              disabled
+              style={{ backgroundColor: '#BC942C' }} 
+              className="hover:opacity-90 text-white opacity-50"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              Salvar Preferências
+            </Button>
           </CardContent>
         </Card>
 
-        {/* API da Plataforma */}
-        <Card>
-          <CardHeader>
-            <CardTitle>API da Plataforma</CardTitle>
-            <CardDescription>
-              Documentação e configurações da API LocarPay
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <h4 className="text-lg font-semibold">Documentação da API</h4>
-              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                <div>
-                  <h5 className="font-medium">Base URL</h5>
-                  <code className="text-sm bg-gray-100 px-2 py-1 rounded">https://api.locarpay.com/v1</code>
-                </div>
-                
-                <div>
-                  <h5 className="font-medium">Autenticação</h5>
-                  <p className="text-sm text-gray-600">
-                    Todas as requisições devem incluir o header: <code>Authorization: Bearer YOUR_TOKEN</code>
-                  </p>
-                </div>
-                
-                <div>
-                  <h5 className="font-medium">Endpoints Principais</h5>
-                  <div className="space-y-2 text-sm">
-                    <div><code>GET /users</code> - Listar usuários</div>
-                    <div><code>POST /users</code> - Criar usuário</div>
-                    <div><code>GET /fiancas</code> - Listar fianças</div>
-                    <div><code>POST /fiancas</code> - Criar fiança</div>
-                    <div><code>GET /contratos</code> - Listar contratos</div>
-                    <div><code>POST /contratos</code> - Criar contrato</div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h5 className="font-medium">Exemplo de Requisição</h5>
-                  <pre className="bg-gray-900 text-green-400 p-3 rounded text-xs overflow-x-auto">
-{`curl -X GET "https://api.locarpay.com/v1/users" \\
-  -H "Authorization: Bearer lcp_your_token_here" \\
-  -H "Content-Type: application/json"`}
-                  </pre>
-                </div>
-                
-                <div>
-                  <h5 className="font-medium">Rate Limiting</h5>
-                  <p className="text-sm text-gray-600">
-                    Limite de 1000 requisições por hora por token
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="text-lg font-semibold">Token de Acesso</h4>
-              <div className="space-y-3">
-                <Label>Token Atual</Label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type={showToken ? "text" : "password"}
-                    value={apiToken}
-                    readOnly
-                    className="flex-1 font-mono text-sm"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowToken(!showToken)}
-                  >
-                    {showToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={copiarToken}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <Button 
-                  onClick={gerarNovoToken}
-                  variant="destructive"
-                  size="sm"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Gerar Novo Token
-                </Button>
-                
-                <p className="text-sm text-amber-600">
-                  ⚠️ Ao gerar um novo token, o token anterior será invalidado imediatamente.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="text-lg font-semibold">Webhooks</h4>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-3">
-                  Configure endpoints para receber notificações automáticas sobre eventos da plataforma.
-                </p>
-                <div className="space-y-2 text-sm">
-                  <div>• <code>user.created</code> - Novo usuário criado</div>
-                  <div>• <code>fianca.approved</code> - Fiança aprovada</div>
-                  <div>• <code>contrato.signed</code> - Contrato assinado</div>
-                  <div>• <code>payment.completed</code> - Pagamento realizado</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end">
-          <Button onClick={salvarConfiguracoes} className="bg-primary hover:bg-primary/90">
-            Salvar Configurações
-          </Button>
-        </div>
+        {/* Modal de Confirmação */}
+        <ConfirmationModal
+          isOpen={showPersonalConfirmation}
+          onClose={() => setShowPersonalConfirmation(false)}
+          onConfirm={confirmPersonalChanges}
+          title="Confirmar Alterações - Dados Pessoais"
+          description="Você está prestes a alterar seus dados pessoais. Confirme as informações abaixo:"
+          changes={pendingPersonalChanges}
+          isLoading={loading}
+        />
       </div>
     </Layout>
   );

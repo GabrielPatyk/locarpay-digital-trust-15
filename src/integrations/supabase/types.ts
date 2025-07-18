@@ -574,6 +574,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_current_user_id_from_jwt: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       hash_password: {
         Args: { password: string }
         Returns: string

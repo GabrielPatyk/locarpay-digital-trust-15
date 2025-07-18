@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useImoveisImobiliariaReal, CreateImovelData } from '@/hooks/useImoveisImobiliariaReal';
 import { useCurrencyFormatter } from '@/hooks/useCurrencyFormatter';
+import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import MediaUpload from '@/components/MediaUpload';
 import { Home, X } from 'lucide-react';
 
@@ -19,6 +20,7 @@ interface CriarImovelModalProps {
 const CriarImovelModal: React.FC<CriarImovelModalProps> = ({ open, onOpenChange }) => {
   const { createImovel, isCreating, getTipoOptions } = useImoveisImobiliariaReal();
   const { formatCurrency, unformatCurrency } = useCurrencyFormatter();
+  const { formatPhone, unformatPhone } = usePhoneFormatter();
   
   const [formData, setFormData] = useState<CreateImovelData>({
     nome_imovel: '',
@@ -39,6 +41,7 @@ const CriarImovelModal: React.FC<CriarImovelModalProps> = ({ open, onOpenChange 
   });
 
   const [valorAluguelFormatted, setValorAluguelFormatted] = useState('');
+  const [whatsappFormatted, setWhatsappFormatted] = useState('+55 ');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +50,7 @@ const CriarImovelModal: React.FC<CriarImovelModalProps> = ({ open, onOpenChange 
       ...formData,
       area_metros: formData.area_metros ? Number(formData.area_metros) : undefined,
       valor_aluguel: Number(formData.valor_aluguel),
+      proprietario_whatsapp: formData.proprietario_whatsapp ? unformatPhone(formData.proprietario_whatsapp) : '',
     };
 
     createImovel(dataToSubmit, {
@@ -70,6 +74,7 @@ const CriarImovelModal: React.FC<CriarImovelModalProps> = ({ open, onOpenChange 
           proprietario_whatsapp: '',
         });
         setValorAluguelFormatted('');
+        setWhatsappFormatted('+55 ');
       }
     });
   };
@@ -87,6 +92,12 @@ const CriarImovelModal: React.FC<CriarImovelModalProps> = ({ open, onOpenChange 
     
     const numericValue = unformatCurrency(formatted);
     handleInputChange('valor_aluguel', numericValue);
+  };
+
+  const handleWhatsappChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value);
+    setWhatsappFormatted(formatted);
+    handleInputChange('proprietario_whatsapp', formatted);
   };
 
   const handleMediasChange = (urls: string[]) => {
@@ -256,9 +267,9 @@ const CriarImovelModal: React.FC<CriarImovelModalProps> = ({ open, onOpenChange 
                 <Label htmlFor="proprietario_whatsapp">WhatsApp do Proprietário</Label>
                 <Input
                   id="proprietario_whatsapp"
-                  value={formData.proprietario_whatsapp}
-                  onChange={(e) => handleInputChange('proprietario_whatsapp', e.target.value)}
-                  placeholder="(11) 99999-9999"
+                  value={whatsappFormatted}
+                  onChange={handleWhatsappChange}
+                  placeholder="+55 (11) 9 9999-9999"
                 />
               </div>
             </div>
