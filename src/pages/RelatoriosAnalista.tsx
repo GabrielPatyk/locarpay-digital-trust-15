@@ -6,16 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import RelatorioAnalistaCard from '@/components/RelatorioAnalistaCard';
 import { 
   BarChart3, 
   Download, 
   Calendar,
   TrendingUp,
-  TrendingDown,
   Users,
   FileText,
   DollarSign,
-  Filter
+  Filter,
+  CheckCircle
 } from 'lucide-react';
 import { useRelatoriosAnalista } from '@/hooks/useRelatoriosAnalista';
 
@@ -33,15 +34,13 @@ const RelatoriosAnalista = () => {
     downloadRelatorio
   } = useRelatoriosAnalista();
 
-  // Calcular estatísticas com base nos dados filtrados
+  // Calcular estatísticas com base nos dados filtrados (apenas fianças aprovadas)
   const estatisticas = {
-    totalAnalises: fiancas.length,
-    aprovacoes: fiancas.filter(f => f.status_fianca === 'aprovada').length,
-    reprovacoes: fiancas.filter(f => f.status_fianca === 'rejeitada').length,
-    pendentes: fiancas.filter(f => f.status_fianca === 'em_analise').length,
-    taxaAprovacao: fiancas.length > 0 ? ((fiancas.filter(f => f.status_fianca === 'aprovada').length / fiancas.length) * 100).toFixed(1) : '0',
+    totalAprovacoes: fiancas.length,
     scoreMedia: fiancas.length > 0 ? Math.round(fiancas.reduce((acc, f) => acc + (f.score_credito || 0), 0) / fiancas.length) : 0,
-    valorMedio: fiancas.length > 0 ? Math.round(fiancas.reduce((acc, f) => acc + f.imovel_valor_aluguel, 0) / fiancas.length) : 0
+    valorMedioAluguel: fiancas.length > 0 ? Math.round(fiancas.reduce((acc, f) => acc + f.imovel_valor_aluguel, 0) / fiancas.length) : 0,
+    valorTotalFiancas: fiancas.reduce((acc, f) => acc + (f.valor_fianca || 0), 0),
+    taxaMediaAplicada: fiancas.length > 0 ? Math.round((fiancas.reduce((acc, f) => acc + (f.taxa_aplicada || 0), 0) / fiancas.length) * 100) / 100 : 0
   };
 
   const handleFiltrar = () => {
@@ -55,12 +54,12 @@ const RelatoriosAnalista = () => {
   };
 
   return (
-    <Layout title="Relatórios">
+    <Layout title="Relatórios de Fianças Aprovadas">
       <div className="space-y-6 animate-fade-in">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Relatórios</h1>
-            <p className="text-gray-600">Acompanhe suas métricas e gere relatórios detalhados</p>
+            <h1 className="text-2xl font-bold text-gray-900">Relatórios de Fianças Aprovadas</h1>
+            <p className="text-gray-600">Acompanhe suas fianças aprovadas e gere relatórios detalhados</p>
           </div>
         </div>
 
@@ -69,8 +68,11 @@ const RelatoriosAnalista = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              Filtros
+              Filtros por Período de Aprovação
             </CardTitle>
+            <CardDescription>
+              Filtre as fianças aprovadas por você no período selecionado
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -95,11 +97,11 @@ const RelatoriosAnalista = () => {
               <div className="flex items-end gap-2">
                 <Button onClick={handleFiltrar} disabled={loading}>
                   <Calendar className="mr-2 h-4 w-4" />
-                  {loading ? 'Carregando...' : 'Filtrar Análises'}
+                  {loading ? 'Carregando...' : 'Buscar Aprovações'}
                 </Button>
                 <Button onClick={handleGerarRelatorio} disabled={loading || fiancas.length === 0} variant="outline">
                   <Download className="mr-2 h-4 w-4" />
-                  Gerar Relatório XML
+                  Gerar Relatório
                 </Button>
               </div>
             </div>
@@ -107,27 +109,15 @@ const RelatoriosAnalista = () => {
         </Card>
 
         {/* Estatísticas Resumidas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total de Análises</p>
-                  <p className="text-2xl font-bold text-primary">{estatisticas.totalAnalises}</p>
+                  <p className="text-sm font-medium text-gray-600">Fianças Aprovadas</p>
+                  <p className="text-2xl font-bold text-success">{estatisticas.totalAprovacoes}</p>
                 </div>
-                <FileText className="h-8 w-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Taxa de Aprovação</p>
-                  <p className="text-2xl font-bold text-success">{estatisticas.taxaAprovacao}%</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-success" />
+                <CheckCircle className="h-8 w-8 text-success" />
               </div>
             </CardContent>
           </Card>
@@ -148,86 +138,52 @@ const RelatoriosAnalista = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Valor Médio</p>
-                  <p className="text-2xl font-bold" style={{ color: '#BC942C' }}>R$ {estatisticas.valorMedio.toLocaleString()}</p>
+                  <p className="text-sm font-medium text-gray-600">Valor Médio Aluguel</p>
+                  <p className="text-2xl font-bold text-primary">R$ {estatisticas.valorMedioAluguel.toLocaleString()}</p>
                 </div>
-                <DollarSign className="h-8 w-8" style={{ color: '#BC942C' }} />
+                <DollarSign className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total em Fianças</p>
+                  <p className="text-2xl font-bold" style={{ color: '#BC942C' }}>R$ {estatisticas.valorTotalFiancas.toLocaleString()}</p>
+                </div>
+                <TrendingUp className="h-8 w-8" style={{ color: '#BC942C' }} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Taxa Média (%)</p>
+                  <p className="text-2xl font-bold text-blue-600">{estatisticas.taxaMediaAplicada}%</p>
+                </div>
+                <Users className="h-8 w-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Detalhamento das Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-success">Aprovações</h3>
-                <TrendingUp className="h-5 w-5 text-success" />
-              </div>
-              <p className="text-2xl font-bold text-success">{estatisticas.aprovacoes}</p>
-              <p className="text-sm text-gray-600">análises aprovadas</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-red-600">Reprovações</h3>
-                <TrendingDown className="h-5 w-5 text-red-600" />
-              </div>
-              <p className="text-2xl font-bold text-red-600">{estatisticas.reprovacoes}</p>
-              <p className="text-sm text-gray-600">análises reprovadas</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-warning">Pendentes</h3>
-                <Users className="h-5 w-5 text-warning" />
-              </div>
-              <p className="text-2xl font-bold text-warning">{estatisticas.pendentes}</p>
-              <p className="text-sm text-gray-600">aguardando análise</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Lista de Análises */}
+        {/* Lista de Fianças Aprovadas */}
         {fiancas.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Análises do Período</CardTitle>
+              <CardTitle>Fianças Aprovadas no Período</CardTitle>
               <CardDescription>
-                {fiancas.length} análise{fiancas.length > 1 ? 's' : ''} encontrada{fiancas.length > 1 ? 's' : ''} no período selecionado
+                {fiancas.length} fiança{fiancas.length > 1 ? 's' : ''} aprovada{fiancas.length > 1 ? 's' : ''} encontrada{fiancas.length > 1 ? 's' : ''} no período selecionado
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="grid gap-4">
                 {fiancas.map((fianca) => (
-                  <div key={fianca.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div>
-                        <h4 className="font-medium">{fianca.inquilino_nome_completo}</h4>
-                        <p className="text-sm text-gray-600">{fianca.inquilino_cpf}</p>
-                        <p className="text-sm text-gray-600">
-                          {fianca.imovel_endereco}, {fianca.imovel_numero} - {fianca.imovel_cidade}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <p className="text-sm font-medium">R$ {fianca.imovel_valor_aluguel.toLocaleString()}</p>
-                        <p className="text-sm text-gray-600">Score: {fianca.score_credito || 'N/A'}</p>
-                      </div>
-                      <Badge variant={
-                        fianca.status_fianca === 'aprovada' ? 'default' :
-                        fianca.status_fianca === 'rejeitada' ? 'destructive' : 'secondary'
-                      }>
-                        {fianca.status_fianca}
-                      </Badge>
-                    </div>
-                  </div>
+                  <RelatorioAnalistaCard key={fianca.id} fianca={fianca} />
                 ))}
               </div>
             </CardContent>
@@ -249,7 +205,7 @@ const RelatoriosAnalista = () => {
                   <FileText className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum relatório disponível</h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Use os filtros acima para gerar seus primeiros relatórios.
+                    Use os filtros acima para gerar seus primeiros relatórios de fianças aprovadas.
                   </p>
                 </div>
               ) : (
@@ -261,7 +217,7 @@ const RelatoriosAnalista = () => {
                       </div>
                       <div>
                         <h4 className="font-medium text-gray-900">{relatorio.nome_arquivo}</h4>
-                        <p className="text-sm text-gray-600">Relatório de análises do período selecionado</p>
+                        <p className="text-sm text-gray-600">Relatório de fianças aprovadas do período selecionado</p>
                         <div className="flex items-center space-x-4 mt-1">
                           <Badge variant="outline">XML</Badge>
                           {relatorio.periodo_inicio && relatorio.periodo_fim && (

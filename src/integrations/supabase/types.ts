@@ -19,6 +19,7 @@ export type Database = {
           comprovante_pagamento: string | null
           criado_por: string | null
           data_analise: string | null
+          data_aprovacao: string | null
           data_atualizacao: string
           data_atualizacao_pagamento: string | null
           data_comprovante: string | null
@@ -70,6 +71,7 @@ export type Database = {
           comprovante_pagamento?: string | null
           criado_por?: string | null
           data_analise?: string | null
+          data_aprovacao?: string | null
           data_atualizacao?: string
           data_atualizacao_pagamento?: string | null
           data_comprovante?: string | null
@@ -121,6 +123,7 @@ export type Database = {
           comprovante_pagamento?: string | null
           criado_por?: string | null
           data_analise?: string | null
+          data_aprovacao?: string | null
           data_atualizacao?: string
           data_atualizacao_pagamento?: string | null
           data_comprovante?: string | null

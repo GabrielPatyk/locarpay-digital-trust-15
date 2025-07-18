@@ -8,6 +8,7 @@ interface FiancaAnalise {
   id: string;
   data_criacao: string;
   data_analise: string | null;
+  data_aprovacao: string | null;
   status_fianca: string;
   inquilino_nome_completo: string;
   inquilino_cpf: string;
@@ -57,6 +58,7 @@ export const useRelatoriosAnalista = () => {
           id,
           data_criacao,
           data_analise,
+          data_aprovacao,
           status_fianca,
           inquilino_nome_completo,
           inquilino_cpf,
@@ -73,10 +75,11 @@ export const useRelatoriosAnalista = () => {
           imobiliaria:usuarios!fiancas_locaticias_id_imobiliaria_fkey(nome)
         `)
         .eq('id_analista', user.id)
-        .gte('data_analise', dataInicio.toISOString().split('T')[0])
-        .lte('data_analise', dataFim.toISOString().split('T')[0] + 'T23:59:59')
-        .not('data_analise', 'is', null)
-        .order('data_analise', { ascending: false });
+        .eq('status_fianca', 'aprovada')
+        .gte('data_aprovacao', dataInicio.toISOString().split('T')[0])
+        .lte('data_aprovacao', dataFim.toISOString().split('T')[0] + 'T23:59:59')
+        .not('data_aprovacao', 'is', null)
+        .order('data_aprovacao', { ascending: false });
 
       if (error) {
         console.error('Erro na query:', error);
@@ -87,11 +90,13 @@ export const useRelatoriosAnalista = () => {
       setFiancas(data || []);
       
       if (!data || data.length === 0) {
-        toast.info('Nenhuma análise encontrada para o período selecionado');
+        toast.info('Nenhuma análise aprovada encontrada para o período selecionado');
+      } else {
+        toast.success(`${data.length} análise(s) aprovada(s) encontrada(s)`);
       }
     } catch (error) {
       console.error('Erro ao buscar análises:', error);
-      toast.error('Erro ao carregar análises');
+      toast.error('Erro ao carregar análises aprovadas');
     } finally {
       setLoading(false);
     }
@@ -138,33 +143,35 @@ export const useRelatoriosAnalista = () => {
       const dataInicioStr = dataInicio.toISOString().split('T')[0];
       const dataFimStr = dataFim.toISOString().split('T')[0];
       
-      // Criar XML com os dados das análises
+      // Criar XML com os dados das análises aprovadas
       const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:o="urn:schemas-microsoft-com:office:office"
  xmlns:x="urn:schemas-microsoft-com:office:excel">
- <Worksheet ss:Name="Relatório de Análises">
+ <Worksheet ss:Name="Relatório de Fianças Aprovadas">
   <Table>
    <Row>
-    <Cell><Data ss:Type="String">ID</Data></Cell>
+    <Cell><Data ss:Type="String">ID da Fiança</Data></Cell>
     <Cell><Data ss:Type="String">Data Criação</Data></Cell>
     <Cell><Data ss:Type="String">Data Análise</Data></Cell>
+    <Cell><Data ss:Type="String">Data Aprovação</Data></Cell>
     <Cell><Data ss:Type="String">Status</Data></Cell>
     <Cell><Data ss:Type="String">Inquilino</Data></Cell>
     <Cell><Data ss:Type="String">CPF</Data></Cell>
-    <Cell><Data ss:Type="String">Score</Data></Cell>
-    <Cell><Data ss:Type="String">Taxa</Data></Cell>
-    <Cell><Data ss:Type="String">Valor Aluguel</Data></Cell>
-    <Cell><Data ss:Type="String">Valor Fiança</Data></Cell>
+    <Cell><Data ss:Type="String">Score de Crédito</Data></Cell>
+    <Cell><Data ss:Type="String">Taxa Aplicada (%)</Data></Cell>
+    <Cell><Data ss:Type="String">Valor Aluguel (R$)</Data></Cell>
+    <Cell><Data ss:Type="String">Valor Fiança (R$)</Data></Cell>
     <Cell><Data ss:Type="String">Tipo Imóvel</Data></Cell>
-    <Cell><Data ss:Type="String">Endereço</Data></Cell>
+    <Cell><Data ss:Type="String">Endereço Completo</Data></Cell>
     <Cell><Data ss:Type="String">Imobiliária</Data></Cell>
    </Row>
    ${fiancas.map(fianca => `
    <Row>
     <Cell><Data ss:Type="String">${fianca.id}</Data></Cell>
     <Cell><Data ss:Type="String">${new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}</Data></Cell>
-    <Cell><Data ss:Type="String">${fianca.data_analise ? new Date(fianca.data_analise).toLocaleDateString('pt-BR') : ''}</Data></Cell>
+    <Cell><Data ss:Type="String">${fianca.data_analise ? new Date(fianca.data_analise).toLocaleDateString('pt-BR') : 'N/A'}</Data></Cell>
+    <Cell><Data ss:Type="String">${fianca.data_aprovacao ? new Date(fianca.data_aprovacao).toLocaleDateString('pt-BR') : 'N/A'}</Data></Cell>
     <Cell><Data ss:Type="String">${fianca.status_fianca}</Data></Cell>
     <Cell><Data ss:Type="String">${fianca.inquilino_nome_completo}</Data></Cell>
     <Cell><Data ss:Type="String">${fianca.inquilino_cpf}</Data></Cell>
@@ -174,15 +181,25 @@ export const useRelatoriosAnalista = () => {
     <Cell><Data ss:Type="Number">${fianca.valor_fianca || 0}</Data></Cell>
     <Cell><Data ss:Type="String">${fianca.imovel_tipo}</Data></Cell>
     <Cell><Data ss:Type="String">${fianca.imovel_endereco}, ${fianca.imovel_numero} - ${fianca.imovel_bairro}, ${fianca.imovel_cidade}/${fianca.imovel_estado}</Data></Cell>
-    <Cell><Data ss:Type="String">${fianca.imobiliaria?.nome || ''}</Data></Cell>
+    <Cell><Data ss:Type="String">${fianca.imobiliaria?.nome || 'N/A'}</Data></Cell>
    </Row>
    `).join('')}
   </Table>
  </Worksheet>
 </Workbook>`;
 
-      const nomeArquivo = `relatorio-analista_${dataInicioStr}_${dataFimStr}.xml`;
+      const nomeArquivo = `relatorio-fiancas-aprovadas_${dataInicioStr}_${dataFimStr}.xml`;
       
+      // Criar bucket se não existir
+      const { error: bucketError } = await supabase.storage
+        .from('relatorios')
+        .list('', { limit: 1 });
+
+      if (bucketError && bucketError.message.includes('The resource was not found')) {
+        // Tentar criar o bucket
+        await supabase.storage.createBucket('relatorios', { public: false });
+      }
+
       // Salvar no Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('relatorios')
@@ -204,7 +221,7 @@ export const useRelatoriosAnalista = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast.success('Relatório gerado com sucesso!');
+      toast.success('Relatório de fianças aprovadas gerado com sucesso!');
       buscarRelatoriosDisponiveis();
     } catch (error) {
       console.error('Erro ao gerar relatório:', error);
