@@ -173,13 +173,6 @@ const Inquilino = () => {
                   <p className="text-2xl font-bold text-primary">
                     {fiancaParaExibir ? formatCurrency(Number(fiancaParaExibir.valor_fianca || 0)) : 'R$ 0,00'}
                   </p>
-                  {fiancaParaExibir && (
-                    <div className="text-xs text-gray-500 mt-1">
-                      <p>Score: {fiancaParaExibir.score_credito || 'N/A'}</p>
-                      <p>Taxa: {fiancaParaExibir.taxa_aplicada ? formatPercent(Number(fiancaParaExibir.taxa_aplicada)) : 'N/A'}</p>
-                      <p>Valor Total: {formatCurrency(Number(fiancaParaExibir.valor_total_locacao || fiancaParaExibir.imovel_valor_aluguel || 0))} ({fiancaParaExibir.imovel_tempo_locacao || 0} Meses)</p>
-                    </div>
-                  )}
                 </div>
                 <DollarSign className="h-8 w-8 text-primary" />
               </div>
@@ -286,21 +279,14 @@ const Inquilino = () => {
                       <p className="text-lg font-semibold text-primary">
                         {formatCurrency(Number(fiancaParaExibir.valor_fianca || 0))}
                       </p>
+                      {fiancaParaExibir.score_credito && fiancaParaExibir.taxa_aplicada && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          <p>Score: {fiancaParaExibir.score_credito}</p>
+                          <p>Taxa: {fiancaParaExibir.taxa_aplicada ? formatPercent(Number(fiancaParaExibir.taxa_aplicada)) : 'N/A'}</p>
+                          <p>Valor Total: {formatCurrency(Number(fiancaParaExibir.valor_total_locacao || fiancaParaExibir.imovel_valor_aluguel || 0))} ({fiancaParaExibir.imovel_tempo_locacao || 0} Meses)</p>
+                        </div>
+                      )}
                     </div>
-
-                    {fiancaParaExibir.score_credito && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Score de Crédito</p>
-                        <p className="text-base">{fiancaParaExibir.score_credito}</p>
-                      </div>
-                    )}
-
-                    {fiancaParaExibir.taxa_aplicada && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Taxa da Fiança</p>
-                        <p className="text-base">{formatPercent(Number(fiancaParaExibir.taxa_aplicada))}</p>
-                      </div>
-                    )}
 
                     <div>
                       <p className="text-sm font-medium text-gray-500">Tempo de Locação</p>
