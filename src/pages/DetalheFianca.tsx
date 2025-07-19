@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -14,7 +13,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useAnalista } from '@/hooks/useAnalista';
 import {
   ArrowLeft,
   Building,
@@ -104,7 +102,6 @@ const DetalheFianca = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { aprovarFianca, rejeitarFianca } = useAnalista();
   
   const [fianca, setFianca] = useState<FiancaDetalhes | null>(null);
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
@@ -133,6 +130,7 @@ const DetalheFianca = () => {
         .select(`
           *,
           usuarios!fiancas_locaticias_id_imobiliaria_fkey (
+            id,
             nome,
             email,
             telefone
@@ -251,10 +249,21 @@ const DetalheFianca = () => {
     try {
       const scoreNum = parseInt(score);
       const taxaNum = parseFloat(taxa.replace(',', '.'));
+      
+      // Usar a função do useAnalista hook se disponível
+      const { aprovarFianca } = await import('@/hooks/useAnalista');
       await aprovarFianca(fianca.id, scoreNum, taxaNum);
+      
       setShowScoreModal(false);
       fetchFiancaDetails();
       fetchHistorico();
+    } catch (error) {
+      console.error('Erro ao aprovar fiança:', error);
+      toast({
+        title: "Erro ao aprovar",
+        description: "Ocorreu um erro ao aprovar a fiança.",
+        variant: "destructive"
+      });
     } finally {
       setIsApproving(false);
     }
@@ -272,10 +281,20 @@ const DetalheFianca = () => {
 
     setIsRejecting(true);
     try {
+      // Usar a função do useAnalista hook se disponível
+      const { rejeitarFianca } = await import('@/hooks/useAnalista');
       await rejeitarFianca(fianca.id, rejectReason);
+      
       setShowRejectModal(false);
       fetchFiancaDetails();
       fetchHistorico();
+    } catch (error) {
+      console.error('Erro ao rejeitar fiança:', error);
+      toast({
+        title: "Erro ao rejeitar",
+        description: "Ocorreu um erro ao rejeitar a fiança.",
+        variant: "destructive"
+      });
     } finally {
       setIsRejecting(false);
     }
