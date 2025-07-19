@@ -1,252 +1,324 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { useFiancaDetails } from '@/hooks/useFiancaDetails';
-import { useCargoRedirect } from '@/hooks/useCargoRedirect';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  ArrowLeft, 
-  User, 
-  Building, 
-  FileText, 
-  Calendar,
-  Star,
-  DollarSign,
-  AlertCircle,
-  Clock,
-  Loader2,
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useAnalista } from '@/hooks/useAnalista';
+import AdicionarLinkPagamentoModal from '@/components/AdicionarLinkPagamentoModal';
+import ComprovanteUpload from '@/components/ComprovanteUpload';
+import {
+  ArrowLeft,
+  Building,
+  User,
+  Home,
   CreditCard,
+  Calendar,
+  MapPin,
+  Phone,
+  Mail,
+  DollarSign,
+  FileText,
   CheckCircle,
-  LinkIcon
+  XCircle,
+  Clock,
+  AlertCircle,
+  Edit,
+  Upload,
+  Download,
+  Loader2
 } from 'lucide-react';
 
+interface FiancaDetalhes {
+  id: string;
+  status_fianca: string;
+  inquilino_nome_completo: string;
+  inquilino_cpf: string;
+  inquilino_email: string;
+  inquilino_whatsapp: string;
+  inquilino_renda_mensal: number;
+  inquilino_endereco: string;
+  inquilino_numero: string;
+  inquilino_complemento?: string;
+  inquilino_bairro: string;
+  inquilino_cidade: string;
+  inquilino_estado: string;
+  inquilino_pais: string;
+  imovel_tipo: string;
+  imovel_tipo_locacao: string;
+  imovel_valor_aluguel: number;
+  imovel_area_metros?: number;
+  imovel_tempo_locacao: number;
+  imovel_descricao?: string;
+  imovel_endereco: string;
+  imovel_numero: string;
+  imovel_complemento?: string;
+  imovel_bairro: string;
+  imovel_cidade: string;
+  imovel_estado: string;
+  imovel_pais: string;
+  data_criacao: string;
+  data_analise?: string;
+  data_aprovacao?: string;
+  score_credito?: number;
+  taxa_aplicada?: number;
+  motivo_reprovacao?: string;
+  observacoes_aprovacao?: string;
+  link_pagamento?: string;
+  comprovante_pagamento?: string;
+  situacao_pagamento?: string;
+  valor_total_locacao?: number;
+  valor_fianca?: number;
+  imobiliaria?: {
+    nome: string;
+    email: string;
+    telefone?: string;
+    endereco?: string;
+    numero?: string;
+    complemento?: string;
+    bairro?: string;
+    cidade?: string;
+    estado?: string;
+    pais?: string;
+  };
+}
+
+interface HistoricoItem {
+  id: string;
+  acao: string;
+  usuario_nome: string;
+  data_criacao: string;
+  detalhes?: string;
+}
+
 const DetalheFianca = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { fianca, historico, isLoading } = useFiancaDetails(id || '');
-  const { getCargoHomePage } = useCargoRedirect();
+  const { toast } = useToast();
+  const { aprovarFianca, rejeitarFianca, isApproving, isRejecting } = useAnalista();
+  
+  const [fianca, setFianca] = useState<FiancaDetalhes | null>(null);
+  const [historico, setHistorico] = useState<HistoricoItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showScoreModal, setShowScoreModal] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [score, setScore] = useState('');
+  const [taxa, setTaxa] = useState('');
+  const [observacoes, setObservacoes] = useState('');
 
-  // Verificar se o usuário tem permissão (admin, analista ou imobiliária dona da fiança)
-  React.useEffect(() => {
-    if (user && fianca) {
-      const hasPermission = user.type === 'admin' || 
-                           user.type === 'analista' ||
-                           (user.type === 'imobiliaria' && fianca.id_imobiliaria === user.id);
-      
-      if (!hasPermission) {
-        navigate('/unauthorized');
+  useEffect(() => {
+    fetchFiancaDetails();
+    fetchHistorico();
+  }, [id]);
+
+  const fetchFiancaDetails = async () => {
+    try {
+      if (!id) return;
+
+      const { data, error } = await supabase
+        .from('fiancas_locaticias')
+        .select(`
+          *,
+          usuarios!fiancas_locaticias_id_imobiliaria_fkey (
+            nome,
+            email,
+            telefone
+          ),
+          perfil_usuario!inner (
+            endereco,
+            numero,
+            complemento,
+            bairro,
+            cidade,
+            estado,
+            pais
+          )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Erro ao buscar detalhes da fiança:', error);
+        toast({
+          title: "Erro ao carregar fiança",
+          description: "Não foi possível carregar os detalhes da fiança.",
+          variant: "destructive"
+        });
+        return;
       }
-    }
-  }, [user, fianca, navigate]);
 
-  const handleVoltar = () => {
-    const homePage = getCargoHomePage();
-    navigate(homePage);
+      if (!data) {
+        toast({
+          title: "Fiança não encontrada",
+          description: "A fiança solicitada não foi encontrada.",
+          variant: "destructive"
+        });
+        navigate('/dashboard');
+        return;
+      }
+
+      const fiancaFormatada: FiancaDetalhes = {
+        ...data,
+        imobiliaria: data.usuarios ? {
+          nome: data.usuarios.nome,
+          email: data.usuarios.email,
+          telefone: data.usuarios.telefone,
+          endereco: data.perfil_usuario?.endereco,
+          numero: data.perfil_usuario?.numero,
+          complemento: data.perfil_usuario?.complemento,
+          bairro: data.perfil_usuario?.bairro,
+          cidade: data.perfil_usuario?.cidade,
+          estado: data.perfil_usuario?.estado,
+          pais: data.perfil_usuario?.pais
+        } : undefined
+      };
+
+      setFianca(fiancaFormatada);
+    } catch (error) {
+      console.error('Erro ao carregar detalhes:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao carregar os detalhes da fiança.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchHistorico = async () => {
+    try {
+      if (!id) return;
+
+      const { data, error } = await supabase
+        .from('historico_fiancas')
+        .select('*')
+        .eq('fianca_id', id)
+        .order('data_criacao', { ascending: false });
+
+      if (error) {
+        console.error('Erro ao buscar histórico:', error);
+        return;
+      }
+
+      // Remover duplicatas baseado na ação e data (mantendo apenas a mais recente de cada tipo)
+      const historicoUnico = data?.reduce((acc: HistoricoItem[], current) => {
+        const existingIndex = acc.findIndex(item => 
+          item.acao === current.acao && 
+          Math.abs(new Date(item.data_criacao).getTime() - new Date(current.data_criacao).getTime()) < 1000
+        );
+        
+        if (existingIndex === -1) {
+          acc.push(current);
+        }
+        
+        return acc;
+      }, []) || [];
+
+      setHistorico(historicoUnico);
+    } catch (error) {
+      console.error('Erro ao carregar histórico:', error);
+    }
+  };
+
+  const handleAprovar = async () => {
+    if (!score || !taxa || !fianca) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha o score e a taxa.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const scoreNum = parseInt(score);
+    const taxaNum = parseFloat(taxa.replace(',', '.'));
+    const valorTotalLocacao = fianca.imovel_valor_aluguel * fianca.imovel_tempo_locacao;
+    const valorFianca = valorTotalLocacao * (taxaNum / 100);
+
+    await aprovarFianca(fianca.id, scoreNum, taxaNum, observacoes, valorTotalLocacao, valorFianca);
+    setShowScoreModal(false);
+    fetchFiancaDetails();
+    fetchHistorico();
+  };
+
+  const handleRejeitar = async () => {
+    if (!rejectReason.trim() || !fianca) {
+      toast({
+        title: "Motivo obrigatório",
+        description: "Por favor, informe o motivo da rejeição.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    await rejeitarFianca(fianca.id, rejectReason);
+    setShowRejectModal(false);
+    fetchFiancaDetails();
+    fetchHistorico();
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'rejeitada':
-        return 'bg-red-500';
-      case 'aprovada':
-        return 'bg-green-500';
-      case 'em_analise':
-        return 'bg-blue-500';
-      case 'ativa':
-        return 'bg-green-500';
-      case 'vencida':
-        return 'bg-red-500';
-      case 'enviada_ao_financeiro':
-        return 'bg-purple-500';
-      case 'aguardando_geracao_pagamento':
-        return 'bg-yellow-500';
-      case 'pagamento_disponivel':
-        return 'bg-orange-500';
-      case 'comprovante_enviado':
-        return 'bg-blue-500';
-      default:
-        return 'bg-gray-500';
-    }
+    const colors: { [key: string]: string } = {
+      'em_analise': 'bg-blue-500',
+      'aprovada': 'bg-green-500',
+      'rejeitada': 'bg-red-500',
+      'ativa': 'bg-green-500',
+      'vencida': 'bg-red-500',
+      'cancelada': 'bg-gray-500',
+      'enviada_ao_financeiro': 'bg-green-500',
+      'aguardando_geracao_pagamento': 'bg-yellow-500',
+      'pagamento_disponivel': 'bg-yellow-500',
+      'comprovante_enviado': 'bg-blue-500'
+    };
+    return colors[status] || 'bg-gray-500';
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'rejeitada':
-        return 'Rejeitada';
-      case 'aprovada':
-        return 'Aprovada';
-      case 'em_analise':
-        return 'Em Análise';
-      case 'ativa':
-        return 'Ativa';
-      case 'vencida':
-        return 'Vencida';
-      case 'enviada_ao_financeiro':
-        return 'Enviada ao Financeiro';
-      case 'aguardando_geracao_pagamento':
-        return 'Aguardando Geração de Pagamento';
-      case 'pagamento_disponivel':
-        return 'Pagamento Disponível';
-      case 'comprovante_enviado':
-        return 'Comprovante Enviado';
-      default:
-        return status;
-    }
+    const labels: { [key: string]: string } = {
+      'em_analise': 'Em Análise',
+      'aprovada': 'Aprovada',
+      'rejeitada': 'Rejeitada',
+      'ativa': 'Ativa',
+      'vencida': 'Vencida',
+      'cancelada': 'Cancelada',
+      'enviada_ao_financeiro': 'Enviada ao Financeiro',
+      'aguardando_geracao_pagamento': 'Aguardando Pagamento',
+      'pagamento_disponivel': 'Aguardando Pagamento',
+      'comprovante_enviado': 'Comprovante Enviado'
+    };
+    return labels[status] || status;
   };
 
-  // Buscar o nome do analista correto do histórico
-  const getAnalistaNome = () => {
-    const analistaAction = historico.find(item => 
-      item.acao.includes('Score e taxa atualizados') || 
-      item.acao.includes('aprovada') || 
-      item.acao.includes('rejeitada')
-    );
-    
-    return analistaAction?.analisado_por_usuario?.nome || 
-           analistaAction?.usuario_nome || 
-           'Não atribuído';
-  };
-
-  // Função para buscar o nome do executivo responsável - simplificada
-  const getExecutivoNome = () => {
-    return 'Não atribuído';
-  };
-
-  // Função para formatar método de pagamento
-  const getMetodoPagamentoTexto = (metodo: string) => {
-    switch (metodo) {
-      case 'transferencia_bancaria':
-        return 'Transferência Bancária';
-      case 'pix':
-        return 'PIX';
-      case 'cartao_credito':
-        return 'Cartão de Crédito';
-      case 'boleto':
-        return 'Boleto Bancário';
-      default:
-        return metodo;
-    }
-  };
-
-  // Função para formatar prazo de pagamento
-  const getPrazoPagamentoTexto = (prazo: string) => {
-    switch (prazo) {
-      case '1_dia':
-        return 'Até 1 dia útil';
-      case '2_dias':
-        return 'Até 2 dias úteis';
-      case '3_dias':
-        return 'Até 3 dias úteis';
-      case '5_dias':
-        return 'Até 5 dias úteis';
-      case '7_dias':
-        return 'Até 7 dias úteis';
-      default:
-        return prazo;
-    }
-  };
-
-  // Função para formatar telefone
   const formatPhone = (phone: string) => {
-    if (!phone) return 'Não informado';
-    
-    // Remove todos os caracteres não numéricos
+    if (!phone) return '';
     const numbers = phone.replace(/\D/g, '');
-    
-    // Se tem 11 dígitos (com DDD), formata como +55 (XX) 9 XXXX-XXXX
-    if (numbers.length === 11) {
-      return `+55 (${numbers.slice(0, 2)}) ${numbers.slice(2, 3)} ${numbers.slice(3, 7)}-${numbers.slice(7)}`;
+    if (numbers.length === 13 && numbers.startsWith('55')) {
+      const areaCode = numbers.substring(2, 4);
+      const firstDigit = numbers.substring(4, 5);
+      const firstPart = numbers.substring(5, 9);
+      const secondPart = numbers.substring(9, 13);
+      return `+55 (${areaCode}) ${firstDigit} ${firstPart}-${secondPart}`;
     }
-    
-    // Se tem 10 dígitos (com DDD), formata como +55 (XX) XXXX-XXXX
-    if (numbers.length === 10) {
-      return `+55 (${numbers.slice(0, 2)}) ${numbers.slice(2, 6)}-${numbers.slice(6)}`;
-    }
-    
-    // Retorna o número original se não conseguir formatar
     return phone;
   };
 
-  // Função para formatar tipo de imóvel
-  const getTipoImovelTexto = (tipo: string) => {
-    switch (tipo) {
-      case 'casa':
-        return 'Casa';
-      case 'apartamento':
-        return 'Apartamento';
-      case 'comercial':
-        return 'Comercial';
-      case 'terreno':
-        return 'Terreno';
-      case 'sala':
-        return 'Sala';
-      case 'loja':
-        return 'Loja';
-      case 'galpao':
-        return 'Galpão';
-      default:
-        return tipo;
-    }
-  };
-
-  // Função para formatar tipo de locação
-  const getTipoLocacaoTexto = (tipo: string) => {
-    switch (tipo) {
-      case 'residencial':
-        return 'Residencial';
-      case 'comercial':
-        return 'Comercial';
-      case 'misto':
-        return 'Misto';
-      default:
-        return tipo;
-    }
-  };
-
-  // Função para calcular valores da fiança
-  const calcularValoresFianca = () => {
-    if (!fianca) return null;
-
-    const valorAluguel = fianca.imovel_valor_aluguel || 0;
-    const tempoLocacao = fianca.imovel_tempo_locacao || 0;
-    const valorTotalLocacao = valorAluguel * tempoLocacao;
-    const taxaFianca = fianca.taxa_aplicada || 0;
-    const valorFianca = (valorTotalLocacao * taxaFianca) / 100;
-
-    return {
-      valorAluguel,
-      tempoLocacao,
-      valorTotalLocacao,
-      taxaFianca,
-      valorFianca
-    };
-  };
-
-  // Filtrar histórico para evitar duplicatas
-  const historicoFiltrado = React.useMemo(() => {
-    if (!historico || historico.length === 0) return [];
-    
-    // Remover duplicatas baseado em ação e data (mesmo minuto)
-    const uniqueHistorico = historico.filter((item, index, arr) => {
-      const sameActions = arr.filter(h => 
-        h.acao === item.acao && 
-        new Date(h.data_criacao).getTime() === new Date(item.data_criacao).getTime()
-      );
-      
-      // Manter apenas o primeiro de cada grupo de duplicatas
-      return sameActions.indexOf(item) === 0;
-    });
-
-    return uniqueHistorico.sort((a, b) => 
-      new Date(b.data_criacao).getTime() - new Date(a.data_criacao).getTime()
-    );
-  }, [historico]);
+  const canAnalyze = user?.type === 'analista' && fianca?.status_fianca === 'em_analise';
+  const canManagePayment = (user?.type === 'admin' || user?.type === 'juridico') && 
+    ['aprovada', 'enviada_ao_financeiro', 'aguardando_geracao_pagamento'].includes(fianca?.status_fianca || '');
 
   if (isLoading) {
     return (
@@ -260,138 +332,285 @@ const DetalheFianca = () => {
 
   if (!fianca) {
     return (
-      <Layout title="Detalhes da Fiança">
+      <Layout title="Fiança não encontrada">
         <div className="text-center py-8">
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             Fiança não encontrada
           </h3>
-          <Button variant="outline" onClick={handleVoltar}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
+          <Button onClick={() => navigate('/dashboard')}>
+            Voltar ao Dashboard
           </Button>
         </div>
       </Layout>
     );
   }
-
-  // Verificar permissão após carregar os dados
-  const hasPermission = user?.type === 'admin' || 
-                       user?.type === 'analista' ||
-                       (user?.type === 'imobiliaria' && fianca.id_imobiliaria === user.id);
-
-  if (!hasPermission) {
-    return (
-      <Layout title="Acesso Negado">
-        <div className="text-center py-8">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Você não tem permissão para ver esta fiança
-          </h3>
-          <Button variant="outline" onClick={handleVoltar}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
-          </Button>
-        </div>
-      </Layout>
-    );
-  }
-
-  const valoresFianca = calcularValoresFianca();
 
   return (
-    <Layout title="Detalhes da Fiança">
+    <Layout title={`Fiança - ${fianca.inquilino_nome_completo}`}>
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={handleVoltar}>
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate(-1)}
+            >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Fiança {fianca.id}</h1>
-              <div className="flex items-center space-x-2 mt-1">
-                <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
-                  {getStatusLabel(fianca.status_fianca)}
-                </Badge>
-                {fianca.data_analise && (
-                  <span className="text-sm text-gray-500">
-                    Analisada em {new Date(fianca.data_analise).toLocaleDateString('pt-BR')}
-                  </span>
-                )}
-              </div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Fiança - {fianca.inquilino_nome_completo}
+              </h1>
+              <p className="text-gray-600">ID: {fianca.id}</p>
             </div>
           </div>
+          <Badge className={`${getStatusColor(fianca.status_fianca)} text-white text-lg px-4 py-2`}>
+            {getStatusLabel(fianca.status_fianca)}
+          </Badge>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Dados do Inquilino */}
-          <Card>
+        {/* Ações de Análise */}
+        {canAnalyze && (
+          <Card className="border-blue-200 bg-blue-50">
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <User className="mr-2 h-5 w-5 text-blue-600" />
-                Dados do Inquilino
-              </CardTitle>
+              <CardTitle className="text-blue-800">Ações de Análise</CardTitle>
+              <CardDescription className="text-blue-600">
+                Esta fiança está aguardando sua análise
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Nome Completo</p>
-                <p className="text-base">{fianca.inquilino_nome_completo}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">CPF</p>
-                <p className="text-base">{fianca.inquilino_cpf}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">E-mail</p>
-                <p className="text-base">{fianca.inquilino_email}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">WhatsApp</p>
-                <p className="text-base">{formatPhone(fianca.inquilino_whatsapp)}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Renda Mensal</p>
-                <p className="text-base font-semibold text-green-600">
-                  R$ {fianca.inquilino_renda_mensal.toLocaleString('pt-BR')}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Endereço</p>
-                <p className="text-base">
-                  {fianca.inquilino_endereco}, {fianca.inquilino_numero}
-                  {fianca.inquilino_complemento && `, ${fianca.inquilino_complemento}`}<br />
-                  {fianca.inquilino_bairro}, {fianca.inquilino_cidade} - {fianca.inquilino_estado}
-                </p>
+            <CardContent>
+              <div className="flex gap-3">
+                <Dialog open={showScoreModal} onOpenChange={setShowScoreModal}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-green-600 hover:bg-green-700">
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Aprovar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Aprovar Fiança</DialogTitle>
+                      <DialogDescription>
+                        Preencha as informações necessárias para aprovar esta fiança
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="score">Score de Crédito *</Label>
+                        <Input
+                          id="score"
+                          type="number"
+                          value={score}
+                          onChange={(e) => setScore(e.target.value)}
+                          placeholder="Ex: 650"
+                          min="300"
+                          max="999"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="taxa">Taxa Aplicada (%) *</Label>
+                        <Input
+                          id="taxa"
+                          value={taxa}
+                          onChange={(e) => setTaxa(e.target.value)}
+                          placeholder="Ex: 12,5"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="observacoes">Observações</Label>
+                        <Textarea
+                          id="observacoes"
+                          value={observacoes}
+                          onChange={(e) => setObservacoes(e.target.value)}
+                          placeholder="Observações sobre a aprovação..."
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-3">
+                      <Button variant="outline" onClick={() => setShowScoreModal(false)}>
+                        Cancelar
+                      </Button>
+                      <Button onClick={handleAprovar} disabled={isApproving}>
+                        {isApproving ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Aprovando...
+                          </>
+                        ) : (
+                          'Aprovar'
+                        )}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
+                  <DialogTrigger asChild>
+                    <Button variant="destructive">
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Rejeitar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Rejeitar Fiança</DialogTitle>
+                      <DialogDescription>
+                        Informe o motivo da rejeição desta fiança
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="motivo">Motivo da Rejeição *</Label>
+                        <Textarea
+                          id="motivo"
+                          value={rejectReason}
+                          onChange={(e) => setRejectReason(e.target.value)}
+                          placeholder="Descreva o motivo da rejeição..."
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-3">
+                      <Button variant="outline" onClick={() => setShowRejectModal(false)}>
+                        Cancelar
+                      </Button>
+                      <Button variant="destructive" onClick={handleRejeitar} disabled={isRejecting}>
+                        {isRejecting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Rejeitando...
+                          </>
+                        ) : (
+                          'Rejeitar'
+                        )}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </Card>
+        )}
 
-          {/* Dados da Imobiliária e Executivo */}
+        {/* Cards de informações */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Dados da Imobiliária */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Building className="mr-2 h-5 w-5 text-orange-600" />
+              <CardTitle className="flex items-center gap-2">
+                <Building className="h-5 w-5 text-primary" />
                 Dados da Imobiliária
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Nome da Imobiliária</p>
-                <p className="text-base font-semibold">{fianca.usuarios?.nome || 'Não informado'}</p>
+            <CardContent className="space-y-4">
+              {fianca.imobiliaria ? (
+                <>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Nome da Imobiliária</p>
+                    <p className="text-base">{fianca.imobiliaria.nome}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">E-mail</p>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-gray-400" />
+                        <span className="text-base">{fianca.imobiliaria.email}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Telefone</p>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-gray-400" />
+                        <span className="text-base">{formatPhone(fianca.imobiliaria.telefone || '')}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {fianca.imobiliaria.endereco && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Endereço</p>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-gray-400" />
+                        <span className="text-base">
+                          {fianca.imobiliaria.endereco}, {fianca.imobiliaria.numero}
+                          {fianca.imobiliaria.complemento && `, ${fianca.imobiliaria.complemento}`}
+                          <br />
+                          {fianca.imobiliaria.bairro}, {fianca.imobiliaria.cidade} - {fianca.imobiliaria.estado}
+                          <br />
+                          {fianca.imobiliaria.pais}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-gray-500">Informações da imobiliária não disponíveis</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Dados do Inquilino */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                Dados do Inquilino
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Nome Completo</p>
+                  <p className="text-base">{fianca.inquilino_nome_completo}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">CPF</p>
+                  <p className="text-base">{fianca.inquilino_cpf}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Executivo Responsável</p>
-                <p className="text-base text-blue-600">
-                  {getExecutivoNome()}
-                </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">E-mail</p>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-gray-400" />
+                    <span className="text-base">{fianca.inquilino_email}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">WhatsApp</p>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-gray-400" />
+                    <span className="text-base">{formatPhone(fianca.inquilino_whatsapp)}</span>
+                  </div>
+                </div>
               </div>
+
               <div>
-                <p className="text-sm font-medium text-gray-500">E-mail</p>
-                <p className="text-base">{fianca.usuarios?.email || 'Não informado'}</p>
+                <p className="text-sm font-medium text-gray-500">Renda Mensal</p>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-gray-400" />
+                  <span className="text-base font-medium text-green-600">
+                    R$ {fianca.inquilino_renda_mensal.toLocaleString('pt-BR')}
+                  </span>
+                </div>
               </div>
+
               <div>
-                <p className="text-sm font-medium text-gray-500">Telefone</p>
-                <p className="text-base">{formatPhone(fianca.usuarios?.telefone || '')}</p>
+                <p className="text-sm font-medium text-gray-500">Endereço</p>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-400" />
+                  <span className="text-base">
+                    {fianca.inquilino_endereco}, {fianca.inquilino_numero}
+                    {fianca.inquilino_complemento && `, ${fianca.inquilino_complemento}`}
+                    <br />
+                    {fianca.inquilino_bairro}, {fianca.inquilino_cidade} - {fianca.inquilino_estado}
+                    <br />
+                    {fianca.inquilino_pais}
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -400,239 +619,192 @@ const DetalheFianca = () => {
         {/* Dados do Imóvel */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Building className="mr-2 h-5 w-5 text-orange-600" />
+            <CardTitle className="flex items-center gap-2">
+              <Home className="h-5 w-5 text-primary" />
               Dados do Imóvel
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-500">Tipo do Imóvel</p>
-                <p className="text-base">{getTipoImovelTexto(fianca.imovel_tipo)}</p>
+                <p className="text-base capitalize">{fianca.imovel_tipo}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Tipo de Locação</p>
-                <p className="text-base">{getTipoLocacaoTexto(fianca.imovel_tipo_locacao)}</p>
+                <p className="text-base capitalize">{fianca.imovel_tipo_locacao}</p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Valor do Aluguel Mensal</p>
-                <p className="text-base font-semibold text-blue-600">
-                  R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}
-                </p>
-              </div>
-              {fianca.imovel_area_metros && (
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Área</p>
-                  <p className="text-base">{fianca.imovel_area_metros} m²</p>
-                </div>
-              )}
               <div>
                 <p className="text-sm font-medium text-gray-500">Tempo de Locação</p>
                 <p className="text-base">{fianca.imovel_tempo_locacao} meses</p>
               </div>
             </div>
-            
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Valor do Aluguel Mensal</p>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-gray-400" />
+                  <span className="text-lg font-bold text-green-600">
+                    R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}
+                  </span>
+                </div>
+              </div>
+              {fianca.imovel_area_metros && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Área em m²</p>
+                  <p className="text-base">{fianca.imovel_area_metros}m²</p>
+                </div>
+              )}
+            </div>
+
             {fianca.imovel_descricao && (
               <div>
                 <p className="text-sm font-medium text-gray-500">Descrição do Imóvel</p>
                 <p className="text-base">{fianca.imovel_descricao}</p>
               </div>
             )}
-            
+
             <div>
-              <p className="text-sm font-medium text-gray-500">Endereço Completo do Imóvel</p>
-              <p className="text-base">
-                {fianca.imovel_endereco}, {fianca.imovel_numero}
-                {fianca.imovel_complemento && `, ${fianca.imovel_complemento}`}<br />
-                {fianca.imovel_bairro}, {fianca.imovel_cidade} - {fianca.imovel_estado}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Dados da Análise */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <FileText className="mr-2 h-5 w-5 text-purple-600" />
-              Dados da Análise
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {fianca.score_credito && (
-                <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                  <Star className="h-8 w-8 mx-auto mb-2 text-yellow-600" />
-                  <p className="text-sm font-medium text-gray-500">Score de Crédito</p>
-                  <p className="text-2xl font-bold text-yellow-600">{fianca.score_credito}</p>
-                </div>
-              )}
-              {fianca.taxa_aplicada && (
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <DollarSign className="h-8 w-8 mx-auto mb-2 text-green-600" />
-                  <p className="text-sm font-medium text-gray-500">Taxa da Fiança</p>
-                  <p className="text-2xl font-bold text-green-600">{fianca.taxa_aplicada}%</p>
-                </div>
-              )}
-              <div className="text-center p-4 bg-red-50 rounded-lg">
-                <AlertCircle className="h-8 w-8 mx-auto mb-2 text-red-600" />
-                <p className="text-sm font-medium text-gray-500">Status</p>
-                <Badge className={`${getStatusColor(fianca.status_fianca)} text-white mt-1`}>
-                  {getStatusLabel(fianca.status_fianca)}
-                </Badge>
-              </div>
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <User className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                <p className="text-sm font-medium text-gray-500">Analista</p>
-                <p className="text-sm font-medium text-blue-600">
-                  {getAnalistaNome()}
-                </p>
+              <p className="text-sm font-medium text-gray-500">Endereço do Imóvel</p>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-gray-400" />
+                <span className="text-base">
+                  {fianca.imovel_endereco}, {fianca.imovel_numero}
+                  {fianca.imovel_complemento && `, ${fianca.imovel_complemento}`}
+                  <br />
+                  {fianca.imovel_bairro}, {fianca.imovel_cidade} - {fianca.imovel_estado}
+                  <br />
+                  {fianca.imovel_pais}
+                </span>
               </div>
             </div>
-
-            {fianca.status_fianca === 'rejeitada' && fianca.motivo_reprovacao && (
-              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <h4 className="font-semibold text-red-800 mb-2">Motivo da Rejeição</h4>
-                <p className="text-red-700">{fianca.motivo_reprovacao}</p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
         {/* Informações de Pagamento */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <CreditCard className="mr-2 h-5 w-5 text-green-600" />
-              Informações de Pagamento
-            </CardTitle>
-            <CardDescription>
-              Status e detalhes do processo de pagamento da fiança
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="flex items-center justify-center mb-2">
-                  {['pagamento_disponivel', 'comprovante_enviado', 'ativa'].includes(fianca.status_fianca) ? (
-                    <CheckCircle className="h-8 w-8 text-green-600" />
-                  ) : (
-                    <Clock className="h-8 w-8 text-yellow-600" />
+        {(fianca.status_fianca !== 'em_analise' && fianca.status_fianca !== 'rejeitada') && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" />
+                Informações de Pagamento
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Descrição detalhada do pagamento */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">Cálculo da Fiança</h4>
+                <div className="space-y-1 text-sm">
+                  <p><strong>Valor do Aluguel Mensal:</strong> R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}</p>
+                  <p><strong>Valor Total Aluguel:</strong> R$ {(fianca.valor_total_locacao || (fianca.imovel_valor_aluguel * fianca.imovel_tempo_locacao)).toLocaleString('pt-BR')} (Período de: {fianca.imovel_tempo_locacao} meses)</p>
+                  {fianca.taxa_aplicada && (
+                    <>
+                      <p><strong>Taxa Fiança:</strong> {fianca.taxa_aplicada}%</p>
+                      <p><strong>Valor da Fiança:</strong> R$ {(fianca.valor_fianca || ((fianca.valor_total_locacao || (fianca.imovel_valor_aluguel * fianca.imovel_tempo_locacao)) * (fianca.taxa_aplicada / 100))).toLocaleString('pt-BR')}</p>
+                    </>
                   )}
                 </div>
-                <p className="text-sm font-medium text-gray-500">Status do Pagamento</p>
-                <Badge className={`${getStatusColor(fianca.status_fianca)} text-white mt-1`}>
-                  {getStatusLabel(fianca.status_fianca)}
-                </Badge>
               </div>
 
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <DollarSign className="h-8 w-8 mx-auto mb-2 text-green-600" />
-                <p className="text-sm font-medium text-gray-500">Valor da Fiança</p>
-                <p className="text-xl font-bold text-green-600">
-                  R$ {valoresFianca ? valoresFianca.valorFianca.toLocaleString('pt-BR') : '0'}
-                </p>
-              </div>
-
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <LinkIcon className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-                <p className="text-sm font-medium text-gray-500">Link de Pagamento</p>
-                <p className="text-sm font-medium text-purple-600">
-                  {fianca.status_fianca === 'pagamento_disponivel' ? 'Disponível' : 
-                   ['comprovante_enviado', 'ativa'].includes(fianca.status_fianca) ? 'Pago' : 'Pendente'}
-                </p>
-              </div>
-            </div>
-
-            {/* Descrição detalhada dos valores */}
-            {valoresFianca && (
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-semibold text-gray-800 mb-3">Detalhamento dos Valores</h4>
-                <div className="text-sm space-y-1">
-                  <p><strong>Valor do Aluguel Mensal:</strong> R$ {valoresFianca.valorAluguel.toLocaleString('pt-BR')}</p>
-                  <p><strong>Valor Total Aluguel:</strong> R$ {valoresFianca.valorTotalLocacao.toLocaleString('pt-BR')} (Período de: {valoresFianca.tempoLocacao} meses)</p>
-                  <p><strong>Taxa Fiança:</strong> {valoresFianca.taxaFianca}%</p>
-                  <p><strong>Valor da Fiança:</strong> R$ {valoresFianca.valorFianca.toLocaleString('pt-BR')}</p>
-                </div>
-              </div>
-            )}
-
-            {['pagamento_disponivel', 'comprovante_enviado', 'ativa'].includes(fianca.status_fianca) && (
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-semibold text-gray-800 mb-3">Detalhes do Pagamento</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {fianca.score_credito && (
                   <div>
-                    <p className="text-gray-600">
-                      <strong>Método:</strong> {fianca.metodo_pagamento ? getMetodoPagamentoTexto(fianca.metodo_pagamento) : 'Não informado'}
-                    </p>
-                    <p className="text-gray-600">
-                      <strong>Prazo:</strong> {fianca.prazo_pagamento ? getPrazoPagamentoTexto(fianca.prazo_pagamento) : 'Não informado'}
-                    </p>
+                    <p className="text-sm font-medium text-gray-500">Score de Crédito</p>
+                    <p className="text-lg font-bold text-blue-600">{fianca.score_credito}</p>
                   </div>
+                )}
+                {fianca.taxa_aplicada && (
                   <div>
-                    <p className="text-gray-600"><strong>Situação:</strong> 
-                      {fianca.status_fianca === 'pagamento_disponivel' && ' Aguardando Pagamento'}
-                      {fianca.status_fianca === 'comprovante_enviado' && ' Comprovante Enviado'}
-                      {fianca.status_fianca === 'ativa' && ' Pagamento Confirmado'}
-                    </p>
-                    <p className="text-gray-600"><strong>Atualizado em:</strong> {new Date(fianca.data_atualizacao).toLocaleDateString('pt-BR')}</p>
-                  </div>
-                </div>
-                {fianca.link_pagamento && (
-                  <div className="mt-3 p-2 bg-blue-50 rounded border-l-4 border-blue-400">
-                    <p className="text-sm text-blue-800">
-                      <strong>Link:</strong> <a href={fianca.link_pagamento} target="_blank" rel="noopener noreferrer" className="underline">{fianca.link_pagamento}</a>
-                    </p>
+                    <p className="text-sm font-medium text-gray-500">Taxa Aplicada</p>
+                    <p className="text-lg font-bold text-orange-600">{fianca.taxa_aplicada}%</p>
                   </div>
                 )}
               </div>
-            )}
-          </CardContent>
-        </Card>
+
+              {fianca.link_pagamento && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Link de Pagamento</p>
+                  <a 
+                    href={fianca.link_pagamento} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {fianca.link_pagamento}
+                  </a>
+                </div>
+              )}
+
+              {fianca.situacao_pagamento && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Situação do Pagamento</p>
+                  <Badge className={fianca.situacao_pagamento === 'confirmado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                    {fianca.situacao_pagamento === 'confirmado' ? 'Confirmado' : 'Pendente'}
+                  </Badge>
+                </div>
+              )}
+
+              {canManagePayment && (
+                <div className="flex gap-3 pt-4 border-t">
+                  <AdicionarLinkPagamentoModal 
+                    fiancaId={fianca.id}
+                    onSuccess={() => fetchFiancaDetails()}
+                  />
+                  <ComprovanteUpload 
+                    fiancaId={fianca.id}
+                    onSuccess={() => fetchFiancaDetails()}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Histórico de Atividades */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Clock className="mr-2 h-5 w-5 text-gray-600" />
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
               Histórico de Atividades
             </CardTitle>
             <CardDescription>
-              Acompanhe todas as alterações realizadas nesta fiança
+              Acompanhe todas as ações realizadas nesta fiança
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {historicoFiltrado.length > 0 ? (
-                historicoFiltrado.map((item, index) => (
-                  <div key={`${item.id}-${index}`} className="flex items-start space-x-3">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium">{item.acao}</p>
-                        <span className="text-sm text-gray-500">
-                          {new Date(item.data_criacao).toLocaleDateString('pt-BR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        Por: {item.analisado_por_usuario?.nome || item.usuario_nome}
-                      </p>
-                      {item.detalhes && (
-                        <p className="text-sm text-gray-500 mt-1">{item.detalhes}</p>
-                      )}
-                    </div>
+              {historico.map((item) => (
+                <div key={item.id} className="flex items-start gap-3 pb-3 border-b last:border-0">
+                  <div className="bg-primary/10 rounded-full p-2 mt-1">
+                    {item.acao.includes('aprovada') && <CheckCircle className="h-4 w-4 text-green-600" />}
+                    {item.acao.includes('rejeitada') && <XCircle className="h-4 w-4 text-red-600" />}
+                    {item.acao.includes('criada') && <FileText className="h-4 w-4 text-blue-600" />}
+                    {!item.acao.includes('aprovada') && !item.acao.includes('rejeitada') && !item.acao.includes('criada') && (
+                      <Clock className="h-4 w-4 text-gray-600" />
+                    )}
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-center py-4">Nenhum histórico disponível</p>
-              )}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-gray-900">{item.acao}</p>
+                      <p className="text-sm text-gray-500">
+                        {new Date(item.data_criacao).toLocaleString('pt-BR')}
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-600">Por: {item.usuario_nome}</p>
+                    {item.detalhes && (
+                      <p className="text-sm text-gray-500 mt-1">{item.detalhes}</p>
+                    )}
+                    {item.acao === 'Fiança aprovada' && fianca.score_credito && fianca.taxa_aplicada && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        Score: {fianca.score_credito}, Taxa: {fianca.taxa_aplicada}% - 
+                        Valor total da Locação: R$ {(fianca.valor_total_locacao || (fianca.imovel_valor_aluguel * fianca.imovel_tempo_locacao)).toLocaleString('pt-BR')}, 
+                        Valor da Fiança: R$ {(fianca.valor_fianca || ((fianca.valor_total_locacao || (fianca.imovel_valor_aluguel * fianca.imovel_tempo_locacao)) * (fianca.taxa_aplicada / 100))).toLocaleString('pt-BR')}.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
