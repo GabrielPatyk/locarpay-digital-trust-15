@@ -56,6 +56,8 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
     queryFn: async () => {
       if (!user?.id) return [];
 
+      console.log('Buscando imóveis para usuário:', user.id);
+
       let query = supabase
         .from('imoveis_imobiliaria')
         .select('*')
@@ -63,7 +65,12 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
 
       const { data, error } = await query.order('data_criacao', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar imóveis:', error);
+        throw error;
+      }
+
+      console.log('Imóveis encontrados:', data?.length || 0);
 
       let imoveisList = data || [];
 
@@ -93,16 +100,30 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
     mutationFn: async (data: CreateImovelData) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
+      console.log('Criando imóvel com dados:', data);
+      console.log('ID da imobiliária:', user.id);
+
+      const imovelData = {
+        ...data,
+        id_imobiliaria: user.id,
+        pais: 'Brasil',
+        status: 'disponivel' as const
+      };
+
+      console.log('Dados finais do imóvel:', imovelData);
+
       const { data: novoImovel, error } = await supabase
         .from('imoveis_imobiliaria')
-        .insert({
-          ...data,
-          id_imobiliaria: user.id,
-        })
+        .insert(imovelData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao criar imóvel:', error);
+        throw error;
+      }
+
+      console.log('Imóvel criado com sucesso:', novoImovel);
       return novoImovel;
     },
     onSuccess: () => {
@@ -113,6 +134,7 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
       });
     },
     onError: (error: any) => {
+      console.error('Erro na mutation:', error);
       toast({
         title: "Erro ao criar imóvel",
         description: error.message || "Tente novamente mais tarde.",
