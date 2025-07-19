@@ -3,6 +3,8 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import AppSidebar from '@/components/AppSidebar';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -27,50 +29,22 @@ function App() {
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route
-                path="/dashboard"
+                path="/*"
                 element={
                   <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/imoveis"
-                element={
-                  <ProtectedRoute>
-                    <ImoveisImobiliaria />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/fiancas"
-                element={
-                  <ProtectedRoute>
-                    <FiancasImobiliaria />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/detalhe-fianca/:id"
-                element={
-                  <ProtectedRoute>
-                    <DetalheFianca />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/clientes"
-                element={
-                  <ProtectedRoute>
-                    <Clientes />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/detalhe-inquilino/:id"
-                element={
-                  <ProtectedRoute>
-                    <DetalheInquilino />
+                    <SidebarProvider>
+                      <div className="flex min-h-screen w-full">
+                        <AppSidebar />
+                        <Routes>
+                          <Route path="/dashboard" element={<Dashboard />} />
+                          <Route path="/imoveis" element={<ImoveisImobiliaria />} />
+                          <Route path="/fiancas" element={<FiancasImobiliaria />} />
+                          <Route path="/detalhe-fianca/:id" element={<DetalheFianca />} />
+                          <Route path="/clientes" element={<Clientes />} />
+                          <Route path="/detalhe-inquilino/:id" element={<DetalheInquilino />} />
+                        </Routes>
+                      </div>
+                    </SidebarProvider>
                   </ProtectedRoute>
                 }
               />
