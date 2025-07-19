@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
-import { useHistoricoFiancas } from '@/hooks/useHistoricoFiancas';
+import { useHistoricoFiancas } from './useHistoricoFiancas';
 
 interface FiancaAnalise {
   id: string;
@@ -26,6 +25,7 @@ interface FiancaAnalise {
   imovel_bairro: string;
   imovel_cidade: string;
   imovel_estado: string;
+  imovel_tempo_locacao: number;
   status_fianca: string;
   imobiliaria_nome?: string;
   imobiliaria_responsavel?: string;
@@ -43,108 +43,110 @@ export const useAnalista = () => {
   const buscarFiancasPendentes = async () => {
     try {
       setLoading(true);
-      console.log('Buscando fianças pendentes para análise...');
-
+      
       const { data, error } = await supabase
         .from('fiancas_para_analise')
         .select('*')
-        .eq('status_fianca', 'em_analise')
-        .order('data_criacao', { ascending: true });
-
-      console.log('Dados da query:', data);
+        .in('status_fianca', ['em_analise', 'aprovada', 'rejeitada']);
 
       if (error) {
-        console.error('Erro na query:', error);
+        console.error('Erro ao buscar fianças:', error);
         throw error;
       }
 
       setFiancas(data || []);
     } catch (error) {
-      console.error('Erro ao buscar fianças:', error);
-      toast.error('Erro ao carregar fianças para análise');
+      console.error('Erro ao carregar fianças:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const aprovarFianca = async (fiancaId: string, scoreCredito: number, taxaAplicada: number, observacoes?: string) => {
-    if (!user) {
-      toast.error('Usuário não autenticado');
-      return;
-    }
-
+  const aprovarFianca = async (fiancaId: string, score: number, taxa: number) => {
     try {
-      console.log('Aprovando fiança:', fiancaId, 'pelo analista:', user.id);
+      // Buscar dados da fiança para cálculo
+      const { data: fiancaData, error: fiancaError } = await supabase
+        .from('fiancas_locaticias')
+        .select('imovel_valor_aluguel, imovel_tempo_locacao')
+        .eq('id', fiancaId)
+        .single();
 
-      // Atualizar a fiança com aprovação e ID do analista
+      if (fiancaError) {
+        console.error('Erro ao buscar dados da fiança:', fiancaError);
+        throw fiancaError;
+      }
+
+      // Calcular valores
+      const valorAluguel = fiancaData.imovel_valor_aluguel || 0;
+      const tempoLocacao = fiancaData.imovel_tempo_locacao || 0;
+      const valorTotalLocacao = valorAluguel * tempoLocacao;
+      const valorFianca = (valorTotalLocacao * taxa) / 100;
+
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({
           status_fianca: 'aprovada',
-          score_credito: scoreCredito,
-          taxa_aplicada: taxaAplicada,
-          observacoes_aprovacao: observacoes,
+          score_credito: score,
+          taxa_aplicada: taxa,
           data_analise: new Date().toISOString(),
-          id_analista: user.id // Salvar o ID do analista logado
+          id_analista: user?.id,
+          valor_total_locacao: valorTotalLocacao,
+          valor_fianca: valorFianca
         })
         .eq('id', fiancaId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao aprovar fiança:', error);
+        throw error;
+      }
 
-      // Registrar no histórico
+      // Registro no histórico com detalhes da aprovação
       await registrarLog({
         fiancaId,
         acao: 'Fiança aprovada',
-        detalhes: observacoes || `Score: ${scoreCredito}, Taxa: ${taxaAplicada}%`
+        detalhes: `Score: ${score}, Taxa: ${taxa}% - Valor total da Locação: R$ ${valorTotalLocacao.toLocaleString('pt-BR')}, Valor da Fiança: R$ ${valorFianca.toLocaleString('pt-BR')}`
       });
 
-      toast.success('Fiança aprovada com sucesso!');
       await buscarFiancasPendentes();
     } catch (error) {
       console.error('Erro ao aprovar fiança:', error);
-      toast.error('Erro ao aprovar fiança');
+      throw error;
     }
   };
 
-  const rejeitarFianca = async (fiancaId: string, motivoReprovacao: string) => {
-    if (!user) {
-      toast.error('Usuário não autenticado');
-      return;
-    }
-
+  const rejeitarFianca = async (fiancaId: string, motivo: string) => {
     try {
-      console.log('Rejeitando fiança:', fiancaId, 'pelo analista:', user.id);
-
-      // Atualizar a fiança com rejeição e ID do analista
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({
           status_fianca: 'rejeitada',
-          motivo_reprovacao: motivoReprovacao,
+          motivo_reprovacao: motivo,
           data_analise: new Date().toISOString(),
-          id_analista: user.id // Salvar o ID do analista logado
+          id_analista: user?.id
         })
         .eq('id', fiancaId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao rejeitar fiança:', error);
+        throw error;
+      }
 
-      // Registrar no histórico
+      // Registro no histórico
       await registrarLog({
         fiancaId,
         acao: 'Fiança rejeitada',
-        detalhes: motivoReprovacao
+        detalhes: motivo
       });
 
-      toast.success('Fiança rejeitada com sucesso!');
       await buscarFiancasPendentes();
     } catch (error) {
       console.error('Erro ao rejeitar fiança:', error);
-      toast.error('Erro ao rejeitar fiança');
+      throw error;
     }
   };
 
   useEffect(() => {
-    if (user && user.type === 'analista') {
+    if (user?.type === 'analista') {
       buscarFiancasPendentes();
     }
   }, [user]);

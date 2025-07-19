@@ -152,6 +152,102 @@ const DetalheFianca = () => {
     }
   };
 
+  // Função para formatar telefone
+  const formatPhone = (phone: string) => {
+    if (!phone) return 'Não informado';
+    
+    // Remove todos os caracteres não numéricos
+    const numbers = phone.replace(/\D/g, '');
+    
+    // Se tem 11 dígitos (com DDD), formata como +55 (XX) 9 XXXX-XXXX
+    if (numbers.length === 11) {
+      return `+55 (${numbers.slice(0, 2)}) ${numbers.slice(2, 3)} ${numbers.slice(3, 7)}-${numbers.slice(7)}`;
+    }
+    
+    // Se tem 10 dígitos (com DDD), formata como +55 (XX) XXXX-XXXX
+    if (numbers.length === 10) {
+      return `+55 (${numbers.slice(0, 2)}) ${numbers.slice(2, 6)}-${numbers.slice(6)}`;
+    }
+    
+    // Retorna o número original se não conseguir formatar
+    return phone;
+  };
+
+  // Função para formatar tipo de imóvel
+  const getTipoImovelTexto = (tipo: string) => {
+    switch (tipo) {
+      case 'casa':
+        return 'Casa';
+      case 'apartamento':
+        return 'Apartamento';
+      case 'comercial':
+        return 'Comercial';
+      case 'terreno':
+        return 'Terreno';
+      case 'sala':
+        return 'Sala';
+      case 'loja':
+        return 'Loja';
+      case 'galpao':
+        return 'Galpão';
+      default:
+        return tipo;
+    }
+  };
+
+  // Função para formatar tipo de locação
+  const getTipoLocacaoTexto = (tipo: string) => {
+    switch (tipo) {
+      case 'residencial':
+        return 'Residencial';
+      case 'comercial':
+        return 'Comercial';
+      case 'misto':
+        return 'Misto';
+      default:
+        return tipo;
+    }
+  };
+
+  // Função para calcular valores da fiança
+  const calcularValoresFianca = () => {
+    if (!fianca) return null;
+
+    const valorAluguel = fianca.imovel_valor_aluguel || 0;
+    const tempoLocacao = fianca.imovel_tempo_locacao || 0;
+    const valorTotalLocacao = valorAluguel * tempoLocacao;
+    const taxaFianca = fianca.taxa_aplicada || 0;
+    const valorFianca = (valorTotalLocacao * taxaFianca) / 100;
+
+    return {
+      valorAluguel,
+      tempoLocacao,
+      valorTotalLocacao,
+      taxaFianca,
+      valorFianca
+    };
+  };
+
+  // Filtrar histórico para evitar duplicatas
+  const historicoFiltrado = React.useMemo(() => {
+    if (!historico || historico.length === 0) return [];
+    
+    // Remover duplicatas baseado em ação e data (mesmo minuto)
+    const uniqueHistorico = historico.filter((item, index, arr) => {
+      const sameActions = arr.filter(h => 
+        h.acao === item.acao && 
+        new Date(h.data_criacao).getTime() === new Date(item.data_criacao).getTime()
+      );
+      
+      // Manter apenas o primeiro de cada grupo de duplicatas
+      return sameActions.indexOf(item) === 0;
+    });
+
+    return uniqueHistorico.sort((a, b) => 
+      new Date(b.data_criacao).getTime() - new Date(a.data_criacao).getTime()
+    );
+  }, [historico]);
+
   if (isLoading) {
     return (
       <Layout title="Detalhes da Fiança">
@@ -198,6 +294,8 @@ const DetalheFianca = () => {
       </Layout>
     );
   }
+
+  const valoresFianca = calcularValoresFianca();
 
   return (
     <Layout title="Detalhes da Fiança">
@@ -249,7 +347,7 @@ const DetalheFianca = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">WhatsApp</p>
-                <p className="text-base">{fianca.inquilino_whatsapp}</p>
+                <p className="text-base">{formatPhone(fianca.inquilino_whatsapp)}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Renda Mensal</p>
@@ -293,7 +391,7 @@ const DetalheFianca = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Telefone</p>
-                <p className="text-base">{fianca.usuarios?.telefone || 'Não informado'}</p>
+                <p className="text-base">{formatPhone(fianca.usuarios?.telefone || '')}</p>
               </div>
             </CardContent>
           </Card>
@@ -308,35 +406,47 @@ const DetalheFianca = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-500">Tipo</p>
-                <p className="text-base">{fianca.imovel_tipo}</p>
+                <p className="text-sm font-medium text-gray-500">Tipo do Imóvel</p>
+                <p className="text-base">{getTipoImovelTexto(fianca.imovel_tipo)}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Valor do Aluguel</p>
+                <p className="text-sm font-medium text-gray-500">Tipo de Locação</p>
+                <p className="text-base">{getTipoLocacaoTexto(fianca.imovel_tipo_locacao)}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Valor do Aluguel Mensal</p>
                 <p className="text-base font-semibold text-blue-600">
                   R$ {fianca.imovel_valor_aluguel.toLocaleString('pt-BR')}
                 </p>
               </div>
+              {fianca.imovel_area_metros && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Área</p>
+                  <p className="text-base">{fianca.imovel_area_metros} m²</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm font-medium text-gray-500">Tempo de Locação</p>
+                <p className="text-base">{fianca.imovel_tempo_locacao} meses</p>
+              </div>
             </div>
+            
+            {fianca.imovel_descricao && (
+              <div>
+                <p className="text-sm font-medium text-gray-500">Descrição do Imóvel</p>
+                <p className="text-base">{fianca.imovel_descricao}</p>
+              </div>
+            )}
+            
             <div>
-              <p className="text-sm font-medium text-gray-500">Endereço</p>
+              <p className="text-sm font-medium text-gray-500">Endereço Completo do Imóvel</p>
               <p className="text-base">
                 {fianca.imovel_endereco}, {fianca.imovel_numero}
                 {fianca.imovel_complemento && `, ${fianca.imovel_complemento}`}<br />
                 {fianca.imovel_bairro}, {fianca.imovel_cidade} - {fianca.imovel_estado}
               </p>
-            </div>
-            {fianca.imovel_area_metros && (
-              <div>
-                <p className="text-sm font-medium text-gray-500">Área</p>
-                <p className="text-base">{fianca.imovel_area_metros} m²</p>
-              </div>
-            )}
-            <div>
-              <p className="text-sm font-medium text-gray-500">Tempo de Locação</p>
-              <p className="text-base">{fianca.imovel_tempo_locacao} meses</p>
             </div>
           </CardContent>
         </Card>
@@ -421,7 +531,7 @@ const DetalheFianca = () => {
                 <DollarSign className="h-8 w-8 mx-auto mb-2 text-green-600" />
                 <p className="text-sm font-medium text-gray-500">Valor da Fiança</p>
                 <p className="text-xl font-bold text-green-600">
-                  R$ {Number(fianca.valor_fianca || 0).toLocaleString('pt-BR')}
+                  R$ {valoresFianca ? valoresFianca.valorFianca.toLocaleString('pt-BR') : '0'}
                 </p>
               </div>
 
@@ -434,6 +544,19 @@ const DetalheFianca = () => {
                 </p>
               </div>
             </div>
+
+            {/* Descrição detalhada dos valores */}
+            {valoresFianca && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-semibold text-gray-800 mb-3">Detalhamento dos Valores</h4>
+                <div className="text-sm space-y-1">
+                  <p><strong>Valor do Aluguel Mensal:</strong> R$ {valoresFianca.valorAluguel.toLocaleString('pt-BR')}</p>
+                  <p><strong>Valor Total Aluguel:</strong> R$ {valoresFianca.valorTotalLocacao.toLocaleString('pt-BR')} (Período de: {valoresFianca.tempoLocacao} meses)</p>
+                  <p><strong>Taxa Fiança:</strong> {valoresFianca.taxaFianca}%</p>
+                  <p><strong>Valor da Fiança:</strong> R$ {valoresFianca.valorFianca.toLocaleString('pt-BR')}</p>
+                </div>
+              </div>
+            )}
 
             {['pagamento_disponivel', 'comprovante_enviado', 'ativa'].includes(fianca.status_fianca) && (
               <div className="mt-6 p-4 bg-gray-50 rounded-lg">
@@ -481,9 +604,9 @@ const DetalheFianca = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {historico.length > 0 ? (
-                historico.map((item, index) => (
-                  <div key={item.id} className="flex items-start space-x-3">
+              {historicoFiltrado.length > 0 ? (
+                historicoFiltrado.map((item, index) => (
+                  <div key={`${item.id}-${index}`} className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
