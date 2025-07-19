@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAnalista } from '@/hooks/useAnalista';
 import {
   ArrowLeft,
   Building,
@@ -102,6 +103,7 @@ const DetalheFianca = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { aprovarFianca, rejeitarFianca } = useAnalista();
   
   const [fianca, setFianca] = useState<FiancaDetalhes | null>(null);
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
@@ -250,13 +252,17 @@ const DetalheFianca = () => {
       const scoreNum = parseInt(score);
       const taxaNum = parseFloat(taxa.replace(',', '.'));
       
-      // Usar a função do useAnalista hook se disponível
-      const { aprovarFianca } = await import('@/hooks/useAnalista');
       await aprovarFianca(fianca.id, scoreNum, taxaNum);
       
       setShowScoreModal(false);
       fetchFiancaDetails();
       fetchHistorico();
+      
+      toast({
+        title: "Fiança aprovada",
+        description: "A fiança foi aprovada com sucesso.",
+        variant: "default"
+      });
     } catch (error) {
       console.error('Erro ao aprovar fiança:', error);
       toast({
@@ -281,13 +287,17 @@ const DetalheFianca = () => {
 
     setIsRejecting(true);
     try {
-      // Usar a função do useAnalista hook se disponível
-      const { rejeitarFianca } = await import('@/hooks/useAnalista');
       await rejeitarFianca(fianca.id, rejectReason);
       
       setShowRejectModal(false);
       fetchFiancaDetails();
       fetchHistorico();
+      
+      toast({
+        title: "Fiança rejeitada",
+        description: "A fiança foi rejeitada.",
+        variant: "default"
+      });
     } catch (error) {
       console.error('Erro ao rejeitar fiança:', error);
       toast({
