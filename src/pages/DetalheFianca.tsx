@@ -15,8 +15,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAnalista } from '@/hooks/useAnalista';
-import AdicionarLinkPagamentoModal from '@/components/AdicionarLinkPagamentoModal';
-import ComprovanteUpload from '@/components/ComprovanteUpload';
 import {
   ArrowLeft,
   Building,
@@ -106,11 +104,13 @@ const DetalheFianca = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { aprovarFianca, rejeitarFianca, isApproving, isRejecting } = useAnalista();
+  const { aprovarFianca, rejeitarFianca } = useAnalista();
   
   const [fianca, setFianca] = useState<FiancaDetalhes | null>(null);
   const [historico, setHistorico] = useState<HistoricoItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
@@ -136,15 +136,6 @@ const DetalheFianca = () => {
             nome,
             email,
             telefone
-          ),
-          perfil_usuario!inner (
-            endereco,
-            numero,
-            complemento,
-            bairro,
-            cidade,
-            estado,
-            pais
           )
         `)
         .eq('id', id)
@@ -170,19 +161,31 @@ const DetalheFianca = () => {
         return;
       }
 
+      // Buscar dados do perfil da imobiliária separadamente
+      let perfilImobiliaria = null;
+      if (data.usuarios?.id) {
+        const { data: perfil } = await supabase
+          .from('perfil_usuario')
+          .select('*')
+          .eq('usuario_id', data.usuarios.id)
+          .single();
+        
+        perfilImobiliaria = perfil;
+      }
+
       const fiancaFormatada: FiancaDetalhes = {
         ...data,
         imobiliaria: data.usuarios ? {
           nome: data.usuarios.nome,
           email: data.usuarios.email,
           telefone: data.usuarios.telefone,
-          endereco: data.perfil_usuario?.endereco,
-          numero: data.perfil_usuario?.numero,
-          complemento: data.perfil_usuario?.complemento,
-          bairro: data.perfil_usuario?.bairro,
-          cidade: data.perfil_usuario?.cidade,
-          estado: data.perfil_usuario?.estado,
-          pais: data.perfil_usuario?.pais
+          endereco: perfilImobiliaria?.endereco,
+          numero: perfilImobiliaria?.numero,
+          complemento: perfilImobiliaria?.complemento,
+          bairro: perfilImobiliaria?.bairro,
+          cidade: perfilImobiliaria?.cidade,
+          estado: perfilImobiliaria?.estado,
+          pais: perfilImobiliaria?.pais
         } : undefined
       };
 
@@ -244,15 +247,17 @@ const DetalheFianca = () => {
       return;
     }
 
-    const scoreNum = parseInt(score);
-    const taxaNum = parseFloat(taxa.replace(',', '.'));
-    const valorTotalLocacao = fianca.imovel_valor_aluguel * fianca.imovel_tempo_locacao;
-    const valorFianca = valorTotalLocacao * (taxaNum / 100);
-
-    await aprovarFianca(fianca.id, scoreNum, taxaNum, observacoes, valorTotalLocacao, valorFianca);
-    setShowScoreModal(false);
-    fetchFiancaDetails();
-    fetchHistorico();
+    setIsApproving(true);
+    try {
+      const scoreNum = parseInt(score);
+      const taxaNum = parseFloat(taxa.replace(',', '.'));
+      await aprovarFianca(fianca.id, scoreNum, taxaNum);
+      setShowScoreModal(false);
+      fetchFiancaDetails();
+      fetchHistorico();
+    } finally {
+      setIsApproving(false);
+    }
   };
 
   const handleRejeitar = async () => {
@@ -265,10 +270,15 @@ const DetalheFianca = () => {
       return;
     }
 
-    await rejeitarFianca(fianca.id, rejectReason);
-    setShowRejectModal(false);
-    fetchFiancaDetails();
-    fetchHistorico();
+    setIsRejecting(true);
+    try {
+      await rejeitarFianca(fianca.id, rejectReason);
+      setShowRejectModal(false);
+      fetchFiancaDetails();
+      fetchHistorico();
+    } finally {
+      setIsRejecting(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -747,14 +757,20 @@ const DetalheFianca = () => {
 
               {canManagePayment && (
                 <div className="flex gap-3 pt-4 border-t">
-                  <AdicionarLinkPagamentoModal 
-                    fiancaId={fianca.id}
-                    onSuccess={() => fetchFiancaDetails()}
-                  />
-                  <ComprovanteUpload 
-                    fiancaId={fianca.id}
-                    onSuccess={() => fetchFiancaDetails()}
-                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowLinkModal(true)}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Adicionar Link Pagamento
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Anexar Comprovante
+                  </Button>
                 </div>
               )}
             </CardContent>

@@ -1,16 +1,16 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
-import Cadastro from './pages/Cadastro';
+import Register from './pages/Register';
 import Unauthorized from './pages/Unauthorized';
 import ImoveisImobiliaria from './pages/ImoveisImobiliaria';
 import FiancasImobiliaria from './pages/FiancasImobiliaria';
 import DetalheFianca from './pages/DetalheFianca';
 import Clientes from './pages/Clientes';
-
 import DetalheInquilino from '@/pages/DetalheInquilino';
 
 const queryClient = new QueryClient();
@@ -23,7 +23,7 @@ function App() {
           <div className="min-h-screen bg-background font-sans antialiased">
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/cadastro" element={<Cadastro />} />
+              <Route path="/cadastro" element={<Register />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route
