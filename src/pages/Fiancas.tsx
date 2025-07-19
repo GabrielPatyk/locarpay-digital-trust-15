@@ -7,12 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Eye, Filter, FileText } from 'lucide-react';
 import { useFiancasInquilino } from '@/hooks/useFiancasInquilino';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Fiancas = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('todos');
   
@@ -59,152 +60,124 @@ const Fiancas = () => {
 
   return (
     <Layout title="Minhas Fianças">
-      <div className="space-y-4 px-2 sm:px-0">
+      <div className="space-y-4 p-4">
         {/* Dashboard Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <Card>
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Fianças</p>
-                  <p className="text-lg sm:text-2xl font-bold text-primary">{stats.ativas + stats.pendentes + stats.vencidas}</p>
-                </div>
+            <CardContent className="p-3">
+              <div className="text-center">
+                <p className="text-xs font-medium text-gray-600">Total Fianças</p>
+                <p className="text-xl font-bold text-primary">{stats.ativas + stats.pendentes + stats.vencidas}</p>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Ativas</p>
-                  <p className="text-lg sm:text-2xl font-bold text-success">{stats.ativas}</p>
-                </div>
+            <CardContent className="p-3">
+              <div className="text-center">
+                <p className="text-xs font-medium text-gray-600">Ativas</p>
+                <p className="text-xl font-bold text-success">{stats.ativas}</p>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pendentes</p>
-                  <p className="text-lg sm:text-2xl font-bold text-warning">{stats.pendentes}</p>
-                </div>
+            <CardContent className="p-3">
+              <div className="text-center">
+                <p className="text-xs font-medium text-gray-600">Pendentes</p>
+                <p className="text-xl font-bold text-warning">{stats.pendentes}</p>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Valor Total</p>
-                  <p className="text-sm sm:text-xl font-bold text-primary">{formatCurrency(stats.valorTotal)}</p>
-                </div>
+            <CardContent className="p-3">
+              <div className="text-center">
+                <p className="text-xs font-medium text-gray-600">Valor Total</p>
+                <p className="text-sm font-bold text-primary">{formatCurrency(stats.valorTotal)}</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Fiancas Table */}
+        {/* Filters */}
         <Card>
-          <CardHeader className="pb-3 sm:pb-4">
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
-              <CardTitle className="text-lg sm:text-xl">Minhas Fianças</CardTitle>
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <Input
-                  placeholder="Buscar por imobiliária ou imóvel..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full sm:w-64"
-                />
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-40">
-                    <Filter className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getStatusOptions().map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Minhas Fianças</CardTitle>
+            <div className="space-y-2">
+              <Input
+                placeholder="Buscar por imobiliária ou imóvel..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full">
+                  <Filter className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getStatusOptions().map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
 
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <div className="min-w-[800px]">
-                <Table className="w-full">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[180px] px-4 py-3">Imobiliária</TableHead>
-                      <TableHead className="w-[220px] px-4 py-3">Imóvel</TableHead>
-                      <TableHead className="w-[120px] px-4 py-3">Valor Fiança</TableHead>
-                      <TableHead className="w-[140px] px-4 py-3">Status</TableHead>
-                      <TableHead className="w-[100px] px-4 py-3">Data</TableHead>
-                      <TableHead className="w-[80px] px-4 py-3">Ação</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {fiancas.map((fianca) => (
-                      <TableRow key={fianca.id} className="hover:bg-gray-50">
-                        <TableCell className="px-4 py-3">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-blue-600 break-words">
-                              {fianca.imobiliaria}
-                            </p>
-                          </div>
-                        </TableCell>
-                        
-                        <TableCell className="px-4 py-3">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm text-gray-900 break-words">
-                              {fianca.endereco}
-                            </p>
-                            <p className="text-xs text-gray-500 break-words">
-                              {fianca.imovel}
-                            </p>
-                          </div>
-                        </TableCell>
-                        
-                        <TableCell className="px-4 py-3">
-                          <span className="text-sm font-medium">
+            <div className="space-y-3 p-4">
+              {fiancas.map((fianca) => (
+                <Card key={fianca.id} className="border border-gray-200">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      {/* Linha 1: Imobiliária e Status */}
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-blue-600 truncate">
+                            {fianca.imobiliaria}
+                          </p>
+                        </div>
+                        <Badge className={`${getStatusColor(fianca.status)} text-white text-xs ml-2`}>
+                          {getStatusText(fianca.status)}
+                        </Badge>
+                      </div>
+                      
+                      {/* Linha 2: Endereço do Imóvel */}
+                      <div>
+                        <p className="text-sm text-gray-900 break-words">
+                          {fianca.endereco}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {fianca.imovel}
+                        </p>
+                      </div>
+                      
+                      {/* Linha 3: Valor, Data e Ação */}
+                      <div className="flex justify-between items-center">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
                             {formatCurrency(fianca.valor)}
-                          </span>
-                        </TableCell>
-                        
-                        <TableCell className="px-4 py-3">
-                          <Badge className={`${getStatusColor(fianca.status)} text-white text-xs`}>
-                            {getStatusText(fianca.status)}
-                          </Badge>
-                        </TableCell>
-                        
-                        <TableCell className="px-4 py-3">
-                          <span className="text-xs text-gray-500">
+                          </p>
+                          <p className="text-xs text-gray-500">
                             {new Date(fianca.dataEmissao).toLocaleDateString('pt-BR')}
-                          </span>
-                        </TableCell>
-                        
-                        <TableCell className="px-4 py-3">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleViewFianca(fianca.id)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                          </p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleViewFianca(fianca.id)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
             {fiancas.length === 0 && (

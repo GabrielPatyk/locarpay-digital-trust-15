@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,13 +17,14 @@ import {
   User,
   Mail,
   Phone,
-  MapPin
+  MapPin,
+  ExternalLink
 } from 'lucide-react';
 import { useState } from 'react';
 
 const Inquilino = () => {
   const { user } = useAuth();
-  const { fiancaAtiva, fiancaPagamento, emailVerificado, isLoading } = useInquilinoData();
+  const { fiancaAtiva, fiancaPagamento, emailVerificado, isLoading, enviarComprovante } = useInquilinoData();
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   const getStatusColor = (status: string) => {
@@ -54,6 +56,42 @@ const Inquilino = () => {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  const formatPercent = (value: number) => {
+    return `${value}%`;
+  };
+
+  const handlePagarFianca = () => {
+    const fiancaParaExibir = fiancaAtiva || fiancaPagamento;
+    if (fiancaParaExibir?.link_pagamento) {
+      window.open(fiancaParaExibir.link_pagamento, '_blank');
+    }
+  };
+
+  const handleEnviarComprovante = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Apenas arquivos JPG, PNG ou PDF são permitidos.');
+      return;
+    }
+
+    // Validar tamanho (3MB)
+    if (file.size > 3 * 1024 * 1024) {
+      alert('O arquivo deve ter no máximo 3MB.');
+      return;
+    }
+
+    // Aqui você implementaria o upload do arquivo
+    const fiancaParaExibir = fiancaAtiva || fiancaPagamento;
+    if (fiancaParaExibir) {
+      // Simulação do upload - você deve implementar a lógica real
+      alert('Comprovante enviado com sucesso! (Funcionalidade em desenvolvimento)');
+    }
   };
 
   if (isLoading) {
@@ -135,6 +173,13 @@ const Inquilino = () => {
                   <p className="text-2xl font-bold text-primary">
                     {fiancaParaExibir ? formatCurrency(Number(fiancaParaExibir.valor_fianca || 0)) : 'R$ 0,00'}
                   </p>
+                  {fiancaParaExibir && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      <p>Score: {fiancaParaExibir.score_credito || 'N/A'}</p>
+                      <p>Taxa: {fiancaParaExibir.taxa_aplicada ? formatPercent(Number(fiancaParaExibir.taxa_aplicada)) : 'N/A'}</p>
+                      <p>Valor Total: {formatCurrency(Number(fiancaParaExibir.valor_total_locacao || fiancaParaExibir.imovel_valor_aluguel || 0))} ({fiancaParaExibir.imovel_tempo_locacao || 0} Meses)</p>
+                    </div>
+                  )}
                 </div>
                 <DollarSign className="h-8 w-8 text-primary" />
               </div>
@@ -243,6 +288,20 @@ const Inquilino = () => {
                       </p>
                     </div>
 
+                    {fiancaParaExibir.score_credito && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Score de Crédito</p>
+                        <p className="text-base">{fiancaParaExibir.score_credito}</p>
+                      </div>
+                    )}
+
+                    {fiancaParaExibir.taxa_aplicada && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Taxa da Fiança</p>
+                        <p className="text-base">{formatPercent(Number(fiancaParaExibir.taxa_aplicada))}</p>
+                      </div>
+                    )}
+
                     <div>
                       <p className="text-sm font-medium text-gray-500">Tempo de Locação</p>
                       <p className="text-base">{fiancaParaExibir.imovel_tempo_locacao} meses</p>
@@ -263,23 +322,42 @@ const Inquilino = () => {
                     </div>
                   </div>
 
-                  {/* Ação para upload de comprovante */}
+                  {/* Ação para pagamento disponível */}
                   {fiancaParaExibir.status_fianca === 'pagamento_disponivel' && (
-                    <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                      <div className="flex items-center justify-between">
+                    <div className="mt-4 p-4 bg-blue-50 rounded-lg space-y-3">
+                      <div>
+                        <p className="font-medium text-blue-900">Pagamento Disponível</p>
+                        <p className="text-sm text-blue-700">
+                          Realize o pagamento e envie o comprovante
+                        </p>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        {fiancaParaExibir.link_pagamento && (
+                          <Button
+                            onClick={handlePagarFianca}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            Pagar Fiança
+                          </Button>
+                        )}
                         <div>
-                          <p className="font-medium text-blue-900">Pagamento Disponível</p>
-                          <p className="text-sm text-blue-700">
-                            Realize o pagamento e envie o comprovante
-                          </p>
+                          <input
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.pdf"
+                            onChange={handleEnviarComprovante}
+                            className="hidden"
+                            id="comprovante-upload"
+                          />
+                          <Button
+                            onClick={() => document.getElementById('comprovante-upload')?.click()}
+                            variant="outline"
+                            className="w-full sm:w-auto"
+                          >
+                            <Upload className="mr-2 h-4 w-4" />
+                            Enviar Comprovante
+                          </Button>
                         </div>
-                        <Button
-                          onClick={() => alert('Funcionalidade de upload em desenvolvimento')}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          <Upload className="mr-2 h-4 w-4" />
-                          Enviar Comprovante
-                        </Button>
                       </div>
                     </div>
                   )}
