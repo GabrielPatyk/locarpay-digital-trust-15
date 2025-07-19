@@ -31,10 +31,7 @@ interface Cliente {
   renda: number;
   dataCadastro: string;
   totalFiancas: number;
-  fiancasAtivas: number;
   fiancasAprovadas: number;
-  fiancasRejeitadas: number;
-  fiancasEmAnalise: number;
   valorTotalAluguel: number;
   ultimaFianca?: string;
 }
@@ -62,11 +59,31 @@ const Clientes = () => {
 
   const fetchClientes = async () => {
     try {
-      // Buscar todas as fianças analisadas pelo analista logado (não apenas aprovadas)
-      const { data: fiancasAnalisadas, error } = await supabase
-        .from('fiancas_locaticias')
-        .select('*')
-        .eq('id_analista', user.id);
+      // Buscar fianças aprovadas pelo analista logado
+      const { data: fiancasAprovadas, error } = await supabase
+        .from('historico_fiancas')
+        .select(`
+          fianca_id,
+          fiancas_locaticias!inner(
+            id,
+            inquilino_nome_completo,
+            inquilino_cpf,
+            inquilino_email,
+            inquilino_whatsapp,
+            inquilino_endereco,
+            inquilino_numero,
+            inquilino_complemento,
+            inquilino_bairro,
+            inquilino_cidade,
+            inquilino_estado,
+            inquilino_renda_mensal,
+            imovel_valor_aluguel,
+            data_criacao,
+            status_fianca
+          )
+        `)
+        .eq('analisado_por', user.id)
+        .eq('acao', 'Fiança aprovada');
 
       if (error) {
         console.error('Erro ao buscar clientes:', error);
@@ -76,7 +93,8 @@ const Clientes = () => {
       // Agrupar por inquilino
       const clientesMap = new Map<string, Cliente>();
 
-      fiancasAnalisadas?.forEach((fianca) => {
+      fiancasAprovadas?.forEach((item) => {
+        const fianca = item.fiancas_locaticias;
         const cpf = fianca.inquilino_cpf;
 
         if (!clientesMap.has(cpf)) {
@@ -90,10 +108,7 @@ const Clientes = () => {
             renda: fianca.inquilino_renda_mensal,
             dataCadastro: fianca.data_criacao,
             totalFiancas: 0,
-            fiancasAtivas: 0,
             fiancasAprovadas: 0,
-            fiancasRejeitadas: 0,
-            fiancasEmAnalise: 0,
             valorTotalAluguel: 0,
             ultimaFianca: fianca.data_criacao
           });
@@ -101,18 +116,9 @@ const Clientes = () => {
 
         const cliente = clientesMap.get(cpf)!;
         cliente.totalFiancas += 1;
-        
-        // Contar por status
-        if (fianca.status_fianca === 'ativa') {
-          cliente.fiancasAtivas += 1;
-          cliente.valorTotalAluguel += fianca.imovel_valor_aluguel;
-        } else if (fianca.status_fianca === 'aprovada') {
+        if (fianca.status_fianca === 'aprovada' || fianca.status_fianca === 'ativa') {
           cliente.fiancasAprovadas += 1;
           cliente.valorTotalAluguel += fianca.imovel_valor_aluguel;
-        } else if (fianca.status_fianca === 'rejeitada') {
-          cliente.fiancasRejeitadas += 1;
-        } else if (fianca.status_fianca === 'em_analise') {
-          cliente.fiancasEmAnalise += 1;
         }
 
         // Atualizar data da última fiança
@@ -136,8 +142,10 @@ const Clientes = () => {
   );
 
   const handleVerDetalhes = (cliente: Cliente) => {
-    // Navegar para a página de detalhes do inquilino
-    navigate(`/detalhe-inquilino/${cliente.cpf}`);
+    // Criar modal ou página de detalhes do cliente
+    console.log('Ver detalhes do cliente:', cliente);
+    // Por enquanto, mostrar alert com informações
+    alert(`Detalhes do Cliente:\n\nNome: ${cliente.nome}\nCPF: ${cliente.cpf}\nTotal de Fianças: ${cliente.totalFiancas}\nFianças Aprovadas: ${cliente.fiancasAprovadas}\nValor Total em Aluguéis: R$ ${cliente.valorTotalAluguel.toLocaleString('pt-BR')}`);
   };
 
   if (user?.type !== 'analista') {
@@ -158,7 +166,7 @@ const Clientes = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
-            <p className="text-gray-600">Inquilinos das fianças analisadas por você</p>
+            <p className="text-gray-600">Inquilinos das fianças aprovadas por você</p>
           </div>
         </div>
 
@@ -195,28 +203,9 @@ const Clientes = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg">{cliente.nome}</h3>
-                        <div className="flex gap-2 mt-1">
-                          {cliente.fiancasAtivas > 0 && (
-                            <Badge className="bg-green-100 text-green-800">
-                              {cliente.fiancasAtivas} Ativa{cliente.fiancasAtivas !== 1 ? 's' : ''}
-                            </Badge>
-                          )}
-                          {cliente.fiancasAprovadas > 0 && (
-                            <Badge className="bg-blue-100 text-blue-800">
-                              {cliente.fiancasAprovadas} Aprovada{cliente.fiancasAprovadas !== 1 ? 's' : ''}
-                            </Badge>
-                          )}
-                          {cliente.fiancasRejeitadas > 0 && (
-                            <Badge className="bg-red-100 text-red-800">
-                              {cliente.fiancasRejeitadas} Rejeitada{cliente.fiancasRejeitadas !== 1 ? 's' : ''}
-                            </Badge>
-                          )}
-                          {cliente.fiancasEmAnalise > 0 && (
-                            <Badge className="bg-yellow-100 text-yellow-800">
-                              {cliente.fiancasEmAnalise} Em Análise
-                            </Badge>
-                          )}
-                        </div>
+                        <Badge className="bg-green-100 text-green-800">
+                          {cliente.fiancasAprovadas} Fiança{cliente.fiancasAprovadas !== 1 ? 's' : ''} Aprovada{cliente.fiancasAprovadas !== 1 ? 's' : ''}
+                        </Badge>
                       </div>
                     </div>
                     <div className="text-right">
@@ -319,7 +308,7 @@ const Clientes = () => {
               <p className="text-gray-600">
                 {searchTerm 
                   ? 'Tente ajustar sua busca.'
-                  : 'Os clientes das fianças analisadas por você aparecerão aqui.'
+                  : 'Os clientes das fianças aprovadas por você aparecerão aqui.'
                 }
               </p>
             </CardContent>
