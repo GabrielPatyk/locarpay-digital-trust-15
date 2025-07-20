@@ -106,6 +106,11 @@ const Inquilino = () => {
             <p className="text-[#0C1C2E]/80">
               Bem-vindo ao seu painel do inquilino. Aqui você pode acompanhar o status da sua fiança locatícia.
             </p>
+            {fiancaParaExibir?.perfil_imobiliaria?.[0]?.nome_empresa && (
+              <p className="text-[#0C1C2E]/70 text-sm mt-1">
+                Imobiliária: {fiancaParaExibir.perfil_imobiliaria[0].nome_empresa}
+              </p>
+            )}
           </div>
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
@@ -250,6 +255,15 @@ const Inquilino = () => {
                   </div>
 
                   <div className="space-y-3">
+                    {fiancaParaExibir.perfil_imobiliaria?.[0]?.nome_empresa && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Imobiliária</p>
+                        <p className="text-lg font-semibold text-blue-600">
+                          {fiancaParaExibir.perfil_imobiliaria[0].nome_empresa}
+                        </p>
+                      </div>
+                    )}
+
                     <div>
                       <p className="text-sm font-medium text-gray-500">Valor do Aluguel</p>
                       <p className="text-lg font-semibold">

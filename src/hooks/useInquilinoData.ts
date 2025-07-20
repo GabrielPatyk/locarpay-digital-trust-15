@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,9 +18,20 @@ export const useInquilinoData = () => {
 
       const { data, error } = await supabase
         .from('fiancas_locaticias')
-        .select('*')
+        .select(`
+          *,
+          imobiliaria:usuarios!fiancas_locaticias_id_imobiliaria_fkey(
+            id,
+            nome,
+            email
+          ),
+          perfil_imobiliaria:perfil_usuario!inner(
+            nome_empresa
+          )
+        `)
         .eq('inquilino_usuario_id', user.id)
         .eq('status_fianca', 'ativa')
+        .eq('perfil_usuario.usuario_id', 'fiancas_locaticias.id_imobiliaria')
         .order('data_criacao', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -40,9 +50,20 @@ export const useInquilinoData = () => {
 
       const { data, error } = await supabase
         .from('fiancas_locaticias')
-        .select('*')
+        .select(`
+          *,
+          imobiliaria:usuarios!fiancas_locaticias_id_imobiliaria_fkey(
+            id,
+            nome,
+            email
+          ),
+          perfil_imobiliaria:perfil_usuario!inner(
+            nome_empresa
+          )
+        `)
         .eq('inquilino_usuario_id', user.id)
         .in('status_fianca', ['pagamento_disponivel', 'comprovante_enviado'])
+        .eq('perfil_usuario.usuario_id', 'fiancas_locaticias.id_imobiliaria')
         .order('data_criacao', { ascending: false })
         .limit(1)
         .maybeSingle();
