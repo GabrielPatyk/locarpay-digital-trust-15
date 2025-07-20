@@ -573,6 +573,10 @@ export type Database = {
         Args: { usuario_id: string }
         Returns: string
       }
+      get_current_user_email: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_current_user_from_jwt: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -582,6 +586,10 @@ export type Database = {
         Returns: string
       }
       get_current_user_id_from_jwt: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_id_by_email: {
         Args: Record<PropertyKey, never>
         Returns: string
       }

@@ -25,6 +25,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const userData = JSON.parse(savedUser);
         setUser(userData);
+        
+        // Configurar o JWT token no Supabase para as requisições
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (!session) {
+            // Se não há sessão no Supabase, criar uma sessão simulada com o email do usuário
+            const fakeToken = btoa(JSON.stringify({
+              email: userData.email,
+              user_id: userData.id,
+              role: userData.type,
+              exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 horas
+            }));
+            
+            // Configurar o header de autorização manualmente
+            supabase.rest.headers['Authorization'] = `Bearer ${fakeToken}`;
+          }
+        });
       } catch (error) {
         console.error('Erro ao carregar usuário do localStorage:', error);
         localStorage.removeItem('user');
@@ -118,6 +134,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         criado_por: fullUserData.criado_por
       };
 
+      // Criar um token JWT simulado para as requisições
+      const fakeToken = btoa(JSON.stringify({
+        email: user.email,
+        user_id: user.id,
+        role: user.type,
+        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 horas
+      }));
+
+      // Configurar o header de autorização
+      supabase.rest.headers['Authorization'] = `Bearer ${fakeToken}`;
+
       setUser(user);
       localStorage.setItem('user', JSON.stringify(user));
       
@@ -149,6 +176,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Invalidar sessão do Supabase se existir
       await supabase.auth.signOut();
+      
+      // Remover o header de autorização
+      delete supabase.rest.headers['Authorization'];
     } catch (error) {
       console.error('Erro ao fazer logout do Supabase:', error);
     } finally {

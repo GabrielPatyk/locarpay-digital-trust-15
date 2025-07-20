@@ -112,6 +112,12 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
 
       console.log('Dados finais do imóvel:', imovelData);
 
+      // Verificar se o token JWT está configurado
+      if (!supabase.rest.headers['Authorization']) {
+        console.error('Token JWT não configurado');
+        throw new Error('Token de autenticação não encontrado');
+      }
+
       const { data: novoImovel, error } = await supabase
         .from('imoveis_imobiliaria')
         .insert(imovelData)
@@ -120,7 +126,15 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
 
       if (error) {
         console.error('Erro ao criar imóvel:', error);
-        throw error;
+        
+        // Tratar diferentes tipos de erro
+        if (error.code === '42501') {
+          throw new Error('Erro de permissão: Você não tem autorização para criar imóveis. Verifique se está logado como imobiliária.');
+        } else if (error.code === '23505') {
+          throw new Error('Já existe um imóvel com esses dados.');
+        } else {
+          throw new Error(error.message || 'Erro desconhecido ao criar imóvel');
+        }
       }
 
       console.log('Imóvel criado com sucesso:', novoImovel);
