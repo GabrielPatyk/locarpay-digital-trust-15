@@ -4,6 +4,41 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+// Tipo personalizado para fiança com dados da imobiliária
+type FiancaComImobiliaria = {
+  id: string;
+  id_imobiliaria: string;
+  inquilino_usuario_id: string;
+  status_fianca: string;
+  valor_fianca: number;
+  valor_total_locacao: number;
+  imovel_valor_aluguel: number;
+  imovel_tempo_locacao: number;
+  imovel_endereco: string;
+  imovel_numero: string;
+  imovel_bairro: string;
+  imovel_cidade: string;
+  imovel_estado: string;
+  data_criacao: string;
+  score_credito?: number;
+  taxa_aplicada?: number;
+  link_pagamento?: string;
+  comprovante_pagamento?: string;
+  data_comprovante?: string;
+  motivo_reprovacao?: string;
+  observacoes_aprovacao?: string;
+  // Propriedades adicionadas pela nossa query
+  usuarios?: {
+    id: string;
+    nome: string;
+    email: string;
+  };
+  perfil_usuario?: Array<{
+    nome_empresa?: string;
+  }>;
+  [key: string]: any; // Para outras propriedades da fiança
+};
+
 export const useInquilinoData = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -12,7 +47,7 @@ export const useInquilinoData = () => {
   // Buscar fiança ativa do inquilino
   const { data: fiancaAtiva, isLoading: isLoadingFianca } = useQuery({
     queryKey: ['fianca-ativa', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<FiancaComImobiliaria | null> => {
       if (!user?.id) return null;
 
       console.log('Buscando fiança ativa para o usuário:', user.id);
@@ -51,11 +86,18 @@ export const useInquilinoData = () => {
             ...data,
             usuarios: imobiliariaData,
             perfil_usuario: perfilData ? [perfilData] : []
-          };
+          } as FiancaComImobiliaria;
         }
+        
+        // Se não conseguiu buscar dados da imobiliária, retornar com arrays vazios
+        return {
+          ...data,
+          usuarios: undefined,
+          perfil_usuario: []
+        } as FiancaComImobiliaria;
       }
 
-      return data;
+      return null;
     },
     enabled: !!user?.id
   });
@@ -63,7 +105,7 @@ export const useInquilinoData = () => {
   // Buscar fiança com pagamento disponível ou comprovante enviado
   const { data: fiancaPagamento, isLoading: isLoadingPagamento } = useQuery({
     queryKey: ['fianca-pagamento', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<FiancaComImobiliaria | null> => {
       if (!user?.id) return null;
 
       console.log('Buscando fiança pagamento para o usuário:', user.id);
@@ -102,11 +144,18 @@ export const useInquilinoData = () => {
             ...data,
             usuarios: imobiliariaData,
             perfil_usuario: perfilData ? [perfilData] : []
-          };
+          } as FiancaComImobiliaria;
         }
+        
+        // Se não conseguiu buscar dados da imobiliária, retornar com arrays vazios
+        return {
+          ...data,
+          usuarios: undefined,
+          perfil_usuario: []
+        } as FiancaComImobiliaria;
       }
 
-      return data;
+      return null;
     },
     enabled: !!user?.id
   });
