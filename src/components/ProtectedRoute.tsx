@@ -32,8 +32,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Support both requiredUserType and allowedRoles for backward compatibility
   const roles = allowedRoles || (requiredUserType ? [requiredUserType] : undefined);
   
-  if (roles && user && !roles.includes(user.type as UserType)) {
-    return <Navigate to="/unauthorized" replace />;
+  if (roles && user) {
+    // Mapear 'cargo' para 'type' se necessário
+    const userType = user.type || user.cargo;
+    
+    if (!roles.includes(userType as UserType)) {
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   return <>{children}</>;

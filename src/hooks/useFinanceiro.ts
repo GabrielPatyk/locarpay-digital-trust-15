@@ -57,13 +57,15 @@ const sendWebhookCompleto = async (fiancaId: string) => {
     // Tentar buscar dados do contrato (sem falhar se não conseguir)
     let contrato = null;
     try {
-      const { data: contratoData } = await supabase
+      const { data: contratoData, error: contratoError } = await supabase
         .from('contratos_fianca')
         .select('*')
         .eq('fianca_id', fiancaId)
-        .single();
+        .maybeSingle();
       
-      contrato = contratoData;
+      if (!contratoError && contratoData) {
+        contrato = contratoData;
+      }
     } catch (contratoError) {
       console.log('Não foi possível buscar dados do contrato, mas prosseguindo com webhook');
     }

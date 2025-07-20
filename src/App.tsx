@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -392,9 +391,9 @@ function App() {
                       </ProtectedRoute>
                     } />
 
-                    {/* Detail page - now accessible to admin, analista, and financeiro */}
+                    {/* Detail page - now accessible to admin, analista, financeiro, imobiliaria, and inquilino */}
                     <Route path="/detalhe-fianca/:id" element={
-                      <ProtectedRoute allowedRoles={['admin', 'analista', 'financeiro']}>
+                      <ProtectedRoute allowedRoles={['admin', 'analista', 'financeiro', 'imobiliaria', 'inquilino']}>
                         <AppSidebar />
                         <DetalheFianca />
                       </ProtectedRoute>
