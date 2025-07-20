@@ -36,10 +36,16 @@ export const useRelatoriosAnalistaData = () => {
   });
 
   const buscarFiancas = async (dataInicio?: string, dataFim?: string, statusFiltro?: string) => {
-    if (!user || user.type !== 'analista') return;
+    if (!user || user.type !== 'analista') {
+      console.log('Usuário não é analista ou não está logado');
+      return;
+    }
 
     setLoading(true);
     try {
+      console.log('Buscando fianças para o analista:', user.id);
+      console.log('Filtros aplicados:', { dataInicio, dataFim, statusFiltro });
+      
       let query = supabase
         .from('fiancas_locaticias')
         .select(`
@@ -57,10 +63,10 @@ export const useRelatoriosAnalistaData = () => {
 
       // Aplicar filtros de data
       if (dataInicio) {
-        query = query.gte('data_criacao', dataInicio);
+        query = query.gte('data_criacao', dataInicio + 'T00:00:00.000Z');
       }
       if (dataFim) {
-        query = query.lte('data_criacao', dataFim + 'T23:59:59');
+        query = query.lte('data_criacao', dataFim + 'T23:59:59.999Z');
       }
 
       // Aplicar filtro de status
@@ -78,9 +84,11 @@ export const useRelatoriosAnalistaData = () => {
       const { data, error } = await query.order('data_criacao', { ascending: false });
 
       if (error) {
+        console.error('Erro na query:', error);
         throw error;
       }
 
+      console.log('Fianças encontradas:', data?.length || 0);
       setFiancas(data || []);
       calcularEstatisticas(data || []);
       
@@ -106,6 +114,7 @@ export const useRelatoriosAnalistaData = () => {
         Math.round((aprovadas.reduce((acc, f) => acc + (f.taxa_aplicada || 0), 0) / aprovadas.length) * 100) / 100 : 0
     };
 
+    console.log('Estatísticas calculadas:', newStats);
     setStats(newStats);
   };
 
