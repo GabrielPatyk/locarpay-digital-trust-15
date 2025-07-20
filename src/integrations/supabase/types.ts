@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      contratos_fianca: {
+        Row: {
+          assinantes: Json | null
+          created_at: string | null
+          data_assinatura: string | null
+          data_envio: string | null
+          documentos: Json | null
+          fianca_id: string
+          id: string
+          selfie_url: string | null
+          status_contrato: string
+          updated_at: string | null
+          url_contrato: string | null
+        }
+        Insert: {
+          assinantes?: Json | null
+          created_at?: string | null
+          data_assinatura?: string | null
+          data_envio?: string | null
+          documentos?: Json | null
+          fianca_id: string
+          id?: string
+          selfie_url?: string | null
+          status_contrato?: string
+          updated_at?: string | null
+          url_contrato?: string | null
+        }
+        Update: {
+          assinantes?: Json | null
+          created_at?: string | null
+          data_assinatura?: string | null
+          data_envio?: string | null
+          documentos?: Json | null
+          fianca_id?: string
+          id?: string
+          selfie_url?: string | null
+          status_contrato?: string
+          updated_at?: string | null
+          url_contrato?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_fianca_fianca_id_fkey"
+            columns: ["fianca_id"]
+            isOneToOne: false
+            referencedRelation: "fiancas_locaticias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contratos_fianca_fianca_id_fkey"
+            columns: ["fianca_id"]
+            isOneToOne: false
+            referencedRelation: "fiancas_para_analise"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fiancas_locaticias: {
         Row: {
           comprovante_pagamento: string | null
@@ -596,6 +653,14 @@ export type Database = {
       hash_password: {
         Args: { password: string }
         Returns: string
+      }
+      is_superadmin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      user_is_signer: {
+        Args: { contract_signers: Json }
+        Returns: boolean
       }
       validar_login: {
         Args: { email_input: string; senha_input: string }
