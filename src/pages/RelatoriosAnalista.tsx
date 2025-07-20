@@ -20,7 +20,7 @@ const RelatoriosAnalista = () => {
   const { fiancas, loading, stats, buscarFiancas } = useRelatoriosAnalistaData();
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
-  const [statusFiltro, setStatusFiltro] = useState('');
+  const [statusFiltro, setStatusFiltro] = useState('todos');
 
   const formatarStatus = (status: string) => {
     switch (status) {
@@ -45,7 +45,8 @@ const RelatoriosAnalista = () => {
   };
 
   useEffect(() => {
-    buscarFiancas(dataInicio, dataFim, statusFiltro);
+    const statusParaFiltro = statusFiltro === 'todos' ? '' : statusFiltro;
+    buscarFiancas(dataInicio, dataFim, statusParaFiltro);
   }, [dataInicio, dataFim, statusFiltro]);
 
   return (
@@ -159,7 +160,7 @@ const RelatoriosAnalista = () => {
                     <SelectValue placeholder="Todos os status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os status</SelectItem>
+                    <SelectItem value="todos">Todos os status</SelectItem>
                     <SelectItem value="Aprovado">Aprovado</SelectItem>
                     <SelectItem value="Reprovado">Reprovado</SelectItem>
                   </SelectContent>

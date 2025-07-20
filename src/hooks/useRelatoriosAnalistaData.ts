@@ -64,7 +64,7 @@ export const useRelatoriosAnalistaData = () => {
       }
 
       // Aplicar filtro de status
-      if (statusFiltro) {
+      if (statusFiltro && statusFiltro !== 'todos') {
         const statusMap: { [key: string]: string } = {
           'Aprovado': 'aprovada',
           'Reprovado': 'rejeitada'
