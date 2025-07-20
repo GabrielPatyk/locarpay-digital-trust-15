@@ -391,7 +391,13 @@ function App() {
                       </ProtectedRoute>
                     } />
 
-                    <Route path="/detalhe-fianca/:id" element={<ProtectedRoute><DetalheFianca /></ProtectedRoute>} />
+                    {/* Detail page - now accessible to admin, analista, and financeiro */}
+                    <Route path="/detalhe-fianca/:id" element={
+                      <ProtectedRoute allowedRoles={['admin', 'analista', 'financeiro']}>
+                        <AppSidebar />
+                        <DetalheFianca />
+                      </ProtectedRoute>
+                    } />
                   </Routes>
                 </SidebarProvider>
               </div>
