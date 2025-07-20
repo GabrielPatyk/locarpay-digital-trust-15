@@ -69,8 +69,9 @@ export const useRelatoriosAnalistaData = () => {
           'Aprovado': 'aprovada',
           'Reprovado': 'rejeitada'
         };
-        if (statusMap[statusFiltro]) {
-          query = query.eq('status_fianca', statusMap[statusFiltro]);
+        const dbStatus = statusMap[statusFiltro];
+        if (dbStatus) {
+          query = query.eq('status_fianca', dbStatus as any);
         }
       }
 
