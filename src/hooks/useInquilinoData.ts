@@ -20,18 +20,18 @@ export const useInquilinoData = () => {
         .from('fiancas_locaticias')
         .select(`
           *,
-          imobiliaria:usuarios!fiancas_locaticias_id_imobiliaria_fkey(
+          usuarios!fiancas_locaticias_id_imobiliaria_fkey(
             id,
             nome,
             email
           ),
-          perfil_imobiliaria:perfil_usuario!inner(
+          perfil_usuario!inner(
             nome_empresa
           )
         `)
         .eq('inquilino_usuario_id', user.id)
         .eq('status_fianca', 'ativa')
-        .eq('perfil_usuario.usuario_id', 'fiancas_locaticias.id_imobiliaria')
+        .eq('perfil_usuario.usuario_id', supabase.from('fiancas_locaticias').select('id_imobiliaria'))
         .order('data_criacao', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -52,18 +52,18 @@ export const useInquilinoData = () => {
         .from('fiancas_locaticias')
         .select(`
           *,
-          imobiliaria:usuarios!fiancas_locaticias_id_imobiliaria_fkey(
+          usuarios!fiancas_locaticias_id_imobiliaria_fkey(
             id,
             nome,
             email
           ),
-          perfil_imobiliaria:perfil_usuario!inner(
+          perfil_usuario!inner(
             nome_empresa
           )
         `)
         .eq('inquilino_usuario_id', user.id)
         .in('status_fianca', ['pagamento_disponivel', 'comprovante_enviado'])
-        .eq('perfil_usuario.usuario_id', 'fiancas_locaticias.id_imobiliaria')
+        .eq('perfil_usuario.usuario_id', supabase.from('fiancas_locaticias').select('id_imobiliaria'))
         .order('data_criacao', { ascending: false })
         .limit(1)
         .maybeSingle();
