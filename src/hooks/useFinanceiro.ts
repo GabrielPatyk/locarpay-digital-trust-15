@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +5,105 @@ import { useHistoricoFiancas } from './useHistoricoFiancas';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Fianca = Tables<'fiancas_locaticias'>;
+
+const sendWebhookCompleto = async (fiancaId: string) => {
+  try {
+    console.log('Buscando dados completos para webhook:', fiancaId);
+    
+    // Buscar dados completos da fiança
+    const { data: fianca, error: fiancaError } = await supabase
+      .from('fiancas_locaticias')
+      .select('*')
+      .eq('id', fiancaId)
+      .single();
+
+    if (fiancaError) {
+      console.error('Erro ao buscar fiança:', fiancaError);
+      throw fiancaError;
+    }
+
+    // Buscar dados da imobiliária
+    const { data: imobiliaria, error: imobiliariaError } = await supabase
+      .from('usuarios')
+      .select(`
+        *,
+        perfil_usuario(*)
+      `)
+      .eq('id', fianca.id_imobiliaria)
+      .single();
+
+    if (imobiliariaError) {
+      console.error('Erro ao buscar imobiliária:', imobiliariaError);
+      throw imobiliariaError;
+    }
+
+    // Buscar dados do inquilino (se houver inquilino_usuario_id)
+    let inquilino = null;
+    if (fianca.inquilino_usuario_id) {
+      const { data: inquilinoData, error: inquilinoError } = await supabase
+        .from('usuarios')
+        .select(`
+          *,
+          perfil_usuario(*)
+        `)
+        .eq('id', fianca.inquilino_usuario_id)
+        .single();
+
+      if (!inquilinoError) {
+        inquilino = inquilinoData;
+      }
+    }
+
+    // Montar payload completo do webhook
+    const webhookPayload = {
+      fianca_id: fiancaId,
+      contrato_status: "gerando_link",
+      evento: "pagamento_recebido",
+      fianca: fianca,
+      imobiliaria: {
+        ...imobiliaria,
+        perfil: imobiliaria.perfil_usuario
+      },
+      inquilino: inquilino ? {
+        ...inquilino,
+        perfil: inquilino.perfil_usuario
+      } : {
+        // Dados do inquilino vindos diretamente da fiança
+        nome: fianca.inquilino_nome_completo,
+        email: fianca.inquilino_email,
+        cpf: fianca.inquilino_cpf,
+        whatsapp: fianca.inquilino_whatsapp,
+        renda_mensal: fianca.inquilino_renda_mensal,
+        endereco: {
+          endereco: fianca.inquilino_endereco,
+          numero: fianca.inquilino_numero,
+          complemento: fianca.inquilino_complemento,
+          bairro: fianca.inquilino_bairro,
+          cidade: fianca.inquilino_cidade,
+          estado: fianca.inquilino_estado,
+          pais: fianca.inquilino_pais
+        }
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('Enviando webhook completo:', webhookPayload);
+
+    // Enviar webhook
+    await fetch('https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(webhookPayload)
+    });
+    
+    console.log('Webhook completo enviado com sucesso');
+  } catch (error) {
+    console.error('Erro ao enviar webhook completo:', error);
+    throw error;
+  }
+};
 
 const sendWebhook = async (fiancaId: string) => {
   try {
@@ -274,7 +372,7 @@ export const useFinanceiro = () => {
         detalhes: 'Pagamento confirmado pelo departamento financeiro'
       });
 
-      // Verificar se o contrato foi criado e enviar webhook
+      // Verificar se o contrato foi criado e enviar webhook completo
       try {
         // Aguardar um pouco para garantir que o trigger executou
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -287,11 +385,13 @@ export const useFinanceiro = () => {
           .single();
 
         if (!contratoError && contrato) {
-          console.log('Contrato criado automaticamente, enviando webhook');
-          await sendWebhook(fiancaId);
+          console.log('Contrato criado automaticamente, enviando webhook completo');
+          await sendWebhookCompleto(fiancaId);
+        } else {
+          console.log('Contrato não foi criado ou já existia');
         }
       } catch (webhookError) {
-        console.error('Erro ao enviar webhook para contrato:', webhookError);
+        console.error('Erro ao enviar webhook completo:', webhookError);
       }
 
       return fiancaId;
