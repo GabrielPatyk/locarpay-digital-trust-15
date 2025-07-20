@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -119,15 +120,7 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
 
       if (error) {
         console.error('Erro ao criar imóvel:', error);
-        
-        // Tratar diferentes tipos de erro
-        if (error.code === '42501') {
-          throw new Error('Erro de permissão: Você não tem autorização para criar imóveis. Verifique se está logado como imobiliária.');
-        } else if (error.code === '23505') {
-          throw new Error('Já existe um imóvel com esses dados.');
-        } else {
-          throw new Error(error.message || 'Erro desconhecido ao criar imóvel');
-        }
+        throw error;
       }
 
       console.log('Imóvel criado com sucesso:', novoImovel);

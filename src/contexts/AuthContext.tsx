@@ -25,14 +25,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const userData = JSON.parse(savedUser);
         setUser(userData);
-        
-        // Configurar uma sessão simulada no Supabase se necessário
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (!session) {
-            // Criar uma sessão simulada para manter compatibilidade
-            console.log('Usuário carregado do localStorage:', userData.email);
-          }
-        });
       } catch (error) {
         console.error('Erro ao carregar usuário do localStorage:', error);
         localStorage.removeItem('user');
