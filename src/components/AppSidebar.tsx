@@ -63,11 +63,6 @@ const AppSidebar = () => {
           icon: FileText,
         },
         {
-          title: 'Pagamentos',
-          url: '/pagamentos',
-          icon: DollarSign,
-        },
-        {
           title: 'Configurações',
           url: '/configuracoes-inquilino',
           icon: Settings,

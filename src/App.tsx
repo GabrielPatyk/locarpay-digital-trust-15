@@ -51,7 +51,6 @@ import SinistrosAdmin from "./pages/SinistrosAdmin";
 import ContratosImobiliaria from "./pages/ContratosImobiliaria";
 import ContratosJuridico from "./pages/ContratosJuridico";
 import InquilinosImobiliaria from "./pages/InquilinosImobiliaria";
-import Pagamentos from "./pages/Pagamentos";
 import PagamentosFinanceiro from "./pages/PagamentosFinanceiro";
 import InadimplenciaFinanceiro from "./pages/InadimplenciaFinanceiro";
 import Processos from "./pages/Processos";
@@ -133,7 +132,7 @@ function App() {
                       <ProtectedRoute allowedRoles={['admin']}>
                         <AppSidebar />
                         <EditarImobiliaria />
-                      </ProtectedRoute>
+                      ProtectedRoute>
                     } />
                     <Route path="/executivos-admin" element={
                       <ProtectedRoute allowedRoles={['admin']}>
@@ -389,12 +388,6 @@ function App() {
                       <ProtectedRoute>
                         <AppSidebar />
                         <Documentos />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/pagamentos" element={
-                      <ProtectedRoute>
-                        <AppSidebar />
-                        <Pagamentos />
                       </ProtectedRoute>
                     } />
 
