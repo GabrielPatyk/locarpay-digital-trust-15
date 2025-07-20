@@ -359,6 +359,24 @@ export type Database = {
           },
         ]
       }
+      imobiliarias: {
+        Row: {
+          criado_em: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          criado_em?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          criado_em?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       imoveis_imobiliaria: {
         Row: {
           area_metros: number | null
@@ -372,6 +390,7 @@ export type Database = {
           estado: string
           id: string
           id_imobiliaria: string
+          imobiliaria_id: string | null
           inquilino_nome: string | null
           midias_urls: string[] | null
           nome_imovel: string | null
@@ -396,6 +415,7 @@ export type Database = {
           estado: string
           id?: string
           id_imobiliaria: string
+          imobiliaria_id?: string | null
           inquilino_nome?: string | null
           midias_urls?: string[] | null
           nome_imovel?: string | null
@@ -420,6 +440,7 @@ export type Database = {
           estado?: string
           id?: string
           id_imobiliaria?: string
+          imobiliaria_id?: string | null
           inquilino_nome?: string | null
           midias_urls?: string[] | null
           nome_imovel?: string | null
@@ -438,6 +459,13 @@ export type Database = {
             columns: ["id_imobiliaria"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imoveis_imobiliaria_imobiliaria_id_fkey"
+            columns: ["imobiliaria_id"]
+            isOneToOne: false
+            referencedRelation: "imobiliarias"
             referencedColumns: ["id"]
           },
         ]
@@ -591,6 +619,35 @@ export type Database = {
             columns: ["criado_por"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usuarios_imobiliaria: {
+        Row: {
+          criado_em: string | null
+          id: string
+          imobiliaria_id: string
+          usuario_id: string
+        }
+        Insert: {
+          criado_em?: string | null
+          id?: string
+          imobiliaria_id: string
+          usuario_id: string
+        }
+        Update: {
+          criado_em?: string | null
+          id?: string
+          imobiliaria_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_imobiliaria_imobiliaria_id_fkey"
+            columns: ["imobiliaria_id"]
+            isOneToOne: false
+            referencedRelation: "imobiliarias"
             referencedColumns: ["id"]
           },
         ]
