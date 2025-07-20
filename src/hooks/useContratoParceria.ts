@@ -9,7 +9,8 @@ interface ContratoParceria {
   id: string;
   imobiliaria_id: string;
   status_assinatura: 'pendente' | 'assinado';
-  url_contrato: string | null;
+  link_assinatura: string | null;
+  documento_assinado_url: string | null;
   created_at: string;
   updated_at: string;
 }

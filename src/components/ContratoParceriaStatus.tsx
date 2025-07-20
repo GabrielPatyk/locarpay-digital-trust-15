@@ -26,7 +26,7 @@ const ContratoParceriaStatus = () => {
   }
 
   const isAssinado = contrato?.status_assinatura === 'assinado';
-  const temLinkAssinatura = contrato?.url_contrato;
+  const temLinkAssinatura = isAssinado ? contrato?.documento_assinado_url : contrato?.link_assinatura;
 
   return (
     <div className="flex items-center justify-between">
@@ -53,7 +53,7 @@ const ContratoParceriaStatus = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.open(contrato.url_contrato!, '_blank')}
+            onClick={() => window.open(contrato.documento_assinado_url!, '_blank')}
             className="flex items-center gap-2"
           >
             <FileText className="h-4 w-4" />
@@ -66,7 +66,7 @@ const ContratoParceriaStatus = () => {
           <div className="text-right">
             {temLinkAssinatura ? (
               <Button
-                onClick={() => window.open(contrato.url_contrato!, '_blank')}
+                onClick={() => window.open(contrato.link_assinatura!, '_blank')}
                 className="flex items-center gap-2"
               >
                 <FileText className="h-4 w-4" />
