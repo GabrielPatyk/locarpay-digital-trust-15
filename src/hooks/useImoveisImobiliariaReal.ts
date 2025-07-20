@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -111,12 +110,6 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
       };
 
       console.log('Dados finais do imóvel:', imovelData);
-
-      // Verificar se o token JWT está configurado
-      if (!supabase.rest.headers['Authorization']) {
-        console.error('Token JWT não configurado');
-        throw new Error('Token de autenticação não encontrado');
-      }
 
       const { data: novoImovel, error } = await supabase
         .from('imoveis_imobiliaria')
