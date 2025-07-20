@@ -7,7 +7,31 @@ import type { Tables } from '@/integrations/supabase/types';
 
 type Fianca = Tables<'fiancas_locaticias'>;
 
-const sendWebhook = async (fiancaData: any) => {
+const sendWebhook = async (fiancaId: string) => {
+  try {
+    console.log('Enviando webhook para contrato criado:', fiancaId);
+    
+    const webhookData = {
+      fianca_id: fiancaId,
+      contrato_status: "gerando_link",
+      evento: "pagamento_recebido"
+    };
+
+    await fetch('https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(webhookData)
+    });
+    
+    console.log('Webhook enviado com sucesso para contrato:', webhookData);
+  } catch (error) {
+    console.error('Erro ao enviar webhook para contrato:', error);
+  }
+};
+
+const sendWebhookFiancaData = async (fiancaData: any) => {
   try {
     console.log('Enviando webhook para:', 'https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6');
     
@@ -186,7 +210,7 @@ export const useFinanceiro = () => {
       if (novoStatus === 'assinatura_imobiliaria') {
         try {
           const webhookData = await getFiancaCompleteData(fiancaId);
-          await sendWebhook({
+          await sendWebhookFiancaData({
             event: 'fianca_payment_confirmed',
             data: webhookData,
             timestamp: new Date().toISOString()
@@ -249,6 +273,26 @@ export const useFinanceiro = () => {
         acao: 'Pagamento confirmado',
         detalhes: 'Pagamento confirmado pelo departamento financeiro'
       });
+
+      // Verificar se o contrato foi criado e enviar webhook
+      try {
+        // Aguardar um pouco para garantir que o trigger executou
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Verificar se o contrato foi criado
+        const { data: contrato, error: contratoError } = await supabase
+          .from('contratos_fianca')
+          .select('*')
+          .eq('fianca_id', fiancaId)
+          .single();
+
+        if (!contratoError && contrato) {
+          console.log('Contrato criado automaticamente, enviando webhook');
+          await sendWebhook(fiancaId);
+        }
+      } catch (webhookError) {
+        console.error('Erro ao enviar webhook para contrato:', webhookError);
+      }
 
       return fiancaId;
     },
