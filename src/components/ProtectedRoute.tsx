@@ -33,10 +33,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const roles = allowedRoles || (requiredUserType ? [requiredUserType] : undefined);
   
   if (roles && user) {
-    // Mapear 'cargo' para 'type' se necessário
-    const userType = user.type || user.cargo;
-    
-    if (!roles.includes(userType as UserType)) {
+    if (!roles.includes(user.type as UserType)) {
       return <Navigate to="/unauthorized" replace />;
     }
   }
