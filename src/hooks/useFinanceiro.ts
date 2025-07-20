@@ -54,6 +54,20 @@ const sendWebhookCompleto = async (fiancaId: string) => {
       }
     }
 
+    // Tentar buscar dados do contrato (sem falhar se não conseguir)
+    let contrato = null;
+    try {
+      const { data: contratoData } = await supabase
+        .from('contratos_fianca')
+        .select('*')
+        .eq('fianca_id', fiancaId)
+        .single();
+      
+      contrato = contratoData;
+    } catch (contratoError) {
+      console.log('Não foi possível buscar dados do contrato, mas prosseguindo com webhook');
+    }
+
     // Montar payload completo do webhook
     const webhookPayload = {
       fianca_id: fiancaId,
@@ -84,19 +98,27 @@ const sendWebhookCompleto = async (fiancaId: string) => {
           pais: fianca.inquilino_pais
         }
       },
+      contrato: contrato || {
+        status_contrato: "gerando_link",
+        created_at: new Date().toISOString()
+      },
       timestamp: new Date().toISOString()
     };
 
     console.log('Enviando webhook completo:', webhookPayload);
 
     // Enviar webhook
-    await fetch('https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6', {
+    const response = await fetch('https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(webhookPayload)
     });
+
+    if (!response.ok) {
+      throw new Error(`Webhook failed with status: ${response.status}`);
+    }
     
     console.log('Webhook completo enviado com sucesso');
   } catch (error) {
@@ -372,26 +394,13 @@ export const useFinanceiro = () => {
         detalhes: 'Pagamento confirmado pelo departamento financeiro'
       });
 
-      // Verificar se o contrato foi criado e enviar webhook completo
+      // SEMPRE disparar webhook completo após confirmar pagamento
       try {
-        // Aguardar um pouco para garantir que o trigger executou
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Verificar se o contrato foi criado
-        const { data: contrato, error: contratoError } = await supabase
-          .from('contratos_fianca')
-          .select('*')
-          .eq('fianca_id', fiancaId)
-          .single();
-
-        if (!contratoError && contrato) {
-          console.log('Contrato criado automaticamente, enviando webhook completo');
-          await sendWebhookCompleto(fiancaId);
-        } else {
-          console.log('Contrato não foi criado ou já existia');
-        }
+        console.log('Disparando webhook completo para fiança:', fiancaId);
+        await sendWebhookCompleto(fiancaId);
       } catch (webhookError) {
         console.error('Erro ao enviar webhook completo:', webhookError);
+        // Não falhar a operação por causa do webhook
       }
 
       return fiancaId;
