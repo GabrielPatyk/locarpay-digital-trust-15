@@ -61,21 +61,25 @@ export const useRelatoriosAnalistaData = () => {
         .eq('id_analista', user.id)
         .in('status_fianca', ['aprovada', 'rejeitada']);
 
-      // Aplicar filtros de data
+      // Aplicar filtros de data com conversão correta
       if (dataInicio) {
-        query = query.gte('data_criacao', dataInicio + 'T00:00:00.000Z');
+        const dataInicioISO = new Date(`${dataInicio}T00:00:00`).toISOString();
+        console.log('Data início convertida:', dataInicioISO);
+        query = query.gte('data_criacao', dataInicioISO);
       }
       if (dataFim) {
-        query = query.lte('data_criacao', dataFim + 'T23:59:59.999Z');
+        const dataFimISO = new Date(`${dataFim}T23:59:59`).toISOString();
+        console.log('Data fim convertida:', dataFimISO);
+        query = query.lte('data_criacao', dataFimISO);
       }
 
       // Aplicar filtro de status
       if (statusFiltro && statusFiltro !== 'todos') {
         const statusMap: { [key: string]: string } = {
-          'Aprovado': 'aprovada',
-          'Reprovado': 'rejeitada'
+          'aprovado': 'aprovada',
+          'reprovado': 'rejeitada'
         };
-        const dbStatus = statusMap[statusFiltro];
+        const dbStatus = statusMap[statusFiltro.toLowerCase()];
         if (dbStatus) {
           query = query.eq('status_fianca', dbStatus as any);
         }
@@ -89,6 +93,7 @@ export const useRelatoriosAnalistaData = () => {
       }
 
       console.log('Fianças encontradas:', data?.length || 0);
+      console.log('Dados das fianças:', data);
       setFiancas(data || []);
       calcularEstatisticas(data || []);
       
