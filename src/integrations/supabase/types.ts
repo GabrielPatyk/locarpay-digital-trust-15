@@ -708,6 +708,14 @@ export type Database = {
         Args: { p_fianca_id: string; p_usuario_id: string; p_valor: number }
         Returns: undefined
       }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_current_user_imobiliaria: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_superadmin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
