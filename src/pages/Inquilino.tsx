@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useInquilinoData } from '@/hooks/useInquilinoData';
 import { useAuth } from '@/contexts/AuthContext';
+import ComprovanteUpload from '@/components/ComprovanteUpload';
 import { 
   DollarSign, 
   CreditCard, 
@@ -20,12 +20,10 @@ import {
   MapPin,
   ExternalLink
 } from 'lucide-react';
-import { useState } from 'react';
 
 const Inquilino = () => {
   const { user } = useAuth();
   const { fiancaAtiva, fiancaPagamento, emailVerificado, isLoading, enviarComprovante } = useInquilinoData();
-  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -69,28 +67,13 @@ const Inquilino = () => {
     }
   };
 
-  const handleEnviarComprovante = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validar tipo de arquivo
-    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-    if (!allowedTypes.includes(file.type)) {
-      alert('Apenas arquivos JPG, PNG ou PDF são permitidos.');
-      return;
-    }
-
-    // Validar tamanho (3MB)
-    if (file.size > 3 * 1024 * 1024) {
-      alert('O arquivo deve ter no máximo 3MB.');
-      return;
-    }
-
-    // Aqui você implementaria o upload do arquivo
+  const handleComprovanteUpload = (filePath: string) => {
     const fiancaParaExibir = fiancaAtiva || fiancaPagamento;
     if (fiancaParaExibir) {
-      // Simulação do upload - você deve implementar a lógica real
-      alert('Comprovante enviado com sucesso! (Funcionalidade em desenvolvimento)');
+      enviarComprovante.mutate({
+        fiancaId: fiancaParaExibir.id,
+        comprovantePath: filePath
+      });
     }
   };
 
@@ -317,33 +300,20 @@ const Inquilino = () => {
                           Realize o pagamento e envie o comprovante
                         </p>
                       </div>
-                      <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="flex flex-col gap-2">
                         {fiancaParaExibir.link_pagamento && (
                           <Button
                             onClick={handlePagarFianca}
-                            className="bg-blue-600 hover:bg-blue-700"
+                            className="bg-blue-600 hover:bg-blue-700 w-full"
                           >
                             <ExternalLink className="mr-2 h-4 w-4" />
                             Pagar Fiança
                           </Button>
                         )}
-                        <div>
-                          <input
-                            type="file"
-                            accept=".jpg,.jpeg,.png,.pdf"
-                            onChange={handleEnviarComprovante}
-                            className="hidden"
-                            id="comprovante-upload"
-                          />
-                          <Button
-                            onClick={() => document.getElementById('comprovante-upload')?.click()}
-                            variant="outline"
-                            className="w-full sm:w-auto"
-                          >
-                            <Upload className="mr-2 h-4 w-4" />
-                            Enviar Comprovante
-                          </Button>
-                        </div>
+                        <ComprovanteUpload
+                          onUploadSuccess={handleComprovanteUpload}
+                          disabled={enviarComprovante.isPending}
+                        />
                       </div>
                     </div>
                   )}

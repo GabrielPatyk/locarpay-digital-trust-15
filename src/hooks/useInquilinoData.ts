@@ -3,11 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useFileUpload } from '@/hooks/useFileUpload';
 
 export const useInquilinoData = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { uploadFile } = useFileUpload();
 
   // Buscar fiança ativa do inquilino
   const { data: fiancaAtiva, isLoading: isLoadingFianca } = useQuery({
@@ -89,6 +91,7 @@ export const useInquilinoData = () => {
         description: "Seu comprovante foi enviado e está sendo analisado.",
       });
       queryClient.invalidateQueries({ queryKey: ['fianca-pagamento'] });
+      queryClient.invalidateQueries({ queryKey: ['fianca-ativa'] });
     },
     onError: (error: any) => {
       toast({
