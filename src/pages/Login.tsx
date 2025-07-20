@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
+import { useRecentUsers } from '@/hooks/useRecentUsers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Mail, Lock, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EmailVerificationModal from '@/components/EmailVerificationModal';
+import RecentUsersSelect from '@/components/RecentUsersSelect';
 
 const Login = () => {
   // Hook para redirecionar se já estiver logado
@@ -26,6 +29,7 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { recentUsers, addRecentUser, clearRecentUsers } = useRecentUsers();
 
   // Se está verificando autenticação, mostrar loading
   if (authLoading) {
@@ -44,6 +48,9 @@ const Login = () => {
     try {
       const result = await login(email, password);
       if (result.success) {
+        // Adiciona o email aos usuários recentes após login bem-sucedido
+        addRecentUser(email);
+        
         toast({
           title: "Login realizado com sucesso!",
           description: "Redirecionando...",
@@ -67,6 +74,10 @@ const Login = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSelectRecentUser = (selectedEmail: string) => {
+    setEmail(selectedEmail);
   };
 
   const handleForgotPassword = () => {
@@ -124,6 +135,13 @@ const Login = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Campo de seleção de usuários recentes */}
+                  <RecentUsersSelect
+                    recentUsers={recentUsers}
+                    onSelectUser={handleSelectRecentUser}
+                    onClearUsers={clearRecentUsers}
+                  />
+
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-[#0C1C2E] font-medium">E-mail</Label>
                     <div className="relative">
