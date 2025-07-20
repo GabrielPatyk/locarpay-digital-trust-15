@@ -696,6 +696,7 @@ export type Database = {
         | "pagamento_disponivel"
         | "comprovante_enviado"
         | "assinatura_imobiliaria"
+        | "pagamento_confirmado"
       tipo_usuario:
         | "inquilino"
         | "analista"
@@ -844,6 +845,7 @@ export const Constants = {
         "pagamento_disponivel",
         "comprovante_enviado",
         "assinatura_imobiliaria",
+        "pagamento_confirmado",
       ],
       tipo_usuario: [
         "inquilino",

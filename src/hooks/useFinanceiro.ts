@@ -63,6 +63,8 @@ const visualizarComprovante = (comprovanteUrl: string) => {
     return;
   }
 
+  console.log('Tentando abrir comprovante:', comprovanteUrl);
+
   // Se for uma URL completa do Supabase Storage
   if (comprovanteUrl.includes('supabase')) {
     window.open(comprovanteUrl, '_blank');
@@ -73,6 +75,8 @@ const visualizarComprovante = (comprovanteUrl: string) => {
   const { data } = supabase.storage
     .from('comprovantes')
     .getPublicUrl(comprovanteUrl);
+
+  console.log('URL pública gerada:', data?.publicUrl);
 
   if (data?.publicUrl) {
     window.open(data.publicUrl, '_blank');
