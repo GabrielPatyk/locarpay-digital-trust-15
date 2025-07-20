@@ -3,6 +3,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserType } from '@/types/user';
+import ImobiliariaAccessGuard from '@/components/ImobiliariaAccessGuard';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -38,7 +39,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }
 
-  return <>{children}</>;
+  // Wrap with ImobiliariaAccessGuard to check contract status
+  return (
+    <ImobiliariaAccessGuard>
+      {children}
+    </ImobiliariaAccessGuard>
+  );
 };
 
 export default ProtectedRoute;

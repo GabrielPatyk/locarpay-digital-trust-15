@@ -71,6 +71,44 @@ export type Database = {
           },
         ]
       }
+      contratos_parceria: {
+        Row: {
+          created_at: string | null
+          documento_assinado_url: string | null
+          id: string
+          imobiliaria_id: string
+          link_assinatura: string | null
+          status_assinatura: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          documento_assinado_url?: string | null
+          id?: string
+          imobiliaria_id: string
+          link_assinatura?: string | null
+          status_assinatura?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          documento_assinado_url?: string | null
+          id?: string
+          imobiliaria_id?: string
+          link_assinatura?: string | null
+          status_assinatura?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_parceria_imobiliaria_id_fkey"
+            columns: ["imobiliaria_id"]
+            isOneToOne: true
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fiancas_locaticias: {
         Row: {
           comprovante_pagamento: string | null
@@ -618,20 +656,32 @@ export type Database = {
       }
     }
     Functions: {
+      atualizar_data_aprovacao: {
+        Args: { p_id: string; p_data_aprovacao: string }
+        Returns: undefined
+      }
       atualizar_imagem_perfil: {
         Args: { p_usuario_id: string; p_imagem_url: string }
         Returns: boolean
       }
+      criar_contrato_apos_pagamento: {
+        Args: { pagamento_id: string }
+        Returns: undefined
+      }
+      criar_contrato_imobiliaria: {
+        Args: { p_param1: number; p_param2: string }
+        Returns: undefined
+      }
       criar_perfil_usuario_se_necessario: {
-        Args: { p_usuario_id: string }
-        Returns: string
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       gerar_token_verificacao: {
         Args: { usuario_id: string }
         Returns: string
       }
       get_current_user_email: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never> | { user_id: string }
         Returns: string
       }
       get_current_user_from_jwt: {
@@ -647,19 +697,25 @@ export type Database = {
         Returns: string
       }
       get_user_id_by_email: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never> | { p_email: string }
         Returns: string
       }
       hash_password: {
         Args: { password: string }
         Returns: string
       }
+      inserir_historico_criacao_fianca: {
+        Args: { p_fianca_id: string; p_usuario_id: string; p_valor: number }
+        Returns: undefined
+      }
       is_superadmin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
       user_is_signer: {
-        Args: { contract_signers: Json }
+        Args:
+          | { contract_signers: Json }
+          | { p_user_id: string; p_document_id: string }
         Returns: boolean
       }
       validar_login: {
@@ -675,11 +731,11 @@ export type Database = {
         }[]
       }
       verificar_email: {
-        Args: { token_input: string }
-        Returns: Json
+        Args: { p_email: string } | { token_input: string }
+        Returns: boolean
       }
       verify_password: {
-        Args: { password: string; hash: string }
+        Args: { password: string } | { password: string; hash: string }
         Returns: boolean
       }
     }
