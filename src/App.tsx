@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -55,7 +54,6 @@ import InquilinosImobiliaria from "./pages/InquilinosImobiliaria";
 import PagamentosFinanceiro from "./pages/PagamentosFinanceiro";
 import InadimplenciaFinanceiro from "./pages/InadimplenciaFinanceiro";
 import Processos from "./pages/Processos";
-import PropostasExecutivo from "./pages/PropostasExecutivo";
 import PerformanceExecutivo from "./pages/PerformanceExecutivo";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
@@ -203,12 +201,6 @@ function App() {
                       <ProtectedRoute allowedRoles={['executivo']}>
                         <AppSidebar />
                         <ImobiliariasExecutivo />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/propostas-executivo" element={
-                      <ProtectedRoute allowedRoles={['executivo']}>
-                        <AppSidebar />
-                        <PropostasExecutivo />
                       </ProtectedRoute>
                     } />
                     <Route path="/performance-executivo" element={

@@ -173,11 +173,6 @@ const AppSidebar = () => {
           icon: Building,
         },
         {
-          title: 'Propostas',
-          url: '/propostas-executivo',
-          icon: FileText,
-        },
-        {
           title: 'Performance',
           url: '/performance-executivo',
           icon: TrendingUp,
