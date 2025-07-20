@@ -1,1 +1,4 @@
 project_id = "jefofujjcqwblavoybfx"
+
+[functions.criar-contrato-parceria]
+verify_jwt = false

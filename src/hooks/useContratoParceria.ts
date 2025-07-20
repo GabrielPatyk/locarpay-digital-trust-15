@@ -25,13 +25,17 @@ export const useContratoParceria = () => {
     queryFn: async () => {
       if (!user?.id) return null;
 
+      // Usar service role key para operações administrativas
       const { data, error } = await supabase
         .from('contratos_parceria')
         .select('*')
         .eq('imobiliaria_id', user.id)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar contrato:', error);
+        return null;
+      }
       return data as ContratoParceria | null;
     },
     enabled: !!user?.id && user.type === 'imobiliaria'
@@ -41,62 +45,13 @@ export const useContratoParceria = () => {
     mutationFn: async () => {
       if (!user?.id) throw new Error('Usuário não encontrado');
 
-      // Criar o contrato na base de dados
-      const { data: novoContrato, error: contratoError } = await supabase
-        .from('contratos_parceria')
-        .insert({
-          imobiliaria_id: user.id,
-          status_assinatura: 'pendente'
-        })
-        .select()
-        .single();
+      // Chamar edge function para criar contrato
+      const { data, error } = await supabase.functions.invoke('criar-contrato-parceria', {
+        body: { imobiliaria_id: user.id }
+      });
 
-      if (contratoError) throw contratoError;
-
-      // Buscar dados completos da imobiliária
-      const { data: perfilData } = await supabase
-        .from('perfil_usuario')
-        .select('*')
-        .eq('usuario_id', user.id)
-        .maybeSingle();
-
-      // Preparar dados para o webhook
-      const webhookData = {
-        imobiliaria_id: user.id,
-        contrato_status: 'pendente',
-        evento: 'primeiro_acesso_plataforma',
-        imobiliaria: {
-          id: user.id,
-          nome: user.name,
-          email: user.email,
-          telefone: user.telefone,
-          cnpj: perfilData?.cnpj,
-          endereco: perfilData?.endereco,
-          numero: perfilData?.numero,
-          complemento: perfilData?.complemento,
-          bairro: perfilData?.bairro,
-          cidade: perfilData?.cidade,
-          estado: perfilData?.estado,
-          pais: perfilData?.pais,
-          nome_empresa: perfilData?.nome_empresa
-        }
-      };
-
-      // Enviar webhook
-      try {
-        await fetch('https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(webhookData)
-        });
-      } catch (webhookError) {
-        console.warn('Erro ao enviar webhook:', webhookError);
-        // Não falhar a criação do contrato por causa do webhook
-      }
-
-      return novoContrato;
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contrato-parceria'] });
