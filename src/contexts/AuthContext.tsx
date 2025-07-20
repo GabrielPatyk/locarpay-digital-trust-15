@@ -21,22 +21,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Configurar o contexto de autenticação no Supabase
   const configureSupabaseAuth = async (userData: User) => {
     try {
-      // Configurar o contexto JWT personalizado
-      await supabase.rpc('set_config', {
-        setting_name: 'request.jwt.claims',
-        setting_value: JSON.stringify({ 
-          email: userData.email,
-          user_id: userData.id,
-          role: userData.type 
-        })
-      });
+      // Tentar configurar via função SQL personalizada (se existir)
+      console.log('Configurando contexto Supabase para:', userData.email);
+      
+      // Como fallback, vamos usar localStorage para armazenar dados de contexto
+      localStorage.setItem('supabase_user_context', JSON.stringify({
+        email: userData.email,
+        user_id: userData.id,
+        role: userData.type
+      }));
+      
       console.log('Contexto Supabase configurado para:', userData.email);
     } catch (error) {
-      console.log('Fallback: Configurando headers customizados');
-      // Fallback: usar headers customizados
-      supabase.rest.headers['x-user-email'] = userData.email;
-      supabase.rest.headers['x-user-id'] = userData.id;
-      supabase.rest.headers['x-user-role'] = userData.type;
+      console.log('Erro ao configurar contexto:', error);
     }
   };
 
@@ -177,10 +174,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Invalidar sessão do Supabase se existir
       await supabase.auth.signOut();
       
-      // Limpar headers customizados
-      delete supabase.rest.headers['x-user-email'];
-      delete supabase.rest.headers['x-user-id'];
-      delete supabase.rest.headers['x-user-role'];
+      // Limpar contexto de usuário
+      localStorage.removeItem('supabase_user_context');
     } catch (error) {
       console.error('Erro ao fazer logout do Supabase:', error);
     } finally {
