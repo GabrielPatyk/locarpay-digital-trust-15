@@ -32,7 +32,7 @@ export const useInquilinoData = () => {
     enabled: !!user?.id
   });
 
-  // Buscar fiança com pagamento disponível
+  // Buscar fiança com pagamento disponível ou comprovante enviado
   const { data: fiancaPagamento, isLoading: isLoadingPagamento } = useQuery({
     queryKey: ['fianca-pagamento', user?.id],
     queryFn: async () => {
@@ -42,7 +42,7 @@ export const useInquilinoData = () => {
         .from('fiancas_locaticias')
         .select('*')
         .eq('inquilino_usuario_id', user.id)
-        .eq('status_fianca', 'pagamento_disponivel')
+        .in('status_fianca', ['pagamento_disponivel', 'comprovante_enviado'])
         .order('data_criacao', { ascending: false })
         .limit(1)
         .maybeSingle();

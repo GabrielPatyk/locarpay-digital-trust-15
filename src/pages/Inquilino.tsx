@@ -319,14 +319,16 @@ const Inquilino = () => {
                   )}
 
                   {fiancaParaExibir.status_fianca === 'comprovante_enviado' && (
-                    <div className="mt-4 p-4 bg-green-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <div className="mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <div className="flex items-start space-x-3">
+                        <div className="text-2xl">🔎</div>
                         <div>
-                          <p className="font-medium text-green-900">Comprovante Enviado</p>
-                          <p className="text-sm text-green-700">
-                            Aguardando confirmação do pagamento
-                          </p>
+                          <p className="font-medium text-orange-900 mb-2">Comprovante recebido!</p>
+                          <div className="text-sm text-orange-800 space-y-1">
+                            <p>Agradecemos por enviar o comprovante de pagamento.</p>
+                            <p>Nosso time financeiro está analisando as informações e essa verificação pode levar alguns minutos.</p>
+                            <p>Por favor, aguarde os próximos passos para a assinatura da fiança.</p>
+                          </div>
                         </div>
                       </div>
                     </div>
