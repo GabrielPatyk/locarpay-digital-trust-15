@@ -12,6 +12,8 @@ export const useAuthRedirect = () => {
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       const redirectPath = getCargoHomePage();
+      // Para imobiliárias, sempre redirecionar para a home page
+      // O ImobiliariaAccessGuard irá lidar com o redirecionamento para configurações se necessário
       navigate(redirectPath, { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate, getCargoHomePage, user]);

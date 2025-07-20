@@ -6,6 +6,7 @@ import { useImobiliariaData } from '@/hooks/useImobiliariaData';
 import Layout from '@/components/Layout';
 import ImageUpload from '@/components/ImageUpload';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import ContratoParceriaStatus from '@/components/ContratoParceriaStatus';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -230,6 +231,17 @@ const ConfiguracoesImobiliaria = () => {
     setFormData(prev => ({ ...prev, imagem_perfil: imageUrl }));
   };
 
+  useEffect(() => {
+    if (window.location.hash === '#verificacoes-conta') {
+      setTimeout(() => {
+        const element = document.getElementById('verificacoes-conta');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  }, []);
+
   return (
     <Layout title="Configurações">
       <div className="space-y-6 animate-fade-in">
@@ -254,7 +266,7 @@ const ConfiguracoesImobiliaria = () => {
         </Card>
 
         {/* Account Verifications */}
-        <Card>
+        <Card id="verificacoes-conta">
           <CardHeader>
             <CardTitle className="flex items-center">
               <FileCheck className="mr-2 h-5 w-5 text-primary" />
@@ -305,25 +317,8 @@ const ConfiguracoesImobiliaria = () => {
               </Badge>
             </div>
             
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Contrato de Parceria LocarPay</p>
-                <p className="text-sm text-gray-600">Status da assinatura do contrato de parceria</p>
-              </div>
-              <Badge className={!user?.firstLogin ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                {!user?.firstLogin ? (
-                  <>
-                    <CheckCircle className="mr-1 h-3 w-3" />
-                    Assinado
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle className="mr-1 h-3 w-3" />
-                    Pendente Assinatura
-                  </>
-                )}
-              </Badge>
-            </div>
+            {/* Contrato de Parceria Status */}
+            <ContratoParceriaStatus />
           </CardContent>
         </Card>
 
