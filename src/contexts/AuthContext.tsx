@@ -18,25 +18,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Configurar o contexto de autenticação no Supabase
-  const configureSupabaseAuth = async (userData: User) => {
-    try {
-      // Tentar configurar via função SQL personalizada (se existir)
-      console.log('Configurando contexto Supabase para:', userData.email);
-      
-      // Como fallback, vamos usar localStorage para armazenar dados de contexto
-      localStorage.setItem('supabase_user_context', JSON.stringify({
-        email: userData.email,
-        user_id: userData.id,
-        role: userData.type
-      }));
-      
-      console.log('Contexto Supabase configurado para:', userData.email);
-    } catch (error) {
-      console.log('Erro ao configurar contexto:', error);
-    }
-  };
-
   useEffect(() => {
     // Verificar se há um usuário salvo no localStorage
     const savedUser = localStorage.getItem('user');
@@ -44,8 +25,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const userData = JSON.parse(savedUser);
         setUser(userData);
-        // Configurar autenticação no Supabase
-        configureSupabaseAuth(userData);
       } catch (error) {
         console.error('Erro ao carregar usuário do localStorage:', error);
         localStorage.removeItem('user');
@@ -142,8 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(user);
       localStorage.setItem('user', JSON.stringify(user));
       
-      // Configurar autenticação no Supabase
-      await configureSupabaseAuth(user);
+      console.log('Login realizado com sucesso para:', user.email);
       
       // Define redirect path based on user type
       const redirectPaths: Record<string, string> = {
@@ -173,9 +151,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Invalidar sessão do Supabase se existir
       await supabase.auth.signOut();
-      
-      // Limpar contexto de usuário
-      localStorage.removeItem('supabase_user_context');
     } catch (error) {
       console.error('Erro ao fazer logout do Supabase:', error);
     } finally {
@@ -191,8 +166,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
-    // Reconfigurar autenticação no Supabase
-    configureSupabaseAuth(updatedUser);
   };
 
   const isAuthenticated = !!user;

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -54,16 +53,18 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
   const { data: imoveis = [], isLoading, error, refetch } = useQuery({
     queryKey: ['imoveis-imobiliaria-real', user?.id, searchTerm, statusFilter],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.id) {
+        console.log('Usuário não autenticado');
+        return [];
+      }
 
       console.log('Buscando imóveis para usuário:', user.id);
 
-      let query = supabase
+      const { data, error } = await supabase
         .from('imoveis_imobiliaria')
         .select('*')
-        .eq('id_imobiliaria', user.id);
-
-      const { data, error } = await query.order('data_criacao', { ascending: false });
+        .eq('id_imobiliaria', user.id)
+        .order('data_criacao', { ascending: false });
 
       if (error) {
         console.error('Erro ao buscar imóveis:', error);
@@ -98,11 +99,12 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
 
   const createImovelMutation = useMutation({
     mutationFn: async (data: CreateImovelData) => {
-      if (!user?.id) throw new Error('Usuário não autenticado');
+      if (!user?.id) {
+        throw new Error('Usuário não autenticado');
+      }
 
       console.log('Criando imóvel com dados:', data);
       console.log('ID da imobiliária:', user.id);
-      console.log('Email do usuário:', user.email);
 
       const imovelData = {
         ...data,
