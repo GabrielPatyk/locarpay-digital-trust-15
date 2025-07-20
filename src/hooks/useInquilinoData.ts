@@ -3,13 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useFileUpload } from '@/hooks/useFileUpload';
 
 export const useInquilinoData = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { uploadFile } = useFileUpload();
 
   // Buscar fiança ativa do inquilino
   const { data: fiancaAtiva, isLoading: isLoadingFianca } = useQuery({
@@ -17,26 +15,46 @@ export const useInquilinoData = () => {
     queryFn: async () => {
       if (!user?.id) return null;
 
+      console.log('Buscando fiança ativa para o usuário:', user.id);
+
       const { data, error } = await supabase
         .from('fiancas_locaticias')
-        .select(`
-          *,
-          usuarios!fiancas_locaticias_id_imobiliaria_fkey(
-            id,
-            nome,
-            email
-          ),
-          perfil_usuario!fiancas_locaticias_id_imobiliaria_fkey(
-            nome_empresa
-          )
-        `)
+        .select('*')
         .eq('inquilino_usuario_id', user.id)
         .eq('status_fianca', 'ativa')
         .order('data_criacao', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar fiança ativa:', error);
+        throw error;
+      }
+
+      // Se encontrou uma fiança, buscar dados da imobiliária separadamente
+      if (data) {
+        const { data: imobiliariaData, error: imobiliariaError } = await supabase
+          .from('usuarios')
+          .select('id, nome, email')
+          .eq('id', data.id_imobiliaria)
+          .single();
+
+        if (!imobiliariaError && imobiliariaData) {
+          // Buscar perfil da imobiliária
+          const { data: perfilData } = await supabase
+            .from('perfil_usuario')
+            .select('nome_empresa')
+            .eq('usuario_id', data.id_imobiliaria)
+            .single();
+
+          return {
+            ...data,
+            usuarios: imobiliariaData,
+            perfil_usuario: perfilData ? [perfilData] : []
+          };
+        }
+      }
+
       return data;
     },
     enabled: !!user?.id
@@ -48,26 +66,46 @@ export const useInquilinoData = () => {
     queryFn: async () => {
       if (!user?.id) return null;
 
+      console.log('Buscando fiança pagamento para o usuário:', user.id);
+
       const { data, error } = await supabase
         .from('fiancas_locaticias')
-        .select(`
-          *,
-          usuarios!fiancas_locaticias_id_imobiliaria_fkey(
-            id,
-            nome,
-            email
-          ),
-          perfil_usuario!fiancas_locaticias_id_imobiliaria_fkey(
-            nome_empresa
-          )
-        `)
+        .select('*')
         .eq('inquilino_usuario_id', user.id)
         .in('status_fianca', ['pagamento_disponivel', 'comprovante_enviado'])
         .order('data_criacao', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar fiança pagamento:', error);
+        throw error;
+      }
+
+      // Se encontrou uma fiança, buscar dados da imobiliária separadamente
+      if (data) {
+        const { data: imobiliariaData, error: imobiliariaError } = await supabase
+          .from('usuarios')
+          .select('id, nome, email')
+          .eq('id', data.id_imobiliaria)
+          .single();
+
+        if (!imobiliariaError && imobiliariaData) {
+          // Buscar perfil da imobiliária
+          const { data: perfilData } = await supabase
+            .from('perfil_usuario')
+            .select('nome_empresa')
+            .eq('usuario_id', data.id_imobiliaria)
+            .single();
+
+          return {
+            ...data,
+            usuarios: imobiliariaData,
+            perfil_usuario: perfilData ? [perfilData] : []
+          };
+        }
+      }
+
       return data;
     },
     enabled: !!user?.id
@@ -85,7 +123,11 @@ export const useInquilinoData = () => {
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao verificar email:', error);
+        return false;
+      }
+      
       return data.verificado || false;
     },
     enabled: !!user?.id
