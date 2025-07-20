@@ -36,6 +36,7 @@ import ConfiguracoesExecutivo from "./pages/ConfiguracoesExecutivo";
 import ConfiguracoesFinanceiro from "./pages/ConfiguracoesFinanceiro";
 import ConfiguracoesJuridico from "./pages/ConfiguracoesJuridico";
 import ConfiguracoesSDR from "./pages/ConfiguracoesSDR";
+import ConfiguracoesInquilino from "./pages/ConfiguracoesInquilino";
 import FiancasAdmin from "./pages/FiancasAdmin";
 import FiancasImobiliaria from "./pages/FiancasImobiliaria";
 import ImobiliariasAdmin from "./pages/ImobiliariasAdmin";
@@ -311,6 +312,12 @@ function App() {
                       <ProtectedRoute allowedRoles={['inquilino']}>
                         <AppSidebar />
                         <Inquilino />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/configuracoes-inquilino" element={
+                      <ProtectedRoute allowedRoles={['inquilino']}>
+                        <AppSidebar />
+                        <ConfiguracoesInquilino />
                       </ProtectedRoute>
                     } />
 

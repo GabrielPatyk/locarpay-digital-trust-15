@@ -32,12 +32,13 @@ const DetalheFianca = () => {
   const { fianca, historico, isLoading } = useFiancaDetails(id || '');
   const { getCargoHomePage } = useCargoRedirect();
 
-  // Verificar se o usuário tem permissão (admin, analista ou imobiliária dona da fiança)
+  // Verificar se o usuário tem permissão (admin, analista, imobiliária dona da fiança ou inquilino da fiança)
   React.useEffect(() => {
     if (user && fianca) {
       const hasPermission = user.type === 'admin' || 
                            user.type === 'analista' ||
-                           (user.type === 'imobiliaria' && fianca.id_imobiliaria === user.id);
+                           (user.type === 'imobiliaria' && fianca.id_imobiliaria === user.id) ||
+                           (user.type === 'inquilino' && fianca.inquilino_usuario_id === user.id);
       
       if (!hasPermission) {
         navigate('/unauthorized');
@@ -277,7 +278,8 @@ const DetalheFianca = () => {
   // Verificar permissão após carregar os dados
   const hasPermission = user?.type === 'admin' || 
                        user?.type === 'analista' ||
-                       (user?.type === 'imobiliaria' && fianca.id_imobiliaria === user.id);
+                       (user?.type === 'imobiliaria' && fianca.id_imobiliaria === user.id) ||
+                       (user?.type === 'inquilino' && fianca.inquilino_usuario_id === user.id);
 
   if (!hasPermission) {
     return (

@@ -34,6 +34,8 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
       navigate('/configuracoes-analista');
     } else if (user?.type === 'sdr') {
       navigate('/configuracoes-sdr');
+    } else if (user?.type === 'inquilino') {
+      navigate('/configuracoes-inquilino');
     }
     // Para outros tipos de usuário, não faz nada ainda
   };
@@ -143,7 +145,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
                 variant="ghost" 
                 size="sm" 
                 onClick={handleSettings}
-                disabled={user?.type !== 'imobiliaria' && user?.type !== 'analista' && user?.type !== 'sdr'}
+                disabled={user?.type !== 'imobiliaria' && user?.type !== 'analista' && user?.type !== 'sdr' && user?.type !== 'inquilino'}
               >
                 <Settings className="h-5 w-5" />
               </Button>
