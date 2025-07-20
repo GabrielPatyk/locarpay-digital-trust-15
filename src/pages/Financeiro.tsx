@@ -22,7 +22,8 @@ import {
   Eye,
   Search,
   Filter,
-  Receipt
+  Receipt,
+  Download
 } from 'lucide-react';
 import AdicionarLinkPagamentoModal from '@/components/AdicionarLinkPagamentoModal';
 import AguardandoPagamentoTooltip from '@/components/AguardandoPagamentoTooltip';
@@ -58,7 +59,7 @@ const Financeiro = () => {
     }
   };
 
-  const handleVerComprovante = (comprovanteUrl: string) => {
+  const handleBaixarComprovante = async (comprovanteUrl: string) => {
     if (!comprovanteUrl) {
       toast({
         title: "Erro",
@@ -69,12 +70,16 @@ const Financeiro = () => {
     }
     
     try {
-      visualizarComprovante(comprovanteUrl);
+      await visualizarComprovante(comprovanteUrl);
+      toast({
+        title: "Sucesso",
+        description: "Comprovante baixado com sucesso.",
+      });
     } catch (error) {
-      console.error('Erro ao visualizar comprovante:', error);
+      console.error('Erro ao baixar comprovante:', error);
       toast({
         title: "Erro",
-        description: "Erro ao abrir comprovante.",
+        description: "Erro ao baixar comprovante.",
         variant: "destructive"
       });
     }
@@ -416,11 +421,11 @@ const Financeiro = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleVerComprovante(fianca.comprovante_pagamento)}
+                                onClick={() => handleBaixarComprovante(fianca.comprovante_pagamento)}
                                 className="flex items-center"
                               >
-                                <Receipt className="mr-1 h-4 w-4" />
-                                Ver Comprovante
+                                <Download className="mr-1 h-4 w-4" />
+                                Baixar Comprovante
                               </Button>
                             )}
                             <Button

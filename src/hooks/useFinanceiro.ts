@@ -56,32 +56,63 @@ const getFiancaCompleteData = async (fiancaId: string) => {
   };
 };
 
-// Função para visualizar comprovante corretamente
-const visualizarComprovante = (comprovanteUrl: string) => {
+// Função para baixar comprovante
+const visualizarComprovante = async (comprovanteUrl: string) => {
   if (!comprovanteUrl) {
     console.error('URL do comprovante não encontrada');
     return;
   }
 
-  console.log('Tentando abrir comprovante:', comprovanteUrl);
+  console.log('Tentando baixar comprovante:', comprovanteUrl);
 
-  // Se for uma URL completa do Supabase Storage
-  if (comprovanteUrl.includes('supabase')) {
-    window.open(comprovanteUrl, '_blank');
-    return;
-  }
+  try {
+    let downloadUrl: string;
+    let fileName: string;
 
-  // Se for apenas o caminho do arquivo, construir a URL completa
-  const { data } = supabase.storage
-    .from('comprovantes')
-    .getPublicUrl(comprovanteUrl);
+    // Se for uma URL completa do Supabase Storage
+    if (comprovanteUrl.includes('supabase')) {
+      downloadUrl = comprovanteUrl;
+      fileName = comprovanteUrl.split('/').pop() || 'comprovante';
+    } else {
+      // Se for apenas o caminho do arquivo, construir a URL completa
+      const { data } = supabase.storage
+        .from('comprovantes')
+        .getPublicUrl(comprovanteUrl);
 
-  console.log('URL pública gerada:', data?.publicUrl);
+      console.log('URL pública gerada:', data?.publicUrl);
 
-  if (data?.publicUrl) {
-    window.open(data.publicUrl, '_blank');
-  } else {
-    console.error('Erro ao gerar URL pública do comprovante');
+      if (!data?.publicUrl) {
+        console.error('Erro ao gerar URL pública do comprovante');
+        return;
+      }
+
+      downloadUrl = data.publicUrl;
+      fileName = comprovanteUrl.split('/').pop() || 'comprovante';
+    }
+
+    // Fazer o download do arquivo
+    const response = await fetch(downloadUrl);
+    if (!response.ok) {
+      throw new Error('Erro ao baixar o arquivo');
+    }
+
+    const blob = await response.blob();
+    
+    // Criar um link temporário para download
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    
+    // Limpar o link temporário
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+
+    console.log('Comprovante baixado com sucesso');
+  } catch (error) {
+    console.error('Erro ao baixar comprovante:', error);
+    throw error;
   }
 };
 
