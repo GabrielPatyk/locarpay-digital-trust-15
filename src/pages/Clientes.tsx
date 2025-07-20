@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -142,10 +141,7 @@ const Clientes = () => {
   );
 
   const handleVerDetalhes = (cliente: Cliente) => {
-    // Criar modal ou página de detalhes do cliente
-    console.log('Ver detalhes do cliente:', cliente);
-    // Por enquanto, mostrar alert com informações
-    alert(`Detalhes do Cliente:\n\nNome: ${cliente.nome}\nCPF: ${cliente.cpf}\nTotal de Fianças: ${cliente.totalFiancas}\nFianças Aprovadas: ${cliente.fiancasAprovadas}\nValor Total em Aluguéis: R$ ${cliente.valorTotalAluguel.toLocaleString('pt-BR')}`);
+    navigate(`/detalhe-inquilino/${encodeURIComponent(cliente.cpf)}`);
   };
 
   if (user?.type !== 'analista') {

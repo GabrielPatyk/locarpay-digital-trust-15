@@ -64,6 +64,7 @@ import DetalheImobiliaria from './pages/DetalheImobiliaria';
 import EditarImobiliaria from './pages/EditarImobiliaria';
 import CRM from './pages/CRM';
 import Automacao from './pages/Automacao';
+import DetalheInquilino from "./pages/DetalheInquilino";
 
 const queryClient = new QueryClient();
 
@@ -176,6 +177,12 @@ function App() {
                       <ProtectedRoute allowedRoles={['analista']}>
                         <AppSidebar />
                         <RelatoriosAnalista />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/detalhe-inquilino/:cpf" element={
+                      <ProtectedRoute allowedRoles={['analista']}>
+                        <AppSidebar />
+                        <DetalheInquilino />
                       </ProtectedRoute>
                     } />
 

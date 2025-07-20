@@ -6,13 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   BarChart3, 
   TrendingUp,
   DollarSign,
   CheckCircle,
   Users,
-  Filter
+  Filter,
+  AlertTriangle
 } from 'lucide-react';
 import { useRelatoriosAnalistaData } from '@/hooks/useRelatoriosAnalistaData';
 
@@ -58,6 +60,15 @@ const RelatoriosAnalista = () => {
             <p className="text-gray-600">Acompanhe suas análises e estatísticas de aprovação</p>
           </div>
         </div>
+
+        {/* Aviso de Desenvolvimento */}
+        <Alert className="border-orange-200 bg-orange-50">
+          <AlertTriangle className="h-4 w-4 text-orange-600" />
+          <AlertDescription className="text-orange-800">
+            <strong>Em Desenvolvimento:</strong> Esta funcionalidade está sendo aprimorada. 
+            Algumas informações podem não estar completas ou atualizadas.
+          </AlertDescription>
+        </Alert>
 
         {/* Dashboard Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
