@@ -18,6 +18,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Configurar o contexto de autenticação no Supabase
+  const configureSupabaseAuth = async (userData: User) => {
+    try {
+      // Configurar o contexto JWT personalizado
+      await supabase.rpc('set_config', {
+        setting_name: 'request.jwt.claims',
+        setting_value: JSON.stringify({ 
+          email: userData.email,
+          user_id: userData.id,
+          role: userData.type 
+        })
+      });
+      console.log('Contexto Supabase configurado para:', userData.email);
+    } catch (error) {
+      console.log('Fallback: Configurando headers customizados');
+      // Fallback: usar headers customizados
+      supabase.rest.headers['x-user-email'] = userData.email;
+      supabase.rest.headers['x-user-id'] = userData.id;
+      supabase.rest.headers['x-user-role'] = userData.type;
+    }
+  };
+
   useEffect(() => {
     // Verificar se há um usuário salvo no localStorage
     const savedUser = localStorage.getItem('user');
@@ -25,6 +47,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const userData = JSON.parse(savedUser);
         setUser(userData);
+        // Configurar autenticação no Supabase
+        configureSupabaseAuth(userData);
       } catch (error) {
         console.error('Erro ao carregar usuário do localStorage:', error);
         localStorage.removeItem('user');
@@ -121,6 +145,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(user);
       localStorage.setItem('user', JSON.stringify(user));
       
+      // Configurar autenticação no Supabase
+      await configureSupabaseAuth(user);
+      
       // Define redirect path based on user type
       const redirectPaths: Record<string, string> = {
         inquilino: '/inquilino',
@@ -149,6 +176,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Invalidar sessão do Supabase se existir
       await supabase.auth.signOut();
+      
+      // Limpar headers customizados
+      delete supabase.rest.headers['x-user-email'];
+      delete supabase.rest.headers['x-user-id'];
+      delete supabase.rest.headers['x-user-role'];
     } catch (error) {
       console.error('Erro ao fazer logout do Supabase:', error);
     } finally {
@@ -164,6 +196,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
+    // Reconfigurar autenticação no Supabase
+    configureSupabaseAuth(updatedUser);
   };
 
   const isAuthenticated = !!user;

@@ -51,12 +51,31 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Configurar o contexto de autenticação para o Supabase
+  const configureAuthContext = async () => {
+    if (user?.email) {
+      await supabase.rpc('set_config', {
+        setting_name: 'request.jwt.claims',
+        setting_value: JSON.stringify({ email: user.email })
+      }).then(() => {
+        console.log('Contexto de autenticação configurado para:', user.email);
+      }).catch((error) => {
+        console.log('Aviso: Não foi possível configurar contexto via RPC, usando headers:', error);
+        // Fallback: usar headers customizados
+        supabase.rest.headers['x-user-email'] = user.email;
+      });
+    }
+  };
+
   const { data: imoveis = [], isLoading, error, refetch } = useQuery({
     queryKey: ['imoveis-imobiliaria-real', user?.id, searchTerm, statusFilter],
     queryFn: async () => {
       if (!user?.id) return [];
 
       console.log('Buscando imóveis para usuário:', user.id);
+      
+      // Configurar contexto de autenticação
+      await configureAuthContext();
 
       let query = supabase
         .from('imoveis_imobiliaria')
@@ -102,6 +121,10 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
 
       console.log('Criando imóvel com dados:', data);
       console.log('ID da imobiliária:', user.id);
+      console.log('Email do usuário:', user.email);
+
+      // Configurar contexto de autenticação antes da operação
+      await configureAuthContext();
 
       const imovelData = {
         ...data,
@@ -112,6 +135,7 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
 
       console.log('Dados finais do imóvel:', imovelData);
 
+      // Configurar headers customizados para garantir autenticação
       const { data: novoImovel, error } = await supabase
         .from('imoveis_imobiliaria')
         .insert(imovelData)
@@ -145,6 +169,8 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
 
   const updateImovelMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<ImovelImobiliaria> }) => {
+      await configureAuthContext();
+      
       const { error } = await supabase
         .from('imoveis_imobiliaria')
         .update(data)
@@ -169,6 +195,8 @@ export const useImoveisImobiliariaReal = (searchTerm: string = '', statusFilter:
 
   const deleteImovelMutation = useMutation({
     mutationFn: async (id: string) => {
+      await configureAuthContext();
+      
       const { error } = await supabase
         .from('imoveis_imobiliaria')
         .delete()
