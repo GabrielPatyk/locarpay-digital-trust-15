@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -31,7 +30,7 @@ import AguardandoPagamentoTooltip from '@/components/AguardandoPagamentoTooltip'
 const Financeiro = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { fiancas, isLoading, atualizarStatusFianca, isUpdating, getStats, error } = useFinanceiro();
+  const { fiancas, isLoading, atualizarStatusFianca, isUpdating, getStats, error, confirmarPagamento, visualizarComprovante } = useFinanceiro();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedFianca, setSelectedFianca] = useState<any>(null);
@@ -41,16 +40,13 @@ const Financeiro = () => {
 
   const stats = getStats();
 
-  const confirmarPagamento = async (id: string) => {
+  const handleConfirmarPagamento = async (id: string) => {
     try {
-      await atualizarStatusFianca.mutateAsync({
-        fiancaId: id,
-        novoStatus: 'assinatura_imobiliaria'
-      });
+      await confirmarPagamento.mutateAsync(id);
 
       toast({
         title: "Pagamento confirmado!",
-        description: "Fiança enviada para assinatura da imobiliária.",
+        description: "O pagamento foi confirmado com sucesso.",
       });
     } catch (error) {
       console.error('Erro ao confirmar pagamento:', error);
@@ -62,15 +58,32 @@ const Financeiro = () => {
     }
   };
 
-  const verComprovante = (comprovante: string) => {
-    if (comprovante) {
-      window.open(comprovante, '_blank');
+  const handleVerComprovante = (comprovanteUrl: string) => {
+    if (!comprovanteUrl) {
+      toast({
+        title: "Erro",
+        description: "Comprovante não encontrado.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      visualizarComprovante(comprovanteUrl);
+    } catch (error) {
+      console.error('Erro ao visualizar comprovante:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao abrir comprovante.",
+        variant: "destructive"
+      });
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ativa': return 'bg-success';
+      case 'pagamento_confirmado': return 'bg-green-700';
       case 'comprovante_enviado': return 'bg-green-600';
       case 'pagamento_disponivel': return 'bg-blue-500';
       case 'enviada_ao_financeiro': return 'bg-warning';
@@ -83,6 +96,7 @@ const Financeiro = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'ativa': return 'Ativa';
+      case 'pagamento_confirmado': return 'Pagamento Confirmado';
       case 'comprovante_enviado': return 'Comprovante Enviado';
       case 'pagamento_disponivel': return 'Link Disponível';
       case 'enviada_ao_financeiro': return 'Aguardando Link';
@@ -108,16 +122,16 @@ const Financeiro = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Calcular estatísticas com valores de fiança
   const calcularStats = () => {
     const totalFiancas = fiancas.length;
     const aguardandoLink = fiancas.filter(f => f.status_fianca === 'enviada_ao_financeiro').length;
     const linkEnviado = fiancas.filter(f => f.status_fianca === 'pagamento_disponivel').length;
     const pagos = fiancas.filter(f => f.status_fianca === 'comprovante_enviado').length;
+    const confirmados = fiancas.filter(f => f.status_fianca === 'pagamento_confirmado').length;
     
     const valorTotal = fiancas.reduce((acc, f) => acc + (f.valor_fianca || 0), 0);
     const valorPago = fiancas
-      .filter(f => ['comprovante_enviado', 'ativa'].includes(f.status_fianca))
+      .filter(f => ['comprovante_enviado', 'pagamento_confirmado', 'ativa'].includes(f.status_fianca))
       .reduce((acc, f) => acc + (f.valor_fianca || 0), 0);
 
     return {
@@ -125,6 +139,7 @@ const Financeiro = () => {
       aguardandoLink,
       linkEnviado,
       pagos,
+      confirmados,
       valorTotal,
       valorPago
     };
@@ -161,7 +176,6 @@ const Financeiro = () => {
   return (
     <Layout title="Departamento Financeiro">
       <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
-        {/* Welcome Card */}
         <Card className="bg-gradient-to-r from-[#F4D573] to-[#BC942C] text-[#0C1C2E]">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
@@ -176,8 +190,7 @@ const Financeiro = () => {
           </CardContent>
         </Card>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-7 gap-3 sm:gap-4">
           <Card className="border-l-4 border-l-primary">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
@@ -214,14 +227,26 @@ const Financeiro = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-success">
+          <Card className="border-l-4 border-l-green-600">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm text-gray-600">Pagos</p>
-                  <p className="text-lg sm:text-2xl font-bold text-success">{statsComValorFianca.pagos}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-green-600">{statsComValorFianca.pagos}</p>
                 </div>
-                <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
+                <Receipt className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-green-700">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600">Confirmados</p>
+                  <p className="text-lg sm:text-2xl font-bold text-green-700">{statsComValorFianca.confirmados}</p>
+                </div>
+                <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-700" />
               </div>
             </CardContent>
           </Card>
@@ -251,7 +276,6 @@ const Financeiro = () => {
           </Card>
         </div>
 
-        {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           <div className="flex items-center space-x-2 flex-1">
             <Search className="h-4 w-4 text-gray-400" />
@@ -274,6 +298,7 @@ const Financeiro = () => {
                 <SelectItem value="enviada_ao_financeiro">Aguardando Link</SelectItem>
                 <SelectItem value="pagamento_disponivel">Link Disponível</SelectItem>
                 <SelectItem value="comprovante_enviado">Comprovante Enviado</SelectItem>
+                <SelectItem value="pagamento_confirmado">Pagamento Confirmado</SelectItem>
                 <SelectItem value="assinatura_imobiliaria">Aguardando Assinatura</SelectItem>
                 <SelectItem value="ativa">Ativa</SelectItem>
               </SelectContent>
@@ -281,7 +306,6 @@ const Financeiro = () => {
           </div>
         </div>
 
-        {/* Gestão de Fianças */}
         <Card>
           <CardHeader className="pb-3 sm:pb-4">
             <CardTitle className="text-lg sm:text-xl">Gestão de Fianças Locatícias</CardTitle>
@@ -306,7 +330,6 @@ const Financeiro = () => {
                   <Card key={fianca.id} className="border hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                        {/* Informações do Inquilino */}
                         <div className="space-y-2">
                           <h4 className="font-semibold text-gray-900 text-lg">{fianca.inquilino_nome_completo}</h4>
                           <div className="space-y-1 text-sm text-gray-600">
@@ -315,7 +338,6 @@ const Financeiro = () => {
                           </div>
                         </div>
                         
-                        {/* Informações do Imóvel */}
                         <div className="space-y-2">
                           <h5 className="font-medium text-gray-900">{formatImovelTipo(fianca.imovel_tipo)}</h5>
                           <p className="text-sm text-gray-600">
@@ -323,7 +345,6 @@ const Financeiro = () => {
                           </p>
                         </div>
                         
-                        {/* Informações Financeiras */}
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="text-2xl font-bold text-gray-900">
@@ -351,7 +372,6 @@ const Financeiro = () => {
                         </div>
                       </div>
 
-                      {/* Ações */}
                       <div className="flex flex-col sm:flex-row gap-2">
                         <Button
                           variant="outline"
@@ -381,7 +401,7 @@ const Financeiro = () => {
                         {fianca.status_fianca === 'pagamento_disponivel' && (
                           <Button
                             size="sm"
-                            onClick={() => confirmarPagamento(fianca.id)}
+                            onClick={() => handleConfirmarPagamento(fianca.id)}
                             className="bg-success hover:bg-success/90 flex items-center"
                             disabled={isUpdating}
                           >
@@ -396,7 +416,7 @@ const Financeiro = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => verComprovante(fianca.comprovante_pagamento)}
+                                onClick={() => handleVerComprovante(fianca.comprovante_pagamento)}
                                 className="flex items-center"
                               >
                                 <Receipt className="mr-1 h-4 w-4" />
@@ -405,7 +425,7 @@ const Financeiro = () => {
                             )}
                             <Button
                               size="sm"
-                              onClick={() => confirmarPagamento(fianca.id)}
+                              onClick={() => handleConfirmarPagamento(fianca.id)}
                               className="bg-success hover:bg-success/90 flex items-center"
                               disabled={isUpdating}
                             >
@@ -423,7 +443,6 @@ const Financeiro = () => {
           </CardContent>
         </Card>
 
-        {/* Modal para anexar link */}
         <AdicionarLinkPagamentoModal
           isOpen={showLinkModal}
           onClose={() => {

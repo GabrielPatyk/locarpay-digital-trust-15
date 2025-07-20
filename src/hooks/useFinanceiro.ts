@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -55,6 +56,31 @@ const getFiancaCompleteData = async (fiancaId: string) => {
   };
 };
 
+// Função para visualizar comprovante corretamente
+const visualizarComprovante = (comprovanteUrl: string) => {
+  if (!comprovanteUrl) {
+    console.error('URL do comprovante não encontrada');
+    return;
+  }
+
+  // Se for uma URL completa do Supabase Storage
+  if (comprovanteUrl.includes('supabase')) {
+    window.open(comprovanteUrl, '_blank');
+    return;
+  }
+
+  // Se for apenas o caminho do arquivo, construir a URL completa
+  const { data } = supabase.storage
+    .from('comprovantes')
+    .getPublicUrl(comprovanteUrl);
+
+  if (data?.publicUrl) {
+    window.open(data.publicUrl, '_blank');
+  } else {
+    console.error('Erro ao gerar URL pública do comprovante');
+  }
+};
+
 export const useFinanceiro = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -77,7 +103,8 @@ export const useFinanceiro = () => {
         .in('status_fianca', [
           'enviada_ao_financeiro', 
           'pagamento_disponivel', 
-          'comprovante_enviado'
+          'comprovante_enviado',
+          'pagamento_confirmado'
         ])
         .order('data_criacao', { ascending: false });
 
@@ -109,6 +136,7 @@ export const useFinanceiro = () => {
       const acoes: Record<string, string> = {
         'pagamento_disponivel': 'Link de pagamento anexado',
         'comprovante_enviado': 'Comprovante de pagamento enviado',
+        'pagamento_confirmado': 'Pagamento confirmado pelo financeiro',
         'ativa': 'Fiança ativada',
         'assinatura_imobiliaria': 'Enviada para assinatura da imobiliária'
       };
@@ -174,7 +202,7 @@ export const useFinanceiro = () => {
       const { error } = await supabase
         .from('fiancas_locaticias')
         .update({ 
-          status_fianca: 'assinatura_imobiliaria',
+          status_fianca: 'pagamento_confirmado',
           data_atualizacao: new Date().toISOString()
         })
         .eq('id', fiancaId);
@@ -184,20 +212,8 @@ export const useFinanceiro = () => {
       await registrarLog({
         fiancaId,
         acao: 'Pagamento confirmado',
-        detalhes: 'Fiança enviada para assinatura da imobiliária após confirmação do pagamento'
+        detalhes: 'Pagamento confirmado pelo departamento financeiro'
       });
-
-      // Enviar webhook quando confirmar pagamento
-      try {
-        const webhookData = await getFiancaCompleteData(fiancaId);
-        await sendWebhook({
-          event: 'fianca_payment_confirmed',
-          data: webhookData,
-          timestamp: new Date().toISOString()
-        });
-      } catch (webhookError) {
-        console.error('Erro ao enviar webhook:', webhookError);
-      }
 
       return fiancaId;
     },
@@ -211,12 +227,14 @@ export const useFinanceiro = () => {
     const aguardandoLink = fiancas.filter(f => f.status_fianca === 'enviada_ao_financeiro').length;
     const linkEnviado = fiancas.filter(f => f.status_fianca === 'pagamento_disponivel').length;
     const pagos = fiancas.filter(f => f.status_fianca === 'comprovante_enviado').length;
+    const confirmados = fiancas.filter(f => f.status_fianca === 'pagamento_confirmado').length;
 
     return {
       totalFiancas,
       aguardandoLink,
       linkEnviado,
-      pagos
+      pagos,
+      confirmados
     };
   };
 
@@ -225,10 +243,11 @@ export const useFinanceiro = () => {
     const aguardandoLink = fiancas.filter(f => f.status_fianca === 'enviada_ao_financeiro').length;
     const linkEnviado = fiancas.filter(f => f.status_fianca === 'pagamento_disponivel').length;
     const pagos = fiancas.filter(f => f.status_fianca === 'comprovante_enviado').length;
+    const confirmados = fiancas.filter(f => f.status_fianca === 'pagamento_confirmado').length;
     
     const valorTotal = fiancas.reduce((acc, f) => acc + (f.imovel_valor_aluguel || 0), 0);
     const valorPago = fiancas
-      .filter(f => ['comprovante_enviado', 'ativa'].includes(f.status_fianca))
+      .filter(f => ['comprovante_enviado', 'pagamento_confirmado', 'ativa'].includes(f.status_fianca))
       .reduce((acc, f) => acc + (f.imovel_valor_aluguel || 0), 0);
 
     return {
@@ -236,6 +255,7 @@ export const useFinanceiro = () => {
       aguardandoLink,
       linkEnviado,
       pagos,
+      confirmados,
       valorTotal,
       valorPago
     };
@@ -253,6 +273,7 @@ export const useFinanceiro = () => {
     isConfirmingPayment: confirmarPagamento.isPending,
     getFinanceiroStats,
     getStats,
-    registrarLog
+    registrarLog,
+    visualizarComprovante
   };
 };
