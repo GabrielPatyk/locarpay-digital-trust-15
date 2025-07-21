@@ -32,11 +32,12 @@ const DetalheFianca = () => {
   const { fianca, historico, isLoading } = useFiancaDetails(id || '');
   const { getCargoHomePage } = useCargoRedirect();
 
-  // Verificar se o usuário tem permissão (admin, analista, imobiliária dona da fiança ou inquilino da fiança)
+  // Verificar se o usuário tem permissão (admin, analista, financeiro, imobiliária dona da fiança ou inquilino da fiança)
   React.useEffect(() => {
     if (user && fianca) {
       const hasPermission = user.type === 'admin' || 
                            user.type === 'analista' ||
+                           user.type === 'financeiro' ||
                            (user.type === 'imobiliaria' && fianca.id_imobiliaria === user.id) ||
                            (user.type === 'inquilino' && fianca.inquilino_usuario_id === user.id);
       
