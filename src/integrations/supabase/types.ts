@@ -47,10 +47,16 @@ export type Database = {
           documentos: Json | null
           fianca_id: string
           id: string
+          inquilino_cpf: string | null
+          inquilino_email: string | null
+          inquilino_nome: string | null
+          inquilino_whatsapp: string | null
           selfie_url: string | null
-          status_contrato: string
+          status_contrato: Database["public"]["Enums"]["status_contrato"]
           updated_at: string | null
           url_contrato: string | null
+          valor_aluguel: number | null
+          valor_fianca: number | null
         }
         Insert: {
           assinantes?: Json | null
@@ -60,10 +66,16 @@ export type Database = {
           documentos?: Json | null
           fianca_id: string
           id?: string
+          inquilino_cpf?: string | null
+          inquilino_email?: string | null
+          inquilino_nome?: string | null
+          inquilino_whatsapp?: string | null
           selfie_url?: string | null
-          status_contrato?: string
+          status_contrato?: Database["public"]["Enums"]["status_contrato"]
           updated_at?: string | null
           url_contrato?: string | null
+          valor_aluguel?: number | null
+          valor_fianca?: number | null
         }
         Update: {
           assinantes?: Json | null
@@ -73,10 +85,16 @@ export type Database = {
           documentos?: Json | null
           fianca_id?: string
           id?: string
+          inquilino_cpf?: string | null
+          inquilino_email?: string | null
+          inquilino_nome?: string | null
+          inquilino_whatsapp?: string | null
           selfie_url?: string | null
-          status_contrato?: string
+          status_contrato?: Database["public"]["Enums"]["status_contrato"]
           updated_at?: string | null
           url_contrato?: string | null
+          valor_aluguel?: number | null
+          valor_fianca?: number | null
         }
         Relationships: [
           {
@@ -720,6 +738,12 @@ export type Database = {
       }
     }
     Enums: {
+      status_contrato:
+        | "gerando_link"
+        | "assinatura_locarpay"
+        | "assinatura_inquilino"
+        | "assinatura_imobiliaria"
+        | "assinado"
       status_fianca:
         | "em_analise"
         | "aprovada"
@@ -869,6 +893,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      status_contrato: [
+        "gerando_link",
+        "assinatura_locarpay",
+        "assinatura_inquilino",
+        "assinatura_imobiliaria",
+        "assinado",
+      ],
       status_fianca: [
         "em_analise",
         "aprovada",
