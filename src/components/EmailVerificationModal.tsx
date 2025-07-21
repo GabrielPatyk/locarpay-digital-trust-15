@@ -69,7 +69,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
             ) : (
               <>
                 <Mail className="mr-2 h-4 w-4" />
-                Reenviar E-mail de Verificação
+                Enviar E-Mail de Verificação
               </>
             )}
           </Button>
