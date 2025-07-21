@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AdicionarLinkPagamentoModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ const AdicionarLinkPagamentoModal: React.FC<AdicionarLinkPagamentoModalProps> = 
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +46,8 @@ const AdicionarLinkPagamentoModal: React.FC<AdicionarLinkPagamentoModalProps> = 
           situacao_pagamento: formData.situacao_pagamento,
           data_envio_link: new Date().toISOString(),
           data_atualizacao_pagamento: new Date().toISOString(),
-          status_fianca: 'pagamento_disponivel'
+          status_fianca: 'pagamento_disponivel',
+          financeiro_id: user?.id  // Salvar o ID do financeiro que anexou o link
         })
         .eq('id', fiancaId);
 

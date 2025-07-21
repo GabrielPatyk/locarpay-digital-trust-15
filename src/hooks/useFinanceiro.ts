@@ -275,12 +275,14 @@ export const useFinanceiro = () => {
     queryKey: ['fiancas-financeiro'],
     queryFn: async () => {
       console.log('Buscando fianças para financeiro...');
+      // Buscar fianças que o financeiro pode ver
       const { data, error } = await supabase
         .from('fiancas_locaticias')
         .select(`
           *,
           usuarios!fiancas_locaticias_criado_por_fkey(nome)
         `)
+        .or(`status_fianca.eq.enviada_ao_financeiro,financeiro_id.eq.${user?.id}`)
         .in('status_fianca', [
           'enviada_ao_financeiro', 
           'pagamento_disponivel', 
