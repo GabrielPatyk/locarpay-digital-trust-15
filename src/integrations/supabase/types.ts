@@ -121,6 +121,7 @@ export type Database = {
           data_criacao: string
           data_envio_link: string | null
           data_vencimento: string | null
+          financeiro_id: string | null
           id: string
           id_analista: string | null
           id_imobiliaria: string
@@ -173,6 +174,7 @@ export type Database = {
           data_criacao?: string
           data_envio_link?: string | null
           data_vencimento?: string | null
+          financeiro_id?: string | null
           id?: string
           id_analista?: string | null
           id_imobiliaria: string
@@ -225,6 +227,7 @@ export type Database = {
           data_criacao?: string
           data_envio_link?: string | null
           data_vencimento?: string | null
+          financeiro_id?: string | null
           id?: string
           id_analista?: string | null
           id_imobiliaria?: string
@@ -270,6 +273,13 @@ export type Database = {
           {
             foreignKeyName: "fiancas_locaticias_criado_por_fkey"
             columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiancas_locaticias_financeiro_id_fkey"
+            columns: ["financeiro_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
