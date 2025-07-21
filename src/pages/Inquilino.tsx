@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useInquilinoData } from '@/hooks/useInquilinoData';
 import { useAuth } from '@/contexts/AuthContext';
+import { useContratoInquilino } from '@/hooks/useContratoInquilino';
 import ComprovanteUpload from '@/components/ComprovanteUpload';
 import { 
   DollarSign, 
@@ -24,6 +25,7 @@ import {
 const Inquilino = () => {
   const { user } = useAuth();
   const { fiancaAtiva, fiancaPagamento, emailVerificado, isLoading, enviarComprovante } = useInquilinoData();
+  const { contrato, isLoading: contratoLoading } = useContratoInquilino();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -74,6 +76,12 @@ const Inquilino = () => {
         fiancaId: fiancaParaExibir.id,
         comprovantePath: filePath
       });
+    }
+  };
+
+  const handleAssinarContrato = () => {
+    if (contrato?.url_contrato) {
+      window.open(contrato.url_contrato, '_blank');
     }
   };
 
@@ -329,6 +337,30 @@ const Inquilino = () => {
                             <p>Nosso time financeiro está analisando as informações e essa verificação pode levar alguns minutos.</p>
                             <p>Por favor, aguarde os próximos passos para a assinatura da fiança.</p>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Botão para assinar contrato */}
+                  {contrato?.status_contrato === 'assinatura_inquilino' && contrato.url_contrato && (
+                    <div className="mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <div className="flex items-start space-x-3">
+                        <div className="text-2xl">📝</div>
+                        <div className="flex-1">
+                          <p className="font-medium text-orange-900 mb-2">Contrato Pronto para Assinatura</p>
+                          <div className="text-sm text-orange-800 space-y-2">
+                            <p>O contrato da sua fiança está pronto e aguardando sua assinatura digital.</p>
+                            <p>Clique no botão abaixo para acessar a plataforma de assinatura.</p>
+                          </div>
+                          <Button
+                            onClick={handleAssinarContrato}
+                            className="mt-3 bg-orange-600 hover:bg-orange-700 text-white"
+                          >
+                            <FileText className="mr-2 h-4 w-4" />
+                            Assinar Contrato
+                            <ExternalLink className="ml-2 h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
                     </div>
