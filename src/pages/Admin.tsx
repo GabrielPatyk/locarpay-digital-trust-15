@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,12 +39,15 @@ interface UsuarioDB {
 const Admin = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTipo, setFilterTipo] = useState<string>('todos');
   const [filterStatus, setFilterStatus] = useState<string>('todos');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [usuarios, setUsuarios] = useState<UsuarioDB[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<UsuarioDB | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [novoUsuario, setNovoUsuario] = useState({
     nome: '',
     email: '',
@@ -324,6 +328,22 @@ const Admin = () => {
         title: "Erro",
         description: "Erro inesperado ao excluir usuário.",
         variant: "destructive"
+      });
+    }
+  };
+
+  const handleViewUser = (usuario: UsuarioDB) => {
+    setSelectedUser(usuario);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEditUser = (usuario: UsuarioDB) => {
+    if (usuario.cargo === 'imobiliaria') {
+      navigate(`/editar-imobiliaria/${usuario.id}`);
+    } else {
+      toast({
+        title: "Funcionalidade em desenvolvimento",
+        description: "A edição para este tipo de usuário estará disponível em breve.",
       });
     }
   };
@@ -750,11 +770,21 @@ const Admin = () => {
 
                   {isAdmin && (
                     <div className="flex flex-wrap gap-2">
-                      <Button variant="outline" size="sm" className="text-xs">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-xs"
+                        onClick={() => handleViewUser(usuario)}
+                      >
                         <Eye className="mr-1 h-3 w-3" />
                         Ver
                       </Button>
-                      <Button variant="outline" size="sm" className="text-xs">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-xs"
+                        onClick={() => handleEditUser(usuario)}
+                      >
                         <Edit className="mr-1 h-3 w-3" />
                         Editar
                       </Button>
@@ -798,6 +828,91 @@ const Admin = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Modal de Visualização do Usuário */}
+        <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Detalhes do Usuário</DialogTitle>
+              <DialogDescription>
+                Informações completas do usuário selecionado
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedUser && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">Nome Completo</Label>
+                    <p className="text-sm font-medium">{selectedUser.nome}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">E-mail</Label>
+                    <p className="text-sm font-medium">{selectedUser.email}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">Tipo de Usuário</Label>
+                    <Badge className={`${getTipoColor(selectedUser.cargo)} text-white`}>
+                      {getTipoLabel(selectedUser.cargo)}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">Status</Label>
+                    <Badge className={`${getStatusColor(selectedUser.ativo)} text-white`}>
+                      {selectedUser.ativo ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </div>
+                  {selectedUser.telefone && (
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Telefone</Label>
+                      <p className="text-sm font-medium">{selectedUser.telefone}</p>
+                    </div>
+                  )}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">ID do Usuário</Label>
+                    <p className="text-sm font-mono text-gray-600">{selectedUser.id}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">Data de Criação</Label>
+                    <p className="text-sm font-medium">
+                      {new Date(selectedUser.criado_em).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">Última Atualização</Label>
+                    <p className="text-sm font-medium">
+                      {new Date(selectedUser.atualizado_em).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsViewModalOpen(false)}>
+                Fechar
+              </Button>
+              {selectedUser && (
+                <Button onClick={() => handleEditUser(selectedUser)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Editar Usuário
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

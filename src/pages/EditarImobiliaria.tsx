@@ -54,24 +54,8 @@ const EditarImobiliaria = () => {
     enabled: !!id
   });
 
-  useEffect(() => {
-    if (imobiliaria) {
-      setFormData({
-        nome: imobiliaria.nome || '',
-        email: imobiliaria.email || '',
-        telefone: formatPhone(imobiliaria.telefone || ''),
-        nome_empresa: imobiliaria.perfil_usuario?.nome_empresa || '',
-        cnpj: formatCNPJ(imobiliaria.perfil_usuario?.cnpj || ''),
-        endereco: imobiliaria.perfil_usuario?.endereco || '',
-        numero: imobiliaria.perfil_usuario?.numero || '',
-        complemento: imobiliaria.perfil_usuario?.complemento || '',
-        bairro: imobiliaria.perfil_usuario?.bairro || '',
-        cidade: imobiliaria.perfil_usuario?.cidade || '',
-        estado: imobiliaria.perfil_usuario?.estado || '',
-        pais: imobiliaria.perfil_usuario?.pais || 'Brasil'
-      });
-    }
-  }, [imobiliaria, formatPhone, formatCNPJ]);
+  // Não preencher os campos, deixar vazios para funcionar como placeholders
+  // Os dados atuais são mostrados como "Atual: valor" abaixo dos campos
 
   const updateMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -207,7 +191,7 @@ const EditarImobiliaria = () => {
                     id="nome_empresa"
                     value={formData.nome_empresa}
                     onChange={(e) => handleInputChange('nome_empresa', e.target.value)}
-                    placeholder={imobiliaria?.perfil_usuario?.nome_empresa || "Digite o nome da empresa"}
+                    placeholder="Digite o nome da empresa"
                     required
                   />
                   {imobiliaria?.perfil_usuario?.nome_empresa && (
@@ -220,7 +204,7 @@ const EditarImobiliaria = () => {
                     id="cnpj"
                     value={formData.cnpj}
                     onChange={(e) => handleInputChange('cnpj', e.target.value)}
-                    placeholder={imobiliaria?.perfil_usuario?.cnpj ? formatCNPJ(imobiliaria.perfil_usuario.cnpj) : "00.000.000/0000-00"}
+                    placeholder="00.000.000/0000-00"
                     required
                   />
                   {imobiliaria?.perfil_usuario?.cnpj && (
@@ -233,7 +217,7 @@ const EditarImobiliaria = () => {
                     id="nome"
                     value={formData.nome}
                     onChange={(e) => handleInputChange('nome', e.target.value)}
-                    placeholder={imobiliaria?.nome || "Digite o nome do responsável"}
+                    placeholder="Digite o nome do responsável"
                     required
                   />
                   {imobiliaria?.nome && (
@@ -256,7 +240,7 @@ const EditarImobiliaria = () => {
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder={imobiliaria?.email || "Digite o email"}
+                    placeholder="Digite o email"
                     required
                   />
                   {imobiliaria?.email && (
@@ -269,7 +253,7 @@ const EditarImobiliaria = () => {
                     id="telefone"
                     value={formData.telefone}
                     onChange={(e) => handleInputChange('telefone', e.target.value)}
-                    placeholder={imobiliaria?.telefone ? formatPhone(imobiliaria.telefone) : "+55 (00) 0 0000-0000"}
+                    placeholder="+55 (00) 0 0000-0000"
                   />
                   {imobiliaria?.telefone && (
                     <p className="text-xs text-gray-500 mt-1">Atual: {formatPhone(imobiliaria.telefone)}</p>
@@ -291,7 +275,7 @@ const EditarImobiliaria = () => {
                       id="endereco"
                       value={formData.endereco}
                       onChange={(e) => handleInputChange('endereco', e.target.value)}
-                      placeholder={imobiliaria?.perfil_usuario?.endereco || "Digite o endereço"}
+                      placeholder="Digite o endereço"
                     />
                     {imobiliaria?.perfil_usuario?.endereco && (
                       <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.endereco}</p>
@@ -303,7 +287,7 @@ const EditarImobiliaria = () => {
                       id="numero"
                       value={formData.numero}
                       onChange={(e) => handleInputChange('numero', e.target.value)}
-                      placeholder={imobiliaria?.perfil_usuario?.numero || "Digite o número"}
+                      placeholder="Digite o número"
                     />
                     {imobiliaria?.perfil_usuario?.numero && (
                       <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.numero}</p>
@@ -315,7 +299,7 @@ const EditarImobiliaria = () => {
                       id="complemento"
                       value={formData.complemento}
                       onChange={(e) => handleInputChange('complemento', e.target.value)}
-                      placeholder={imobiliaria?.perfil_usuario?.complemento || "Digite o complemento"}
+                      placeholder="Digite o complemento"
                     />
                     {imobiliaria?.perfil_usuario?.complemento && (
                       <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.complemento}</p>
@@ -327,7 +311,7 @@ const EditarImobiliaria = () => {
                       id="bairro"
                       value={formData.bairro}
                       onChange={(e) => handleInputChange('bairro', e.target.value)}
-                      placeholder={imobiliaria?.perfil_usuario?.bairro || "Digite o bairro"}
+                      placeholder="Digite o bairro"
                     />
                     {imobiliaria?.perfil_usuario?.bairro && (
                       <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.bairro}</p>
@@ -339,7 +323,7 @@ const EditarImobiliaria = () => {
                       id="cidade"
                       value={formData.cidade}
                       onChange={(e) => handleInputChange('cidade', e.target.value)}
-                      placeholder={imobiliaria?.perfil_usuario?.cidade || "Digite a cidade"}
+                      placeholder="Digite a cidade"
                     />
                     {imobiliaria?.perfil_usuario?.cidade && (
                       <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.cidade}</p>
@@ -351,7 +335,7 @@ const EditarImobiliaria = () => {
                       id="estado"
                       value={formData.estado}
                       onChange={(e) => handleInputChange('estado', e.target.value)}
-                      placeholder={imobiliaria?.perfil_usuario?.estado || "Digite o estado"}
+                      placeholder="Digite o estado"
                     />
                     {imobiliaria?.perfil_usuario?.estado && (
                       <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.estado}</p>
@@ -363,7 +347,7 @@ const EditarImobiliaria = () => {
                       id="pais"
                       value={formData.pais}
                       onChange={(e) => handleInputChange('pais', e.target.value)}
-                      placeholder={imobiliaria?.perfil_usuario?.pais || "Brasil"}
+                      placeholder="Brasil"
                     />
                     {imobiliaria?.perfil_usuario?.pais && (
                       <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.pais}</p>
