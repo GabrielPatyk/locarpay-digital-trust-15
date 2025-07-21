@@ -66,9 +66,10 @@ export const useMaintenanceMode = () => {
 
     loadMaintenanceStatus();
 
-    // Subscribe to real-time changes
+    // Subscribe to real-time changes with unique channel name
+    const channelName = `configuracoes_sistema_changes_${Math.random().toString(36).substr(2, 9)}`;
     const subscription = supabase
-      .channel('configuracoes_sistema_changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -84,7 +85,7 @@ export const useMaintenanceMode = () => {
       .subscribe();
 
     return () => {
-      subscription.unsubscribe();
+      supabase.removeChannel(subscription);
     };
   }, []);
 
