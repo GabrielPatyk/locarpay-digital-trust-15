@@ -340,11 +340,11 @@ const Admin = () => {
   const handleEditUser = (usuario: UsuarioDB) => {
     if (usuario.cargo === 'imobiliaria') {
       navigate(`/editar-imobiliaria/${usuario.id}`);
+    } else if (usuario.cargo === 'executivo') {
+      navigate(`/editar-executivo/${usuario.id}`);
     } else {
-      toast({
-        title: "Funcionalidade em desenvolvimento",
-        description: "A edição para este tipo de usuário estará disponível em breve.",
-      });
+      // Para outros tipos, navegue para uma página genérica de edição
+      navigate(`/editar-usuario/${usuario.id}`);
     }
   };
 

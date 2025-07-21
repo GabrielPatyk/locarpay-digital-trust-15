@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +6,7 @@ export interface FiancaAdmin {
   id: string;
   inquilino_nome_completo: string;
   imobiliaria_nome: string;
+  imobiliaria_responsavel: string;
   imovel_endereco: string;
   imovel_numero: string;
   imovel_bairro: string;
@@ -27,7 +27,8 @@ export const useFiancasAdmin = (searchTerm: string = '', statusFilter: string = 
     queryFn: async () => {
       if (!user?.id) return [];
 
-      let query = supabase
+      // First get the fiancas with imobiliaria data
+      const { data: fiancasData, error: fiancasError } = await supabase
         .from('fiancas_locaticias')
         .select(`
           id,
@@ -42,19 +43,56 @@ export const useFiancasAdmin = (searchTerm: string = '', statusFilter: string = 
           motivo_reprovacao,
           data_analise,
           id_imobiliaria,
-          usuarios!fiancas_locaticias_id_imobiliaria_fkey(nome)
+          id_analista
         `)
         .order('data_criacao', { ascending: false });
 
-      const { data, error } = await query;
+      if (fiancasError) throw fiancasError;
 
-      if (error) throw error;
+      // Get unique imobiliaria and analista IDs
+      const imobiliariaIds = [...new Set(fiancasData?.map(f => f.id_imobiliaria).filter(Boolean) || [])];
+      const analistaIds = [...new Set(fiancasData?.map(f => f.id_analista).filter(Boolean) || [])];
 
-      // Transform data to include imobiliaria name
-      const fiancasWithImobiliaria = data?.map(fianca => ({
-        ...fianca,
-        imobiliaria_nome: fianca.usuarios?.nome || 'Imobiliária não encontrada'
-      })) || [];
+      // Get imobiliaria data with perfil
+      const { data: imobiliariasData } = await supabase
+        .from('usuarios')
+        .select(`
+          id,
+          nome,
+          perfil_usuario!inner(nome_empresa)
+        `)
+        .in('id', imobiliariaIds);
+
+      // Get analista data
+      const { data: analistasData } = await supabase
+        .from('usuarios')
+        .select('id, nome')
+        .in('id', analistaIds);
+
+      // Create lookup maps
+      const imobiliariaMap = new Map();
+      imobiliariasData?.forEach(imob => {
+        imobiliariaMap.set(imob.id, {
+          nome_empresa: imob.perfil_usuario?.[0]?.nome_empresa || 'N/A',
+          responsavel: imob.nome
+        });
+      });
+
+      const analistaMap = new Map();
+      analistasData?.forEach(analista => {
+        analistaMap.set(analista.id, analista.nome);
+      });
+
+      // Transform data
+      const fiancasWithImobiliaria = fiancasData?.map(fianca => {
+        const imobData = imobiliariaMap.get(fianca.id_imobiliaria);
+        return {
+          ...fianca,
+          imobiliaria_nome: imobData?.nome_empresa || 'Imobiliária não encontrada',
+          imobiliaria_responsavel: imobData?.responsavel || '',
+          analisado_por: analistaMap.get(fianca.id_analista) || ''
+        };
+      }) || [];
 
       // Apply search filter
       let filteredFiancas = fiancasWithImobiliaria;

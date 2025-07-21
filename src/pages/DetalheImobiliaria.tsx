@@ -1,15 +1,17 @@
 
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building, Mail, Phone, FileText, Users, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Building, Mail, Phone, FileText, Users, Calendar, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const DetalheImobiliaria = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const { data: imobiliaria, isLoading } = useQuery({
     queryKey: ['imobiliaria-detalhes', id],
@@ -105,6 +107,18 @@ const DetalheImobiliaria = () => {
   return (
     <Layout title="Detalhes da Imobiliária">
       <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/imobiliarias-admin')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Button>
+          <h1 className="text-2xl font-bold">Detalhes da Imobiliária</h1>
+        </div>
+
         {/* Header */}
         <Card>
           <CardHeader>

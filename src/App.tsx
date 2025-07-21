@@ -62,6 +62,7 @@ import DetalheFianca from './pages/DetalheFianca';
 import DetalheImobiliaria from './pages/DetalheImobiliaria';
 import EditarImobiliaria from './pages/EditarImobiliaria';
 import EditarExecutivo from './pages/EditarExecutivo';
+import EditarUsuario from './pages/EditarUsuario';
 import CRM from './pages/CRM';
 import Automacao from './pages/Automacao';
 import DetalheInquilino from "./pages/DetalheInquilino";
@@ -150,6 +151,12 @@ function App() {
                       <ProtectedRoute allowedRoles={['admin']}>
                         <AppSidebar />
                         <EditarExecutivo />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/editar-usuario/:id" element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <AppSidebar />
+                        <EditarUsuario />
                       </ProtectedRoute>
                     } />
                     <Route path="/leads-admin" element={

@@ -11,7 +11,7 @@ import { Loader2, Save, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 
-const EditarExecutivo = () => {
+const EditarUsuario = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -23,8 +23,8 @@ const EditarExecutivo = () => {
     telefone: ''
   });
 
-  const { data: executivo, isLoading } = useQuery({
-    queryKey: ['executivo-edit', id],
+  const { data: usuario, isLoading } = useQuery({
+    queryKey: ['usuario-edit', id],
     queryFn: async () => {
       if (!id) return null;
 
@@ -32,7 +32,6 @@ const EditarExecutivo = () => {
         .from('usuarios')
         .select('*')
         .eq('id', id)
-        .eq('cargo', 'executivo')
         .single();
 
       if (error) throw error;
@@ -59,7 +58,7 @@ const EditarExecutivo = () => {
     onSuccess: () => {
       toast({
         title: "Sucesso!",
-        description: "Dados do executivo atualizados com sucesso.",
+        description: "Dados do usuário atualizados com sucesso.",
       });
       navigate('/admin');
     },
@@ -90,7 +89,7 @@ const EditarExecutivo = () => {
 
   if (isLoading) {
     return (
-      <Layout title="Editar Executivo">
+      <Layout title="Editar Usuário">
         <div className="flex items-center justify-center min-h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -99,7 +98,7 @@ const EditarExecutivo = () => {
   }
 
   return (
-    <Layout title="Editar Executivo">
+    <Layout title="Editar Usuário">
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Button
@@ -110,13 +109,13 @@ const EditarExecutivo = () => {
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Button>
-          <h1 className="text-2xl font-bold">Editar Executivo</h1>
+          <h1 className="text-2xl font-bold">Editar Usuário</h1>
         </div>
 
         <form onSubmit={handleSubmit}>
           <Card>
             <CardHeader>
-              <CardTitle>Dados do Executivo</CardTitle>
+              <CardTitle>Dados do Usuário</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -128,11 +127,10 @@ const EditarExecutivo = () => {
                   placeholder="Digite o nome completo"
                   required
                 />
-                {executivo?.nome && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {executivo.nome}</p>
+                {usuario?.nome && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {usuario.nome}</p>
                 )}
               </div>
-              
               <div>
                 <Label htmlFor="email">Email *</Label>
                 <Input
@@ -143,11 +141,10 @@ const EditarExecutivo = () => {
                   placeholder="Digite o email"
                   required
                 />
-                {executivo?.email && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {executivo.email}</p>
+                {usuario?.email && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {usuario.email}</p>
                 )}
               </div>
-              
               <div>
                 <Label htmlFor="telefone">Telefone/WhatsApp</Label>
                 <Input
@@ -156,8 +153,8 @@ const EditarExecutivo = () => {
                   onChange={(e) => handleInputChange('telefone', e.target.value)}
                   placeholder="+55 (00) 0 0000-0000"
                 />
-                {executivo?.telefone && (
-                  <p className="text-xs text-gray-500 mt-1">Atual: {formatPhone(executivo.telefone)}</p>
+                {usuario?.telefone && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {formatPhone(usuario.telefone)}</p>
                 )}
               </div>
             </CardContent>
@@ -195,4 +192,4 @@ const EditarExecutivo = () => {
   );
 };
 
-export default EditarExecutivo;
+export default EditarUsuario;

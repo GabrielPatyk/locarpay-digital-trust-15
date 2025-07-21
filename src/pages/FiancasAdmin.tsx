@@ -138,88 +138,160 @@ const FiancasAdmin = () => {
           </CardHeader>
 
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <div className="min-w-[1200px]">
-                <Table className="w-full">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[180px] px-4 py-3">Inquilino</TableHead>
-                      <TableHead className="w-[180px] px-4 py-3">Imobiliária</TableHead>
-                      <TableHead className="w-[220px] px-4 py-3">Imóvel</TableHead>
-                      <TableHead className="w-[120px] px-4 py-3">Valor Fiança</TableHead>
-                      <TableHead className="w-[140px] px-4 py-3">Status</TableHead>
-                      <TableHead className="w-[100px] px-4 py-3">Data</TableHead>
-                      <TableHead className="w-[80px] px-4 py-3">Ações</TableHead>
+            {/* Desktop Table */}
+            <div className="hidden lg:block overflow-x-auto">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="px-4 py-3">Inquilino</TableHead>
+                    <TableHead className="px-4 py-3">Imobiliária</TableHead>
+                    <TableHead className="px-4 py-3">Imóvel</TableHead>
+                    <TableHead className="px-4 py-3">Valor Fiança</TableHead>
+                    <TableHead className="px-4 py-3">Status</TableHead>
+                    <TableHead className="px-4 py-3">Data</TableHead>
+                    <TableHead className="px-4 py-3">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {fiancas.map((fianca) => (
+                    <TableRow key={fianca.id} className="hover:bg-gray-50">
+                      <TableCell className="px-4 py-3">
+                        <p className="text-sm font-medium text-gray-900">
+                          {fianca.inquilino_nome_completo}
+                        </p>
+                      </TableCell>
+                      
+                      <TableCell className="px-4 py-3">
+                        <div>
+                          <p className="text-sm font-medium text-blue-600">
+                            {fianca.imobiliaria_nome || 'N/A'}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {fianca.imobiliaria_responsavel}
+                          </p>
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell className="px-4 py-3">
+                        <div>
+                          <p className="text-sm text-gray-900">
+                            {`${fianca.imovel_endereco}, ${fianca.imovel_numero}`}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {fianca.imovel_bairro}
+                          </p>
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell className="px-4 py-3">
+                        <span className="text-sm font-medium">
+                          {formatCurrency(fianca.valor_fianca || 0)}
+                        </span>
+                      </TableCell>
+                      
+                      <TableCell className="px-4 py-3">
+                        <FiancaStatusTooltipAdmin
+                          status={fianca.status_fianca}
+                          motivoReprovacao={fianca.motivo_reprovacao}
+                          dataAnalise={fianca.data_analise}
+                          analisadoPor={fianca.analisado_por}
+                          getStatusColor={getStatusColor}
+                          getStatusLabel={getStatusLabel}
+                        />
+                      </TableCell>
+                      
+                      <TableCell className="px-4 py-3">
+                        <span className="text-xs text-gray-500">
+                          {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}
+                        </span>
+                      </TableCell>
+                      
+                      <TableCell className="px-4 py-3">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleViewFianca(fianca.id)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {fiancas.map((fianca) => (
-                      <TableRow key={fianca.id} className="hover:bg-gray-50">
-                        <TableCell className="px-4 py-3">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 break-words">
-                              {fianca.inquilino_nome_completo}
-                            </p>
-                          </div>
-                        </TableCell>
-                        
-                        <TableCell className="px-4 py-3">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-blue-600 break-words">
-                              {fianca.imobiliaria_nome}
-                            </p>
-                          </div>
-                        </TableCell>
-                        
-                        <TableCell className="px-4 py-3">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm text-gray-900 break-words">
-                              {`${fianca.imovel_endereco}, ${fianca.imovel_numero}`}
-                            </p>
-                            <p className="text-xs text-gray-500 break-words">
-                              {fianca.imovel_bairro}
-                            </p>
-                          </div>
-                        </TableCell>
-                        
-                        <TableCell className="px-4 py-3">
-                          <span className="text-sm font-medium">
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="lg:hidden space-y-4 p-4">
+              {fiancas.map((fianca) => (
+                <Card key={fianca.id} className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm text-gray-900 break-words">
+                          {fianca.inquilino_nome_completo}
+                        </h4>
+                        <p className="text-xs text-gray-500 break-words">
+                          {fianca.imobiliaria_nome || 'N/A'}
+                        </p>
+                        {fianca.imobiliaria_responsavel && (
+                          <p className="text-xs text-gray-400">
+                            Resp: {fianca.imobiliaria_responsavel}
+                          </p>
+                        )}
+                      </div>
+                      <FiancaStatusTooltipAdmin
+                        status={fianca.status_fianca}
+                        motivoReprovacao={fianca.motivo_reprovacao}
+                        dataAnalise={fianca.data_analise}
+                        analisadoPor={fianca.analisado_por}
+                        getStatusColor={getStatusColor}
+                        getStatusLabel={getStatusLabel}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs text-gray-500">Imóvel</p>
+                        <p className="text-sm break-words">
+                          {`${fianca.imovel_endereco}, ${fianca.imovel_numero}`}
+                        </p>
+                        <p className="text-xs text-gray-500 break-words">
+                          {fianca.imovel_bairro}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="text-xs text-gray-500">Valor Fiança</p>
+                          <p className="text-sm font-medium">
                             {formatCurrency(fianca.valor_fianca || 0)}
-                          </span>
-                        </TableCell>
-                        
-                        <TableCell className="px-4 py-3">
-                          <FiancaStatusTooltipAdmin
-                            status={fianca.status_fianca}
-                            motivoReprovacao={fianca.motivo_reprovacao}
-                            dataAnalise={fianca.data_analise}
-                            analisadoPor={fianca.analisado_por}
-                            getStatusColor={getStatusColor}
-                            getStatusLabel={getStatusLabel}
-                          />
-                        </TableCell>
-                        
-                        <TableCell className="px-4 py-3">
-                          <span className="text-xs text-gray-500">
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500">Data</p>
+                          <p className="text-xs">
                             {new Date(fianca.data_criacao).toLocaleDateString('pt-BR')}
-                          </span>
-                        </TableCell>
-                        
-                        <TableCell className="px-4 py-3">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleViewFianca(fianca.id)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewFianca(fianca.id)}
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Ver Detalhes
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
 
             {fiancas.length === 0 && (
