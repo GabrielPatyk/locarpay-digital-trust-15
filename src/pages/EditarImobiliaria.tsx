@@ -207,8 +207,12 @@ const EditarImobiliaria = () => {
                     id="nome_empresa"
                     value={formData.nome_empresa}
                     onChange={(e) => handleInputChange('nome_empresa', e.target.value)}
+                    placeholder={imobiliaria?.perfil_usuario?.nome_empresa || "Digite o nome da empresa"}
                     required
                   />
+                  {imobiliaria?.perfil_usuario?.nome_empresa && (
+                    <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.nome_empresa}</p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="cnpj">CNPJ *</Label>
@@ -216,9 +220,12 @@ const EditarImobiliaria = () => {
                     id="cnpj"
                     value={formData.cnpj}
                     onChange={(e) => handleInputChange('cnpj', e.target.value)}
-                    placeholder="00.000.000/0000-00"
+                    placeholder={imobiliaria?.perfil_usuario?.cnpj ? formatCNPJ(imobiliaria.perfil_usuario.cnpj) : "00.000.000/0000-00"}
                     required
                   />
+                  {imobiliaria?.perfil_usuario?.cnpj && (
+                    <p className="text-xs text-gray-500 mt-1">Atual: {formatCNPJ(imobiliaria.perfil_usuario.cnpj)}</p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="nome">Nome do Responsável *</Label>
@@ -226,8 +233,12 @@ const EditarImobiliaria = () => {
                     id="nome"
                     value={formData.nome}
                     onChange={(e) => handleInputChange('nome', e.target.value)}
+                    placeholder={imobiliaria?.nome || "Digite o nome do responsável"}
                     required
                   />
+                  {imobiliaria?.nome && (
+                    <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.nome}</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -245,8 +256,12 @@ const EditarImobiliaria = () => {
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder={imobiliaria?.email || "Digite o email"}
                     required
                   />
+                  {imobiliaria?.email && (
+                    <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.email}</p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="telefone">Telefone/WhatsApp</Label>
@@ -254,8 +269,11 @@ const EditarImobiliaria = () => {
                     id="telefone"
                     value={formData.telefone}
                     onChange={(e) => handleInputChange('telefone', e.target.value)}
-                    placeholder="+55 (00) 0 0000-0000"
+                    placeholder={imobiliaria?.telefone ? formatPhone(imobiliaria.telefone) : "+55 (00) 0 0000-0000"}
                   />
+                  {imobiliaria?.telefone && (
+                    <p className="text-xs text-gray-500 mt-1">Atual: {formatPhone(imobiliaria.telefone)}</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -273,7 +291,11 @@ const EditarImobiliaria = () => {
                       id="endereco"
                       value={formData.endereco}
                       onChange={(e) => handleInputChange('endereco', e.target.value)}
+                      placeholder={imobiliaria?.perfil_usuario?.endereco || "Digite o endereço"}
                     />
+                    {imobiliaria?.perfil_usuario?.endereco && (
+                      <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.endereco}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="numero">Número</Label>
@@ -281,7 +303,11 @@ const EditarImobiliaria = () => {
                       id="numero"
                       value={formData.numero}
                       onChange={(e) => handleInputChange('numero', e.target.value)}
+                      placeholder={imobiliaria?.perfil_usuario?.numero || "Digite o número"}
                     />
+                    {imobiliaria?.perfil_usuario?.numero && (
+                      <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.numero}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="complemento">Complemento</Label>
@@ -289,7 +315,11 @@ const EditarImobiliaria = () => {
                       id="complemento"
                       value={formData.complemento}
                       onChange={(e) => handleInputChange('complemento', e.target.value)}
+                      placeholder={imobiliaria?.perfil_usuario?.complemento || "Digite o complemento"}
                     />
+                    {imobiliaria?.perfil_usuario?.complemento && (
+                      <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.complemento}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="bairro">Bairro</Label>
@@ -297,7 +327,11 @@ const EditarImobiliaria = () => {
                       id="bairro"
                       value={formData.bairro}
                       onChange={(e) => handleInputChange('bairro', e.target.value)}
+                      placeholder={imobiliaria?.perfil_usuario?.bairro || "Digite o bairro"}
                     />
+                    {imobiliaria?.perfil_usuario?.bairro && (
+                      <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.bairro}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="cidade">Cidade</Label>
@@ -305,7 +339,11 @@ const EditarImobiliaria = () => {
                       id="cidade"
                       value={formData.cidade}
                       onChange={(e) => handleInputChange('cidade', e.target.value)}
+                      placeholder={imobiliaria?.perfil_usuario?.cidade || "Digite a cidade"}
                     />
+                    {imobiliaria?.perfil_usuario?.cidade && (
+                      <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.cidade}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="estado">Estado</Label>
@@ -313,7 +351,11 @@ const EditarImobiliaria = () => {
                       id="estado"
                       value={formData.estado}
                       onChange={(e) => handleInputChange('estado', e.target.value)}
+                      placeholder={imobiliaria?.perfil_usuario?.estado || "Digite o estado"}
                     />
+                    {imobiliaria?.perfil_usuario?.estado && (
+                      <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.estado}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="pais">País</Label>
@@ -321,7 +363,11 @@ const EditarImobiliaria = () => {
                       id="pais"
                       value={formData.pais}
                       onChange={(e) => handleInputChange('pais', e.target.value)}
+                      placeholder={imobiliaria?.perfil_usuario?.pais || "Brasil"}
                     />
+                    {imobiliaria?.perfil_usuario?.pais && (
+                      <p className="text-xs text-gray-500 mt-1">Atual: {imobiliaria.perfil_usuario.pais}</p>
+                    )}
                   </div>
                 </div>
               </CardContent>

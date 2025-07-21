@@ -52,7 +52,10 @@ const ConfiguracoesAdmin = () => {
     emailNotifications: true,
     smsNotifications: false,
     weeklyReports: true,
-    monthlyReports: true
+    monthlyReports: true,
+    
+    // Manutenção
+    manutencaoAtiva: false
   });
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -388,6 +391,41 @@ const ConfiguracoesAdmin = () => {
               <Save className="mr-2 h-4 w-4" />
               {loading ? 'Alterando...' : 'Alterar Senha'}
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Manutenção Plataforma */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <AlertTriangle className="mr-2 h-5 w-5 text-warning" />
+              Manutenção Plataforma
+            </CardTitle>
+            <CardDescription>
+              Configure o modo de manutenção da plataforma
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Modo Manutenção</p>
+                <p className="text-sm text-gray-600">Ativar modo de manutenção para toda a plataforma</p>
+              </div>
+              <Switch 
+                checked={formData.manutencaoAtiva || false} 
+                onCheckedChange={(checked) => handleInputChange('manutencaoAtiva', checked)}
+              />
+            </div>
+            
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-start">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" />
+                <div className="text-sm text-yellow-800">
+                  <p className="font-medium mb-1">Atenção!</p>
+                  <p>Quando o modo manutenção estiver ativo, todos os usuários (exceto administradores) serão redirecionados para uma página de manutenção.</p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
