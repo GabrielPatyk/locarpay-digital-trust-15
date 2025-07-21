@@ -121,6 +121,7 @@ export type Database = {
           data_criacao: string
           data_envio_link: string | null
           data_vencimento: string | null
+          financeiro_id: string | null
           id: string
           id_analista: string | null
           id_imobiliaria: string
@@ -173,6 +174,7 @@ export type Database = {
           data_criacao?: string
           data_envio_link?: string | null
           data_vencimento?: string | null
+          financeiro_id?: string | null
           id?: string
           id_analista?: string | null
           id_imobiliaria: string
@@ -225,6 +227,7 @@ export type Database = {
           data_criacao?: string
           data_envio_link?: string | null
           data_vencimento?: string | null
+          financeiro_id?: string | null
           id?: string
           id_analista?: string | null
           id_imobiliaria?: string
@@ -270,6 +273,13 @@ export type Database = {
           {
             foreignKeyName: "fiancas_locaticias_criado_por_fkey"
             columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiancas_locaticias_financeiro_id_fkey"
+            columns: ["financeiro_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
@@ -359,24 +369,6 @@ export type Database = {
           },
         ]
       }
-      imobiliarias: {
-        Row: {
-          criado_em: string | null
-          id: string
-          nome: string
-        }
-        Insert: {
-          criado_em?: string | null
-          id?: string
-          nome: string
-        }
-        Update: {
-          criado_em?: string | null
-          id?: string
-          nome?: string
-        }
-        Relationships: []
-      }
       imoveis_imobiliaria: {
         Row: {
           area_metros: number | null
@@ -459,13 +451,6 @@ export type Database = {
             columns: ["id_imobiliaria"]
             isOneToOne: false
             referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "imoveis_imobiliaria_imobiliaria_id_fkey"
-            columns: ["imobiliaria_id"]
-            isOneToOne: false
-            referencedRelation: "imobiliarias"
             referencedColumns: ["id"]
           },
         ]
@@ -642,15 +627,7 @@ export type Database = {
           imobiliaria_id?: string
           usuario_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "usuarios_imobiliaria_imobiliaria_id_fkey"
-            columns: ["imobiliaria_id"]
-            isOneToOne: false
-            referencedRelation: "imobiliarias"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
