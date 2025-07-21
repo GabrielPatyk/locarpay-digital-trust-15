@@ -3,32 +3,41 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const useMaintenanceMode = () => {
   const [isMaintenanceMode, setIsMaintenanceMode] = useState<boolean>(false);
+  const [maintenanceReason, setMaintenanceReason] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
 
   const checkMaintenanceStatus = async () => {
     try {
       const { data, error } = await supabase
         .from('configuracoes_sistema')
-        .select('manutencao_ativa')
+        .select('manutencao_ativa, motivo_manutencao')
         .single();
 
       if (error) {
         console.error('Erro ao verificar status de manutenção:', error);
-        return false;
+        return { active: false, reason: '' };
       }
 
-      return data?.manutencao_ativa || false;
+      return {
+        active: data?.manutencao_ativa || false,
+        reason: data?.motivo_manutencao || ''
+      };
     } catch (error) {
       console.error('Erro ao verificar status de manutenção:', error);
-      return false;
+      return { active: false, reason: '' };
     }
   };
 
-  const updateMaintenanceMode = async (active: boolean) => {
+  const updateMaintenanceMode = async (active: boolean, reason?: string) => {
     try {
+      const updateData: any = { manutencao_ativa: active };
+      if (reason !== undefined) {
+        updateData.motivo_manutencao = reason;
+      }
+
       const { error } = await supabase
         .from('configuracoes_sistema')
-        .update({ manutencao_ativa: active })
+        .update(updateData)
         .eq('id', (await supabase.from('configuracoes_sistema').select('id').single()).data?.id);
 
       if (error) {
@@ -37,6 +46,9 @@ export const useMaintenanceMode = () => {
       }
 
       setIsMaintenanceMode(active);
+      if (reason !== undefined) {
+        setMaintenanceReason(reason);
+      }
       return true;
     } catch (error) {
       console.error('Erro ao atualizar modo manutenção:', error);
@@ -47,7 +59,8 @@ export const useMaintenanceMode = () => {
   useEffect(() => {
     const loadMaintenanceStatus = async () => {
       const status = await checkMaintenanceStatus();
-      setIsMaintenanceMode(status);
+      setIsMaintenanceMode(status.active);
+      setMaintenanceReason(status.reason);
       setLoading(false);
     };
 
@@ -65,6 +78,7 @@ export const useMaintenanceMode = () => {
         },
         (payload) => {
           setIsMaintenanceMode(payload.new.manutencao_ativa);
+          setMaintenanceReason(payload.new.motivo_manutencao || '');
         }
       )
       .subscribe();
@@ -76,6 +90,7 @@ export const useMaintenanceMode = () => {
 
   return {
     isMaintenanceMode,
+    maintenanceReason,
     loading,
     updateMaintenanceMode,
     checkMaintenanceStatus,

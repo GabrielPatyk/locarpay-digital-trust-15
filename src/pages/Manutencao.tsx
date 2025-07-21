@@ -2,8 +2,11 @@ import React from 'react';
 import { AlertTriangle, Clock, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 
 const Manutencao = () => {
+  const { maintenanceReason } = useMaintenanceMode();
+  
   const handleReload = () => {
     window.location.reload();
   };
@@ -38,7 +41,7 @@ const Manutencao = () => {
                     Manutenção programada
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Nossa equipe está realizando atualizações importantes no sistema para proporcionar uma experiência ainda melhor.
+                    {maintenanceReason || 'Nossa equipe está realizando atualizações importantes no sistema para proporcionar uma experiência ainda melhor.'}
                   </p>
                 </div>
               </div>

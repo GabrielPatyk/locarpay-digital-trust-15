@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserType } from '@/types/user';
 import ImobiliariaAccessGuard from '@/components/ImobiliariaAccessGuard';
+import MaintenanceWrapper from '@/components/MaintenanceWrapper';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -39,11 +40,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }
 
-  // Wrap with ImobiliariaAccessGuard to handle contract verification
+  // Wrap with MaintenanceWrapper and ImobiliariaAccessGuard
   return (
-    <ImobiliariaAccessGuard>
-      {children}
-    </ImobiliariaAccessGuard>
+    <MaintenanceWrapper>
+      <ImobiliariaAccessGuard>
+        {children}
+      </ImobiliariaAccessGuard>
+    </MaintenanceWrapper>
   );
 };
 

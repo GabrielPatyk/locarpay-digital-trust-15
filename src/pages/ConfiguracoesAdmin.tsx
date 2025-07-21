@@ -10,6 +10,7 @@ import ConfirmationModal from '@/components/ConfirmationModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +33,7 @@ const ConfiguracoesAdmin = () => {
   const { profile, updateProfile, updateUserData, updatePassword, loading } = useUserProfile();
   const { formatPhone, unformatPhone, isValidPhone } = usePhoneFormatter();
   const { toast } = useToast();
-  const { isMaintenanceMode, updateMaintenanceMode } = useMaintenanceMode();
+  const { isMaintenanceMode, maintenanceReason, updateMaintenanceMode } = useMaintenanceMode();
   
   const [showPassword, setShowPassword] = useState(false);
   const [showPersonalConfirmation, setShowPersonalConfirmation] = useState(false);
@@ -57,16 +58,18 @@ const ConfiguracoesAdmin = () => {
     monthlyReports: true,
     
     // Manutenção
-    manutencaoAtiva: isMaintenanceMode
+    manutencaoAtiva: isMaintenanceMode,
+    motivoManutencao: maintenanceReason || 'Sistema em manutenção programada'
   });
 
   // Sincronizar estado de manutenção
   useEffect(() => {
     setFormData(prev => ({
       ...prev,
-      manutencaoAtiva: isMaintenanceMode
+      manutencaoAtiva: isMaintenanceMode,
+      motivoManutencao: maintenanceReason || 'Sistema em manutenção programada'
     }));
-  }, [isMaintenanceMode]);
+  }, [isMaintenanceMode, maintenanceReason]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     if (field === 'telefone') {
@@ -427,6 +430,18 @@ const ConfiguracoesAdmin = () => {
               />
             </div>
             
+            <div className="space-y-2">
+              <Label htmlFor="motivoManutencao">Motivo da Manutenção</Label>
+              <Textarea
+                id="motivoManutencao"
+                value={formData.motivoManutencao}
+                onChange={(e) => handleInputChange('motivoManutencao', e.target.value)}
+                placeholder="Descreva o motivo da manutenção que será exibido para os usuários"
+                rows={3}
+              />
+              <p className="text-xs text-gray-500">Este texto será exibido na página de manutenção para os usuários</p>
+            </div>
+            
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-start">
                 <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" />
@@ -439,7 +454,10 @@ const ConfiguracoesAdmin = () => {
             
             <Button 
               onClick={async () => {
-                const success = await updateMaintenanceMode(formData.manutencaoAtiva);
+                const success = await updateMaintenanceMode(
+                  formData.manutencaoAtiva, 
+                  formData.motivoManutencao
+                );
                 if (success) {
                   toast({
                     title: "Configurações salvas",

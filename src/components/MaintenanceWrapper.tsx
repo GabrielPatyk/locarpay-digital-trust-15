@@ -28,7 +28,7 @@ const MaintenanceWrapper: React.FC<MaintenanceWrapperProps> = ({ children }) => 
     return <Navigate to="/manutencao" replace />;
   }
 
-  // Se modo manutenção está desativo e usuário está na página de manutenção, redirecionar
+  // Se modo manutenção está desativo e usuário está na página de manutenção, redirecionar para dashboard
   if (!isMaintenanceMode && currentPath === '/manutencao') {
     return <Navigate to="/dashboard" replace />;
   }
