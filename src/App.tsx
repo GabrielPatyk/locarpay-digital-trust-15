@@ -47,6 +47,8 @@ import RelatoriosAnalista from "./pages/RelatoriosAnalista";
 import RelatoriosFinanceiro from "./pages/RelatoriosFinanceiro";
 import RelatoriosSDR from "./pages/RelatoriosSDR";
 import SinistrosAdmin from "./pages/SinistrosAdmin";
+import Manutencao from "./pages/Manutencao";
+import MaintenanceWrapper from "./components/MaintenanceWrapper";
 import ContratosImobiliaria from "./pages/ContratosImobiliaria";
 import ContratosJuridico from "./pages/ContratosJuridico";
 import InquilinosImobiliaria from "./pages/InquilinosImobiliaria";
@@ -85,22 +87,27 @@ function App() {
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/redefinir-senha" element={<RedefinirSenha />} />
                     <Route path="/verificar-email" element={<VerificarEmail />} />
+                    <Route path="/manutencao" element={<Manutencao />} />
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     <Route path="*" element={<NotFound />} />
 
                     {/* Dashboard restricted to admin only */}
                     <Route path="/dashboard" element={
                       <ProtectedRoute allowedRoles={['admin']}>
-                        <AppSidebar />
-                        <Dashboard />
+                        <MaintenanceWrapper>
+                          <AppSidebar />
+                          <Dashboard />
+                        </MaintenanceWrapper>
                       </ProtectedRoute>
                     } />
                     
                     {/* Admin routes */}
                     <Route path="/admin" element={
                       <ProtectedRoute allowedRoles={['admin']}>
-                        <AppSidebar />
-                        <Admin />
+                        <MaintenanceWrapper>
+                          <AppSidebar />
+                          <Admin />
+                        </MaintenanceWrapper>
                       </ProtectedRoute>
                     } />
                     <Route path="/configuracoes-admin" element={

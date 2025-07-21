@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      configuracoes_sistema: {
+        Row: {
+          created_at: string
+          id: string
+          manutencao_ativa: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          manutencao_ativa?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          manutencao_ativa?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contratos_fianca: {
         Row: {
           assinantes: Json | null

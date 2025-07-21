@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
+import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import Layout from '@/components/Layout';
 import ImageUpload from '@/components/ImageUpload';
 import ConfirmationModal from '@/components/ConfirmationModal';
@@ -31,6 +32,7 @@ const ConfiguracoesAdmin = () => {
   const { profile, updateProfile, updateUserData, updatePassword, loading } = useUserProfile();
   const { formatPhone, unformatPhone, isValidPhone } = usePhoneFormatter();
   const { toast } = useToast();
+  const { isMaintenanceMode, updateMaintenanceMode } = useMaintenanceMode();
   
   const [showPassword, setShowPassword] = useState(false);
   const [showPersonalConfirmation, setShowPersonalConfirmation] = useState(false);
@@ -55,8 +57,16 @@ const ConfiguracoesAdmin = () => {
     monthlyReports: true,
     
     // Manutenção
-    manutencaoAtiva: false
+    manutencaoAtiva: isMaintenanceMode
   });
+
+  // Sincronizar estado de manutenção
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      manutencaoAtiva: isMaintenanceMode
+    }));
+  }, [isMaintenanceMode]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     if (field === 'telefone') {
@@ -426,6 +436,29 @@ const ConfiguracoesAdmin = () => {
                 </div>
               </div>
             </div>
+            
+            <Button 
+              onClick={async () => {
+                const success = await updateMaintenanceMode(formData.manutencaoAtiva);
+                if (success) {
+                  toast({
+                    title: "Configurações salvas",
+                    description: `Modo manutenção ${formData.manutencaoAtiva ? 'ativado' : 'desativado'} com sucesso.`,
+                  });
+                } else {
+                  toast({
+                    title: "Erro ao salvar",
+                    description: "Não foi possível alterar o modo manutenção.",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              disabled={loading}
+              className="bg-warning hover:bg-warning/90 text-white"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {loading ? 'Salvando...' : 'Salvar Configurações'}
+            </Button>
           </CardContent>
         </Card>
 
