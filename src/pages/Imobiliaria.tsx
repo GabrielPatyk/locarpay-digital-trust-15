@@ -182,10 +182,9 @@ const Imobiliaria = () => {
 
         {/* Tabs com conteúdo detalhado */}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="contracts">Contratos</TabsTrigger>
-            <TabsTrigger value="properties">Imóveis</TabsTrigger>
             <TabsTrigger value="tenants">Inquilinos</TabsTrigger>
           </TabsList>
 
@@ -289,16 +288,6 @@ const Imobiliaria = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="properties" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">Lista de Imóveis</h3>
-            </div>
-            <Card>
-              <CardContent>
-                <p>Em breve, a listagem completa dos imóveis da sua imobiliária estará disponível aqui.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="tenants" className="space-y-4">
             <div className="flex justify-between items-center">
