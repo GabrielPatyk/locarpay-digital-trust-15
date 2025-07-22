@@ -32,12 +32,13 @@ const DetalheFianca = () => {
   const { fianca, historico, isLoading } = useFiancaDetails(id || '');
   const { getCargoHomePage } = useCargoRedirect();
 
-  // Verificar se o usuário tem permissão (admin, analista, financeiro, imobiliária dona da fiança ou inquilino da fiança)
+  // Verificar se o usuário tem permissão (admin, analista, financeiro, executivo, imobiliária dona da fiança ou inquilino da fiança)
   React.useEffect(() => {
     if (user && fianca) {
       const hasPermission = user.type === 'admin' || 
                            user.type === 'analista' ||
                            user.type === 'financeiro' ||
+                           user.type === 'executivo' ||
                            (user.type === 'imobiliaria' && fianca.id_imobiliaria === user.id) ||
                            (user.type === 'inquilino' && fianca.inquilino_usuario_id === user.id);
       
@@ -285,6 +286,8 @@ const DetalheFianca = () => {
   // Verificar permissão após carregar os dados
   const hasPermission = user?.type === 'admin' || 
                        user?.type === 'analista' ||
+                       user?.type === 'financeiro' ||
+                       user?.type === 'executivo' ||
                        (user?.type === 'imobiliaria' && fianca.id_imobiliaria === user.id) ||
                        (user?.type === 'inquilino' && fianca.inquilino_usuario_id === user.id);
 
@@ -599,6 +602,80 @@ const DetalheFianca = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Contratos e Assinaturas - Aparece após pagamento_confirmado */}
+        {['pagamento_confirmado', 'ativa'].includes(fianca.status_fianca) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <FileText className="mr-2 h-5 w-5 text-indigo-600" />
+                Contratos e Assinaturas
+              </CardTitle>
+              <CardDescription>
+                Documentos para assinatura do inquilino
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 border border-gray-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-800">Contrato de Fiança</h4>
+                      <Badge variant="outline" className="text-orange-600 border-orange-600">
+                        Aguardando Assinatura
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Contrato principal da fiança locatícia entre inquilino e LocarPay
+                    </p>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm">
+                        <FileText className="mr-2 h-4 w-4" />
+                        Visualizar
+                      </Button>
+                      <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                        <LinkIcon className="mr-2 h-4 w-4" />
+                        Enviar para Assinatura
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 border border-gray-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-800">Termo de Adesão</h4>
+                      <Badge variant="outline" className="text-orange-600 border-orange-600">
+                        Aguardando Assinatura
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Termo de adesão aos serviços da plataforma LocarPay
+                    </p>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm">
+                        <FileText className="mr-2 h-4 w-4" />
+                        Visualizar
+                      </Button>
+                      <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                        <LinkIcon className="mr-2 h-4 w-4" />
+                        Enviar para Assinatura
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">Próximos Passos</p>
+                      <p>Após o pagamento ser confirmado, os contratos são automaticamente gerados e enviados para o inquilino assinar via plataforma digital.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Histórico de Atividades */}
         <Card>

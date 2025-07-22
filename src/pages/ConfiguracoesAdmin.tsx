@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -7,7 +6,6 @@ import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import Layout from '@/components/Layout';
 import ImageUpload from '@/components/ImageUpload';
 import ConfirmationModal from '@/components/ConfirmationModal';
-import StatusPlataforma from '@/components/StatusPlataforma';
 import StatusPlataformaEditor from '@/components/StatusPlataformaEditor';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,7 +25,8 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  FileCheck
+  FileCheck,
+  Settings
 } from 'lucide-react';
 
 const ConfiguracoesAdmin = () => {
@@ -482,37 +481,54 @@ const ConfiguracoesAdmin = () => {
           </CardContent>
         </Card>
 
+        {/* Status da Plataforma */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Settings className="mr-2 h-5 w-5 text-primary" />
+              Status da Plataforma
+            </CardTitle>
+            <CardDescription>
+              Gerencie as informações de status e versão da plataforma
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <StatusPlataformaEditor />
+          </CardContent>
+        </Card>
+
         {/* Notifications - Bloqueada */}
         <Card className="opacity-60">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Bell className="mr-2 h-5 w-5" style={{ color: '#BC942C' }} />
-              Notificações
-              <AlertTriangle className="ml-2 h-4 w-4 text-red-500" />
+              <Bell className="mr-2 h-5 w-5 text-blue-600" />
+              Notificações <Badge variant="secondary" className="ml-2">Em desenvolvimento</Badge>
             </CardTitle>
             <CardDescription>
-              <span className="text-red-600 font-medium">Esta opção ainda está em desenvolvimento</span>
+              Configure suas preferências de notificação
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 pointer-events-none">
+          <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Notificações por E-mail</p>
                 <p className="text-sm text-gray-600">Receber notificações importantes por e-mail</p>
               </div>
-              <Switch
+              <Switch 
                 checked={formData.emailNotifications}
+                onCheckedChange={(checked) => handleInputChange('emailNotifications', checked)}
                 disabled
               />
             </div>
             
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Notificações por SMS</p>
-                <p className="text-sm text-gray-600">Receber alertas urgentes por SMS</p>
+                <p className="font-medium">Notificações SMS</p>
+                <p className="text-sm text-gray-600">Receber alertas críticos por SMS</p>
               </div>
-              <Switch
+              <Switch 
                 checked={formData.smsNotifications}
+                onCheckedChange={(checked) => handleInputChange('smsNotifications', checked)}
                 disabled
               />
             </div>
@@ -520,10 +536,11 @@ const ConfiguracoesAdmin = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Relatórios Semanais</p>
-                <p className="text-sm text-gray-600">Receber resumo semanal de atividades</p>
+                <p className="text-sm text-gray-600">Receber resumos semanais da plataforma</p>
               </div>
-              <Switch
+              <Switch 
                 checked={formData.weeklyReports}
+                onCheckedChange={(checked) => handleInputChange('weeklyReports', checked)}
                 disabled
               />
             </div>
@@ -531,35 +548,34 @@ const ConfiguracoesAdmin = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Relatórios Mensais</p>
-                <p className="text-sm text-gray-600">Receber relatório mensal detalhado</p>
+                <p className="text-sm text-gray-600">Receber relatórios detalhados mensais</p>
               </div>
-              <Switch
+              <Switch 
                 checked={formData.monthlyReports}
+                onCheckedChange={(checked) => handleInputChange('monthlyReports', checked)}
                 disabled
               />
             </div>
             
-            <Button 
-              disabled
-              style={{ backgroundColor: '#BC942C' }} 
-              className="hover:opacity-90 text-white opacity-50"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Salvar Preferências
-            </Button>
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start">
+                <Bell className="h-5 w-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">Em desenvolvimento</p>
+                  <p>O sistema de notificações está sendo desenvolvido e estará disponível em breve.</p>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Status da Plataforma com Editor */}
-        <StatusPlataformaEditor />
-
-        {/* Modal de Confirmação */}
+        {/* Modais de Confirmação */}
         <ConfirmationModal
           isOpen={showPersonalConfirmation}
           onClose={() => setShowPersonalConfirmation(false)}
           onConfirm={confirmPersonalChanges}
-          title="Confirmar Alterações - Dados Pessoais"
-          description="Você está prestes a alterar seus dados pessoais. Confirme as informações abaixo:"
+          title="Confirmar Alterações de Dados Pessoais"
+          description="Confirme os dados que serão atualizados:"
           changes={pendingPersonalChanges}
           isLoading={loading}
         />
