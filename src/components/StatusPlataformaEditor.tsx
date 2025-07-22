@@ -167,7 +167,17 @@ const StatusPlataformaEditor = () => {
     setEditData({ ...editData, apis_integracoes: newApis });
   };
 
-  if (!statusPlataforma) return null;
+  if (!statusPlataforma) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-muted-foreground">
+            Carregando informações da plataforma...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -176,10 +186,10 @@ const StatusPlataformaEditor = () => {
           <div>
             <CardTitle className="flex items-center">
               <Settings className="mr-2 h-5 w-5 text-primary" />
-              Configurações do Status da Plataforma
+              Status da Plataforma
             </CardTitle>
             <CardDescription>
-              Gerencie as informações exibidas no status da plataforma
+              Gerencie as informações de versão e compatibilidade da plataforma
             </CardDescription>
           </div>
           {!isEditing ? (
@@ -202,14 +212,26 @@ const StatusPlataformaEditor = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Versão Atual */}
-        <div>
-          <Label htmlFor="versao">Versão Atual</Label>
-          <Input
-            id="versao"
-            value={editData.versao_atual || ''}
-            onChange={(e) => setEditData({ ...editData, versao_atual: e.target.value })}
-            disabled={!isEditing}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="versao">Versão Atual</Label>
+            <Input
+              id="versao"
+              value={editData.versao_atual || ''}
+              onChange={(e) => setEditData({ ...editData, versao_atual: e.target.value })}
+              disabled={!isEditing}
+            />
+          </div>
+          <div>
+            <Label>Última Atualização</Label>
+            <Input
+              value={statusPlataforma.data_ultima_atualizacao ? 
+                new Date(statusPlataforma.data_ultima_atualizacao).toLocaleString('pt-BR') : 
+                'Não informado'
+              }
+              disabled
+            />
+          </div>
         </div>
 
         {/* Changelog */}
@@ -391,12 +413,6 @@ const StatusPlataformaEditor = () => {
             ))}
           </div>
         </div>
-
-        {statusPlataforma.data_ultima_atualizacao && (
-          <div className="text-sm text-muted-foreground">
-            Última atualização: {new Date(statusPlataforma.data_ultima_atualizacao).toLocaleString('pt-BR')}
-          </div>
-        )}
 
         {/* Dialog para notificar usuários */}
         <Dialog open={showNotifyUsers} onOpenChange={setShowNotifyUsers}>

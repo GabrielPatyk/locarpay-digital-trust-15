@@ -482,20 +482,7 @@ const ConfiguracoesAdmin = () => {
         </Card>
 
         {/* Status da Plataforma */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Settings className="mr-2 h-5 w-5 text-primary" />
-              Status da Plataforma
-            </CardTitle>
-            <CardDescription>
-              Gerencie as informações de status e versão da plataforma
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <StatusPlataformaEditor />
-          </CardContent>
-        </Card>
+        <StatusPlataformaEditor />
 
         {/* Notifications - Bloqueada */}
         <Card className="opacity-60">
