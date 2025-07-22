@@ -2,13 +2,11 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       - NODE_ENV=production
-    volumes:
-      - ./:/app
-      - /app/node_modules  # Evita sobreposição
-    working_dir: /app
     deploy:
       labels:
         - "traefik.enable=true"
