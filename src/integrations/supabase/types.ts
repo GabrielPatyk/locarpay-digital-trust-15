@@ -448,46 +448,76 @@ export type Database = {
         Row: {
           atualizado_em: string
           bairro: string | null
+          cartao_cnpj: string | null
+          cartao_creci: string | null
+          cep: string | null
           cidade: string | null
           cnpj: string | null
           complemento: string | null
+          comprovante_endereco: string | null
           criado_em: string
+          data_verificacao_cartao_cnpj: string | null
+          data_verificacao_cartao_creci: string | null
+          data_verificacao_comprovante_endereco: string | null
           endereco: string | null
           estado: string | null
           id: string
           nome_empresa: string | null
           numero: string | null
           pais: string | null
+          status_cartao_cnpj: string | null
+          status_cartao_creci: string | null
+          status_comprovante_endereco: string | null
           usuario_id: string
         }
         Insert: {
           atualizado_em?: string
           bairro?: string | null
+          cartao_cnpj?: string | null
+          cartao_creci?: string | null
+          cep?: string | null
           cidade?: string | null
           cnpj?: string | null
           complemento?: string | null
+          comprovante_endereco?: string | null
           criado_em?: string
+          data_verificacao_cartao_cnpj?: string | null
+          data_verificacao_cartao_creci?: string | null
+          data_verificacao_comprovante_endereco?: string | null
           endereco?: string | null
           estado?: string | null
           id?: string
           nome_empresa?: string | null
           numero?: string | null
           pais?: string | null
+          status_cartao_cnpj?: string | null
+          status_cartao_creci?: string | null
+          status_comprovante_endereco?: string | null
           usuario_id: string
         }
         Update: {
           atualizado_em?: string
           bairro?: string | null
+          cartao_cnpj?: string | null
+          cartao_creci?: string | null
+          cep?: string | null
           cidade?: string | null
           cnpj?: string | null
           complemento?: string | null
+          comprovante_endereco?: string | null
           criado_em?: string
+          data_verificacao_cartao_cnpj?: string | null
+          data_verificacao_cartao_creci?: string | null
+          data_verificacao_comprovante_endereco?: string | null
           endereco?: string | null
           estado?: string | null
           id?: string
           nome_empresa?: string | null
           numero?: string | null
           pais?: string | null
+          status_cartao_cnpj?: string | null
+          status_cartao_creci?: string | null
+          status_comprovante_endereco?: string | null
           usuario_id?: string
         }
         Relationships: [
