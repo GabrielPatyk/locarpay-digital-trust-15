@@ -1,27 +1,20 @@
-# Estágio de construção
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-
-# Cache de dependências
-COPY package.json package-lock.json ./
-RUN npm ci
-
-# Copia o restante e faz o build
-COPY . .
-RUN npm run build
-
-# Estágio de produção
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copia apenas o necessário
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
+# Primeiro copia apenas os arquivos de dependência
+COPY package*.json ./
 
-# Porta exposta (Vite usa 3000 por padrão)
+# Instala as dependências
+RUN npm install
+
+# Copia o restante dos arquivos
+COPY . .
+
+# Constrói a aplicação
+RUN npm run build
+
+# Porta exposta
 EXPOSE 3000
 
 # Comando de inicialização
