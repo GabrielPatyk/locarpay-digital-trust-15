@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
+import StatusPlataforma from '@/components/StatusPlataforma';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -249,6 +250,9 @@ const ConfiguracoesJuridico = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Status da Plataforma */}
+        <StatusPlataforma />
       </div>
     </Layout>
   );

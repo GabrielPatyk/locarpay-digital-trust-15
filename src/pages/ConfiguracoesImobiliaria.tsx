@@ -7,6 +7,7 @@ import Layout from '@/components/Layout';
 import ImageUpload from '@/components/ImageUpload';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import ContratoParceriaStatus from '@/components/ContratoParceriaStatus';
+import StatusPlataforma from '@/components/StatusPlataforma';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -664,6 +665,9 @@ const ConfiguracoesImobiliaria = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Status da Plataforma */}
+        <StatusPlataforma />
 
         {/* Modais de Confirmação */}
         <ConfirmationModal
