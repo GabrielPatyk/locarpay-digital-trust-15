@@ -41,6 +41,7 @@ export interface UserProfile {
   bairro?: string;
   cidade?: string;
   estado?: string;
+  cep?: string;
   pais?: string;
   criado_em: string;
   atualizado_em: string;

@@ -8,6 +8,8 @@ import ImageUpload from '@/components/ImageUpload';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import ContratoParceriaStatus from '@/components/ContratoParceriaStatus';
 import StatusPlataforma from '@/components/StatusPlataforma';
+import DocumentoVerificacao from '@/components/DocumentoVerificacao';
+import { useDocumentosImobiliaria } from '@/hooks/useDocumentosImobiliaria';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +36,7 @@ const ConfiguracoesImobiliaria = () => {
   const { profile, updateProfile, updateUserData, updatePassword, loading } = useUserProfile();
   const { formatPhone, formatCNPJ, unformatPhone, unformatCNPJ, isValidPhone } = usePhoneFormatter();
   const { cnpj: currentCnpj, isLoading: cnpjLoading } = useImobiliariaData();
+  const { documentos, refetch: refetchDocumentos } = useDocumentosImobiliaria();
   const { toast } = useToast();
   
   const [showPassword, setShowPassword] = useState(false);
@@ -52,6 +55,7 @@ const ConfiguracoesImobiliaria = () => {
     bairro: '',
     cidade: '',
     estado: '',
+    cep: '',
     pais: 'Brasil',
     
     // Dados pessoais - campos vazios para edição
@@ -102,6 +106,7 @@ const ConfiguracoesImobiliaria = () => {
       'Bairro': formData.bairro || '(não alterado)',
       'Cidade': formData.cidade || '(não alterado)',
       'Estado': formData.estado || '(não alterado)',
+      'CEP': formData.cep || '(não alterado)',
       'País': formData.pais || 'Brasil'
     };
 
@@ -121,6 +126,7 @@ const ConfiguracoesImobiliaria = () => {
     if (formData.bairro.trim()) updateData.bairro = formData.bairro;
     if (formData.cidade.trim()) updateData.cidade = formData.cidade;
     if (formData.estado.trim()) updateData.estado = formData.estado;
+    if (formData.cep.trim()) updateData.cep = formData.cep;
     if (formData.pais.trim()) updateData.pais = formData.pais;
 
     const success = await updateProfile(updateData);
@@ -141,7 +147,8 @@ const ConfiguracoesImobiliaria = () => {
         complemento: '',
         bairro: '',
         cidade: '',
-        estado: ''
+        estado: '',
+        cep: ''
       }));
     }
   };
@@ -320,6 +327,51 @@ const ConfiguracoesImobiliaria = () => {
             
             {/* Contrato de Parceria Status */}
             <ContratoParceriaStatus />
+            
+            {/* Separador */}
+            <hr className="my-6" />
+            
+            {/* Documentos de Verificação */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg mb-4">Documentos de Verificação</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Para utilizar a plataforma, você deve enviar e ter aprovados os seguintes documentos:
+              </p>
+              
+              {documentos && (
+                <div className="space-y-3">
+                  <DocumentoVerificacao
+                    tipo="cartao_cnpj"
+                    titulo="Cartão CNPJ"
+                    descricao="Documento oficial do CNPJ da empresa"
+                    arquivo={documentos.cartao_cnpj}
+                    status={documentos.status_cartao_cnpj}
+                    dataVerificacao={documentos.data_verificacao_cartao_cnpj}
+                    onUploadSuccess={refetchDocumentos}
+                  />
+                  
+                  <DocumentoVerificacao
+                    tipo="comprovante_endereco"
+                    titulo="Comprovante de Endereço"
+                    descricao="Comprovante de endereço da sede da empresa"
+                    arquivo={documentos.comprovante_endereco}
+                    status={documentos.status_comprovante_endereco}
+                    dataVerificacao={documentos.data_verificacao_comprovante_endereco}
+                    onUploadSuccess={refetchDocumentos}
+                  />
+                  
+                  <DocumentoVerificacao
+                    tipo="cartao_creci"
+                    titulo="Cartão CRECI"
+                    descricao="Documento de registro no CRECI"
+                    arquivo={documentos.cartao_creci}
+                    status={documentos.status_cartao_creci}
+                    dataVerificacao={documentos.data_verificacao_cartao_creci}
+                    onUploadSuccess={refetchDocumentos}
+                  />
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -402,7 +454,7 @@ const ConfiguracoesImobiliaria = () => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <Label htmlFor="bairro">Bairro</Label>
                 <Input
@@ -437,6 +489,18 @@ const ConfiguracoesImobiliaria = () => {
                 />
                 {profile?.estado && (
                   <p className="text-xs text-gray-500 mt-1">Atual: {profile.estado}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="cep">CEP</Label>
+                <Input
+                  id="cep"
+                  value={formData.cep}
+                  onChange={(e) => handleInputChange('cep', e.target.value)}
+                  placeholder={profile?.cep || "00000-000"}
+                />
+                {profile?.cep && (
+                  <p className="text-xs text-gray-500 mt-1">Atual: {profile.cep}</p>
                 )}
               </div>
             </div>
