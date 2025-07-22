@@ -9,6 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { useFiancaDetails } from '@/hooks/useFiancaDetails';
 import { useCargoRedirect } from '@/hooks/useCargoRedirect';
 import { useAuth } from '@/contexts/AuthContext';
+import DocumentUpload from '@/components/DocumentUpload';
+import { useFiancaDocumentosExecutivo } from '@/hooks/useFiancaDocumentosExecutivo';
 import { 
   ArrowLeft, 
   User, 
@@ -31,6 +33,7 @@ const DetalheFianca = () => {
   const { user } = useAuth();
   const { fianca, historico, isLoading } = useFiancaDetails(id || '');
   const { getCargoHomePage } = useCargoRedirect();
+  const { anexarDocumento, atualizarDocumento, isAnexando, isAtualizando } = useFiancaDocumentosExecutivo(id || '');
 
   // Verificar se o usuário tem permissão (admin, analista, financeiro, executivo, imobiliária dona da fiança ou inquilino da fiança)
   React.useEffect(() => {
@@ -602,6 +605,134 @@ const DetalheFianca = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Documentos do Executivo - Apenas para executivos */}
+        {user?.type === 'executivo' && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <FileText className="mr-2 h-5 w-5 text-purple-600" />
+                Documentos do Executivo
+              </CardTitle>
+              <CardDescription>
+                Anexar documentos do inquilino coletados pelo executivo
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">RG do Inquilino</label>
+                  <DocumentUpload
+                    onUploadSuccess={(url) => anexarDocumento({ tipoDocumento: 'rg', arquivo: url })}
+                    disabled={isAnexando}
+                    label="Anexar RG"
+                  />
+                  {(fianca.documentos_executivo as any)?.rg && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*,.pdf';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              atualizarDocumento({ tipoDocumento: 'rg', arquivo: reader.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                      disabled={isAtualizando}
+                    >
+                      Atualizar RG
+                    </Button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">CPF do Inquilino</label>
+                  <DocumentUpload
+                    onUploadSuccess={(url) => anexarDocumento({ tipoDocumento: 'cpf', arquivo: url })}
+                    disabled={isAnexando}
+                    label="Anexar CPF"
+                  />
+                  {(fianca.documentos_executivo as any)?.cpf && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*,.pdf';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              atualizarDocumento({ tipoDocumento: 'cpf', arquivo: reader.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                      disabled={isAtualizando}
+                    >
+                      Atualizar CPF
+                    </Button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Comprovante de Residência</label>
+                  <DocumentUpload
+                    onUploadSuccess={(url) => anexarDocumento({ tipoDocumento: 'comprovante_residencia', arquivo: url })}
+                    disabled={isAnexando}
+                    label="Anexar Comprovante"
+                  />
+                  {(fianca.documentos_executivo as any)?.comprovante_residencia && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*,.pdf';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              atualizarDocumento({ tipoDocumento: 'comprovante_residencia', arquivo: reader.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                      disabled={isAtualizando}
+                    >
+                      Atualizar Comprovante
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {fianca.anexado_por_executivo && fianca.data_anexo_executivo && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    <strong>Anexado em:</strong> {new Date(fianca.data_anexo_executivo).toLocaleString('pt-BR')}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Contratos e Assinaturas - Aparece após pagamento_confirmado */}
         {['pagamento_confirmado', 'ativa'].includes(fianca.status_fianca) && (

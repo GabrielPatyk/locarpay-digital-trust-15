@@ -163,9 +163,11 @@ export type Database = {
       }
       fiancas_locaticias: {
         Row: {
+          anexado_por_executivo: string | null
           comprovante_pagamento: string | null
           criado_por: string | null
           data_analise: string | null
+          data_anexo_executivo: string | null
           data_aprovacao: string | null
           data_atualizacao: string
           data_atualizacao_pagamento: string | null
@@ -173,6 +175,7 @@ export type Database = {
           data_criacao: string
           data_envio_link: string | null
           data_vencimento: string | null
+          documentos_executivo: Json | null
           financeiro_id: string | null
           id: string
           id_analista: string | null
@@ -216,9 +219,11 @@ export type Database = {
           valor_total_locacao: number | null
         }
         Insert: {
+          anexado_por_executivo?: string | null
           comprovante_pagamento?: string | null
           criado_por?: string | null
           data_analise?: string | null
+          data_anexo_executivo?: string | null
           data_aprovacao?: string | null
           data_atualizacao?: string
           data_atualizacao_pagamento?: string | null
@@ -226,6 +231,7 @@ export type Database = {
           data_criacao?: string
           data_envio_link?: string | null
           data_vencimento?: string | null
+          documentos_executivo?: Json | null
           financeiro_id?: string | null
           id?: string
           id_analista?: string | null
@@ -269,9 +275,11 @@ export type Database = {
           valor_total_locacao?: number | null
         }
         Update: {
+          anexado_por_executivo?: string | null
           comprovante_pagamento?: string | null
           criado_por?: string | null
           data_analise?: string | null
+          data_anexo_executivo?: string | null
           data_aprovacao?: string | null
           data_atualizacao?: string
           data_atualizacao_pagamento?: string | null
@@ -279,6 +287,7 @@ export type Database = {
           data_criacao?: string
           data_envio_link?: string | null
           data_vencimento?: string | null
+          documentos_executivo?: Json | null
           financeiro_id?: string | null
           id?: string
           id_analista?: string | null
@@ -322,6 +331,13 @@ export type Database = {
           valor_total_locacao?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fiancas_locaticias_anexado_por_executivo_fkey"
+            columns: ["anexado_por_executivo"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fiancas_locaticias_criado_por_fkey"
             columns: ["criado_por"]

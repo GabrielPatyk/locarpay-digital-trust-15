@@ -25,11 +25,7 @@ export const useFiancaDetails = (fiancaId: string) => {
           id,
           nome,
           email,
-          telefone,
-          criado_por,
-          criado_por_usuario:usuarios!usuarios_criado_por_fkey(
-            nome
-          )
+          telefone
         )
         `)
         .eq('id', fiancaId)
