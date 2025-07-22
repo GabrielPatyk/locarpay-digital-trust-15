@@ -97,12 +97,8 @@ const ContratosImobiliaria = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Contratos</h1>
-            <p className="text-gray-600 text-sm">Gerencie todos os contratos da sua imobiliária</p>
+            <p className="text-gray-600 text-sm">Visualize todos os contratos vinculados às suas fianças</p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90 text-sm w-full sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Contrato
-          </Button>
         </div>
 
         {/* Search */}
@@ -223,8 +219,8 @@ const ContratosImobiliaria = () => {
               </h3>
               <p className="text-gray-600 text-sm">
                 {searchTerm 
-                  ? 'Tente ajustar sua busca ou adicione um novo contrato.'
-                  : 'Adicione seu primeiro contrato para começar.'
+                  ? 'Tente ajustar sua busca.'
+                  : 'Nenhum contrato encontrado para esta imobiliária.'
                 }
               </p>
             </CardContent>

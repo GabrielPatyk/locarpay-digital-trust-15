@@ -8,8 +8,6 @@ export interface ContratoImobiliaria {
   status_contrato: string;
   inquilino_nome_completo: string;
   inquilino_email: string;
-  inquilino_cpf: string;
-  inquilino_whatsapp: string;
   imovel_endereco: string;
   imovel_numero: string;
   imovel_bairro: string;
@@ -37,15 +35,10 @@ export const useContratosImobiliaria = () => {
           id,
           fianca_id,
           status_contrato,
-          inquilino_nome,
-          inquilino_email,
-          inquilino_cpf,
-          inquilino_whatsapp,
-          valor_fianca,
-          valor_aluguel,
           created_at,
           url_assinatura_inquilino,
           fiancas_locaticias!inner (
+            id_imobiliaria,
             inquilino_nome_completo,
             inquilino_email,
             imovel_endereco,
@@ -56,8 +49,7 @@ export const useContratosImobiliaria = () => {
             imovel_tempo_locacao,
             imovel_tipo,
             valor_fianca,
-            data_criacao,
-            id_imobiliaria
+            data_criacao
           )
         `)
         .eq('fiancas_locaticias.id_imobiliaria', user.id)
@@ -75,8 +67,6 @@ export const useContratosImobiliaria = () => {
         status_contrato: contrato.status_contrato,
         inquilino_nome_completo: contrato.fiancas_locaticias.inquilino_nome_completo,
         inquilino_email: contrato.fiancas_locaticias.inquilino_email,
-        inquilino_cpf: contrato.inquilino_cpf || '',
-        inquilino_whatsapp: contrato.inquilino_whatsapp || '',
         imovel_endereco: contrato.fiancas_locaticias.imovel_endereco,
         imovel_numero: contrato.fiancas_locaticias.imovel_numero,
         imovel_bairro: contrato.fiancas_locaticias.imovel_bairro,
