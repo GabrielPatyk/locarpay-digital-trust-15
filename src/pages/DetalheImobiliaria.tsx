@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDocumentosImobiliaria } from '@/hooks/useDocumentosImobiliaria';
 import { useContratoParceria } from '@/hooks/useContratoParceria';
 import { useAuth } from '@/contexts/AuthContext';
-import ComprovanteUpload from '@/components/ComprovanteUpload';
+import DocumentUpload from '@/components/DocumentUpload';
 import { useToast } from '@/hooks/use-toast';
 
 const DetalheImobiliaria = () => {
@@ -347,8 +347,9 @@ const DetalheImobiliaria = () => {
                       Ver Documento
                     </Button>
                   )}
-                  <ComprovanteUpload
+                  <DocumentUpload
                     onUploadSuccess={handleUploadSuccess}
+                    label="Upload CNPJ"
                   />
                 </div>
               </div>
@@ -375,8 +376,9 @@ const DetalheImobiliaria = () => {
                       Ver Documento
                     </Button>
                   )}
-                  <ComprovanteUpload
+                  <DocumentUpload
                     onUploadSuccess={handleUploadSuccess}
+                    label="Upload Endereço"
                   />
                 </div>
               </div>
@@ -403,8 +405,9 @@ const DetalheImobiliaria = () => {
                       Ver Documento
                     </Button>
                   )}
-                  <ComprovanteUpload
+                  <DocumentUpload
                     onUploadSuccess={handleUploadSuccess}
+                    label="Upload CRECI"
                   />
                 </div>
               </div>
