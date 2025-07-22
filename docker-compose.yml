@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  app:
+    image: node:18-alpine
+    container_name: locarpay-digital-trust
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      - NODE_ENV=production
+      # Adicione outras variáveis aqui
+    volumes:
+      - ./:/app
+    networks:
+      - LocarPayNet
+      - traefik_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_net"
+      - "traefik.http.routers.locarpay-digital-trust.rule=Host(`app.locarpay.com.br`)"
+      - "traefik.http.routers.locarpay-digital-trust.entrypoints=websecure"
+      - "traefik.http.routers.locarpay-digital-trust.tls.certresolver=myresolver"
+      - "traefik.http.services.locarpay-digital-trust.loadbalancer.server.port=3000"
+    command: sh -c "npm install && npm run build && npm start"
+
+networks:
+  LocarPayNet:
+    external: true
+  traefik_net:
+    external: true
