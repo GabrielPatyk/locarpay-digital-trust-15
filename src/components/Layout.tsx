@@ -3,13 +3,14 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bell, LogOut, Settings, Menu } from 'lucide-react';
+import { LogOut, Settings, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ProfileCompletionCheck from '@/components/ProfileCompletionCheck';
 import PrimeiroAcessoModal from '@/components/PrimeiroAcessoModal';
 import { usePrimeiroAcesso } from '@/hooks/usePrimeiroAcesso';
+import NotificacoesDropdown from '@/components/NotificacoesDropdown';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -38,8 +39,13 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
       navigate('/configuracoes-inquilino');
     } else if (user?.type === 'financeiro') {
       navigate('/configuracoes-financeiro');
+    } else if (user?.type === 'executivo') {
+      navigate('/configuracoes-executivo');
+    } else if (user?.type === 'admin') {
+      navigate('/configuracoes-admin');
+    } else if (user?.type === 'juridico') {
+      navigate('/configuracoes-juridico');
     }
-    // Para outros tipos de usuário, não faz nada ainda
   };
 
   const getUserTypeLabel = (type: string) => {
@@ -120,12 +126,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
             </div>
 
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  3
-                </span>
-              </Button>
+              <NotificacoesDropdown />
 
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
@@ -147,7 +148,6 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
                 variant="ghost" 
                 size="sm" 
                 onClick={handleSettings}
-                disabled={user?.type !== 'imobiliaria' && user?.type !== 'analista' && user?.type !== 'sdr' && user?.type !== 'inquilino' && user?.type !== 'financeiro'}
               >
                 <Settings className="h-5 w-5" />
               </Button>

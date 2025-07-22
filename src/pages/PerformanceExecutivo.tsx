@@ -13,8 +13,11 @@ import {
   Award
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { useDashboardExecutivo } from '@/hooks/useDashboardExecutivo';
 
 const PerformanceExecutivo = () => {
+  const { dashboardData, isLoading } = useDashboardExecutivo();
+
   // Mock data para os gráficos
   const monthlyData = [
     { month: 'Jan', vendas: 12, meta: 15 },
@@ -25,19 +28,32 @@ const PerformanceExecutivo = () => {
     { month: 'Jun', vendas: 25, meta: 20 },
   ];
 
-  const imobiliariasData = [
-    { name: 'Imobiliária Prime', fiancas: 15, valor: 37500 },
-    { name: 'Imobiliária Central', fiancas: 22, valor: 68000 },
-    { name: 'Imobiliária Top', fiancas: 8, valor: 24000 },
-    { name: 'Imobiliária Elite', fiancas: 12, valor: 45000 },
-  ];
-
   const statusData = [
     { name: 'Fechadas', value: 45, color: '#22c55e' },
     { name: 'Em Negociação', value: 25, color: '#f59e0b' },
     { name: 'Pendentes', value: 20, color: '#ef4444' },
     { name: 'Canceladas', value: 10, color: '#6b7280' },
   ];
+
+  // Dados reais das imobiliárias
+  const imobiliariasData = dashboardData?.imobiliarias?.map(imob => ({
+    name: imob.nome,
+    fiancas: imob.totalFiancas,
+    valor: imob.valorTotal
+  })) || [];
+
+  if (isLoading) {
+    return (
+      <Layout title="Performance do Executivo">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-gray-600">Carregando dados...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="Performance do Executivo">
@@ -59,11 +75,11 @@ const PerformanceExecutivo = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Vendas do Mês</p>
-                  <p className="text-2xl font-bold text-primary">25</p>
+                  <p className="text-sm font-medium text-gray-600">Total de Fianças</p>
+                  <p className="text-2xl font-bold text-primary">{dashboardData?.stats?.totalFiancas || 0}</p>
                   <p className="text-xs text-success flex items-center">
                     <TrendingUp className="h-3 w-3 mr-1" />
-                    +15% vs mês anterior
+                    Fianças geradas
                   </p>
                 </div>
                 <Target className="h-8 w-8 text-primary" />
@@ -75,10 +91,10 @@ const PerformanceExecutivo = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Meta do Mês</p>
-                  <p className="text-2xl font-bold text-warning">20</p>
+                  <p className="text-sm font-medium text-gray-600">Imobiliárias Ativas</p>
+                  <p className="text-2xl font-bold text-warning">{dashboardData?.stats?.imobiliariasAtivas || 0}</p>
                   <p className="text-xs text-success">
-                    125% da meta atingida
+                    de {dashboardData?.stats?.totalImobiliarias || 0} total
                   </p>
                 </div>
                 <Calendar className="h-8 w-8 text-warning" />
@@ -90,11 +106,13 @@ const PerformanceExecutivo = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Receita Total</p>
-                  <p className="text-2xl font-bold text-success">R$ 174K</p>
+                  <p className="text-sm font-medium text-gray-600">Valor Total Fianças</p>
+                  <p className="text-2xl font-bold text-success">
+                    R$ {dashboardData?.stats?.valorTotalFiancas?.toLocaleString('pt-BR') || '0'}
+                  </p>
                   <p className="text-xs text-success flex items-center">
                     <TrendingUp className="h-3 w-3 mr-1" />
-                    +22% vs mês anterior
+                    Valor gerado
                   </p>
                 </div>
                 <DollarSign className="h-8 w-8 text-success" />
@@ -106,10 +124,10 @@ const PerformanceExecutivo = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Imobiliárias Ativas</p>
-                  <p className="text-2xl font-bold text-blue-600">4</p>
+                  <p className="text-sm font-medium text-gray-600">Total Imobiliárias</p>
+                  <p className="text-2xl font-bold text-blue-600">{dashboardData?.stats?.totalImobiliarias || 0}</p>
                   <p className="text-xs text-gray-500">
-                    100% das imobiliárias
+                    Cadastradas na plataforma
                   </p>
                 </div>
                 <Users className="h-8 w-8 text-blue-600" />

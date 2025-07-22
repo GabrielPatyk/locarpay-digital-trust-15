@@ -41,7 +41,7 @@ export const useContratoInquilino = () => {
           id,
           fianca_id,
           status_contrato,
-          url_contrato,
+          url_assinatura_inquilino,
           data_envio,
           data_assinatura,
           created_at
@@ -53,7 +53,10 @@ export const useContratoInquilino = () => {
         return null;
       }
 
-      return contratoData as ContratoInquilino;
+      return {
+        ...contratoData,
+        url_contrato: contratoData.url_assinatura_inquilino
+      } as ContratoInquilino;
     },
     enabled: !!user?.id
   });

@@ -54,7 +54,7 @@ export type Database = {
           selfie_url: string | null
           status_contrato: Database["public"]["Enums"]["status_contrato"]
           updated_at: string | null
-          url_contrato: string | null
+          url_assinatura_inquilino: string | null
           valor_aluguel: number | null
           valor_fianca: number | null
         }
@@ -73,7 +73,7 @@ export type Database = {
           selfie_url?: string | null
           status_contrato?: Database["public"]["Enums"]["status_contrato"]
           updated_at?: string | null
-          url_contrato?: string | null
+          url_assinatura_inquilino?: string | null
           valor_aluguel?: number | null
           valor_fianca?: number | null
         }
@@ -92,7 +92,7 @@ export type Database = {
           selfie_url?: string | null
           status_contrato?: Database["public"]["Enums"]["status_contrato"]
           updated_at?: string | null
-          url_contrato?: string | null
+          url_assinatura_inquilino?: string | null
           valor_aluguel?: number | null
           valor_fianca?: number | null
         }
@@ -410,6 +410,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notificacoes: {
+        Row: {
+          dados_extras: Json | null
+          data_criacao: string
+          id: string
+          lida: boolean
+          mensagem: string
+          tipo: string
+          titulo: string
+          usuario_id: string
+        }
+        Insert: {
+          dados_extras?: Json | null
+          data_criacao?: string
+          id?: string
+          lida?: boolean
+          mensagem: string
+          tipo: string
+          titulo: string
+          usuario_id: string
+        }
+        Update: {
+          dados_extras?: Json | null
+          data_criacao?: string
+          id?: string
+          lida?: boolean
+          mensagem?: string
+          tipo?: string
+          titulo?: string
+          usuario_id?: string
+        }
+        Relationships: []
       }
       perfil_usuario: {
         Row: {

@@ -115,8 +115,14 @@ const DetalheFianca = () => {
            'Não atribuído';
   };
 
-  // Função para buscar o nome do executivo responsável - simplificada
+  // Função para buscar o nome do executivo responsável
   const getExecutivoNome = () => {
+    // Buscar o executivo que criou a imobiliária
+    if (fianca?.usuarios && 'criado_por_usuario' in fianca.usuarios && 
+        Array.isArray(fianca.usuarios.criado_por_usuario) && 
+        fianca.usuarios.criado_por_usuario[0]?.nome) {
+      return fianca.usuarios.criado_por_usuario[0].nome;
+    }
     return 'Não atribuído';
   };
 
