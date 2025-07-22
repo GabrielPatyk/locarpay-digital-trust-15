@@ -530,6 +530,45 @@ export type Database = {
           },
         ]
       }
+      status_plataforma: {
+        Row: {
+          apis_integracoes: Json | null
+          changelog: Json | null
+          created_at: string
+          data_ultima_atualizacao: string
+          id: string
+          infraestrutura: Json | null
+          navegadores_compativeis: Json | null
+          proximas_atualizacoes: Json | null
+          updated_at: string
+          versao_atual: string
+        }
+        Insert: {
+          apis_integracoes?: Json | null
+          changelog?: Json | null
+          created_at?: string
+          data_ultima_atualizacao?: string
+          id?: string
+          infraestrutura?: Json | null
+          navegadores_compativeis?: Json | null
+          proximas_atualizacoes?: Json | null
+          updated_at?: string
+          versao_atual?: string
+        }
+        Update: {
+          apis_integracoes?: Json | null
+          changelog?: Json | null
+          created_at?: string
+          data_ultima_atualizacao?: string
+          id?: string
+          infraestrutura?: Json | null
+          navegadores_compativeis?: Json | null
+          proximas_atualizacoes?: Json | null
+          updated_at?: string
+          versao_atual?: string
+        }
+        Relationships: []
+      }
       tokens_redefinicao_senha: {
         Row: {
           criado_em: string

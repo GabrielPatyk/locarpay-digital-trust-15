@@ -8,6 +8,7 @@ import Layout from '@/components/Layout';
 import ImageUpload from '@/components/ImageUpload';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import StatusPlataforma from '@/components/StatusPlataforma';
+import StatusPlataformaEditor from '@/components/StatusPlataformaEditor';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -549,8 +550,11 @@ const ConfiguracoesAdmin = () => {
           </CardContent>
         </Card>
 
-        {/* Status da Plataforma */}
-        <StatusPlataforma />
+            {/* Configurações do Status da Plataforma */}
+            <StatusPlataformaEditor />
+
+            {/* Status da Plataforma */}
+            <StatusPlataforma />
 
         {/* Modal de Confirmação */}
         <ConfirmationModal
