@@ -2,30 +2,32 @@ version: '3.8'
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: locarpay-digital-trust
-    restart: unless-stopped
+    image: node:18-alpine
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik_net"
+        - "traefik.http.routers.locarpay-digital-trust.rule=Host(`app.locarpay.com.br`)"
+        - "traefik.http.routers.locarpay-digital-trust.entrypoints=websecure"
+        - "traefik.http.routers.locarpay-digital-trust.tls.certresolver=myresolver"
+        - "traefik.http.services.locarpay-digital-trust.loadbalancer.server.port=3000"
     environment:
       - NODE_ENV=production
-      - VITE_API_BASE_URL=https://api.locarpay.com.br
-      # Adicione outras variáveis VITE_* necessárias
+    volumes:
+      - app-data:/app
+    command: sh -c "cd /app && npm install && npm run build && npm run preview"
     networks:
       - LocarPayNet
       - traefik_net
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=traefik_net"
-      - "traefik.http.routers.locarpay-digital-trust.rule=Host(`app.locarpay.com.br`)"
-      - "traefik.http.routers.locarpay-digital-trust.entrypoints=websecure"
-      - "traefik.http.routers.locarpay-digital-trust.tls.certresolver=myresolver"
-      - "traefik.http.services.locarpay-digital-trust.loadbalancer.server.port=3000"
-    volumes:
-      - ./node_modules:/app/node_modules # Cache de dependências
 
 networks:
   LocarPayNet:
     external: true
   traefik_net:
     external: true
+
+volumes:
+  app-data:
