@@ -5,7 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useStatusPlataforma } from '@/hooks/useStatusPlataforma';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Settings, 
   Plus,
@@ -16,8 +19,10 @@ import {
 
 const StatusPlataformaEditor = () => {
   const { statusPlataforma, updateStatus, isUpdating } = useStatusPlataforma();
+  const { toast } = useToast();
   const [editData, setEditData] = useState<any>({});
   const [isEditing, setIsEditing] = useState(false);
+  const [showNotifyUsers, setShowNotifyUsers] = useState(false);
 
   useEffect(() => {
     if (statusPlataforma) {
@@ -33,11 +38,70 @@ const StatusPlataformaEditor = () => {
   }, [statusPlataforma]);
 
   const handleSave = () => {
-    updateStatus({
-      ...editData,
-      data_ultima_atualizacao: new Date().toISOString()
-    });
-    setIsEditing(false);
+    if (editData) {
+      // Se a versão mudou, mostrar opção de notificar usuários
+      if (editData.versao_atual !== statusPlataforma?.versao_atual) {
+        setShowNotifyUsers(true);
+      } else {
+        saveChanges(false);
+      }
+    }
+  };
+
+  const saveChanges = async (notifyUsers: boolean) => {
+    if (editData) {
+      updateStatus({
+        ...editData,
+        data_ultima_atualizacao: new Date().toISOString()
+      });
+      
+      if (notifyUsers && editData.versao_atual !== statusPlataforma?.versao_atual) {
+        await notificarUsuarios();
+      }
+      
+      setIsEditing(false);
+      setShowNotifyUsers(false);
+    }
+  };
+
+  const notificarUsuarios = async () => {
+    try {
+      // Buscar todos os usuários ativos
+      const { data: usuarios } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('ativo', true);
+
+      if (usuarios) {
+        // Criar notificação para cada usuário
+        const notificacoes = usuarios.map(user => ({
+          usuario_id: user.id,
+          titulo: `Atualização da Plataforma (Versão ${editData?.versao_atual})`,
+          mensagem: `A plataforma foi atualizada para a versão ${editData?.versao_atual}. ${editData?.changelog?.[0]?.descricao || 'Confira as novidades!'}`,
+          tipo: 'atualizacao_plataforma',
+          dados_extras: {
+            versao: editData?.versao_atual,
+            changelog: editData?.changelog || []
+          }
+        }));
+
+        await supabase
+          .from('notificacoes')
+          .insert(notificacoes);
+
+        toast({
+          title: "Usuários notificados!",
+          description: `${usuarios.length} usuários foram notificados sobre a atualização.`,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao notificar usuários:', error);
+      toast({
+        title: "Erro ao notificar",
+        description: "Houve um erro ao enviar as notificações.",
+        variant: "destructive",
+      });
+    }
   };
 
   const addChangelog = () => {
@@ -333,6 +397,32 @@ const StatusPlataformaEditor = () => {
             Última atualização: {new Date(statusPlataforma.data_ultima_atualizacao).toLocaleString('pt-BR')}
           </div>
         )}
+
+        {/* Dialog para notificar usuários */}
+        <Dialog open={showNotifyUsers} onOpenChange={setShowNotifyUsers}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Notificar Usuários</DialogTitle>
+              <DialogDescription>
+                A versão da plataforma foi alterada. Deseja notificar todos os usuários sobre esta atualização?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => saveChanges(false)}
+              >
+                Não notificar
+              </Button>
+              <Button
+                onClick={() => saveChanges(true)}
+                className="bg-primary hover:bg-primary/90"
+              >
+                Sim, notificar usuários
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

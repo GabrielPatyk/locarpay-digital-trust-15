@@ -47,6 +47,7 @@ export type Database = {
           documentos: Json | null
           fianca_id: string
           id: string
+          imobiliaria_id: string | null
           inquilino_cpf: string | null
           inquilino_email: string | null
           inquilino_nome: string | null
@@ -66,6 +67,7 @@ export type Database = {
           documentos?: Json | null
           fianca_id: string
           id?: string
+          imobiliaria_id?: string | null
           inquilino_cpf?: string | null
           inquilino_email?: string | null
           inquilino_nome?: string | null
@@ -85,6 +87,7 @@ export type Database = {
           documentos?: Json | null
           fianca_id?: string
           id?: string
+          imobiliaria_id?: string | null
           inquilino_cpf?: string | null
           inquilino_email?: string | null
           inquilino_nome?: string | null
@@ -109,6 +112,13 @@ export type Database = {
             columns: ["fianca_id"]
             isOneToOne: false
             referencedRelation: "fiancas_para_analise"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contratos_fianca_imobiliaria_id_fkey"
+            columns: ["imobiliaria_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]

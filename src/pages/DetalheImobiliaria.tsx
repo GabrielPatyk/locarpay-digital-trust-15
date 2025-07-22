@@ -6,12 +6,19 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Building, Mail, Phone, FileText, Users, Calendar, ArrowLeft } from 'lucide-react';
+import { Building, Mail, Phone, FileText, Users, Calendar, ArrowLeft, Upload, Eye, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useDocumentosImobiliaria } from '@/hooks/useDocumentosImobiliaria';
+import { useContratoParceria } from '@/hooks/useContratoParceria';
+import { useAuth } from '@/contexts/AuthContext';
+import ComprovanteUpload from '@/components/ComprovanteUpload';
+import { useToast } from '@/hooks/use-toast';
 
 const DetalheImobiliaria = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const { data: imobiliaria, isLoading } = useQuery({
     queryKey: ['imobiliaria-detalhes', id],
@@ -76,6 +83,46 @@ const DetalheImobiliaria = () => {
     },
     enabled: !!id
   });
+
+  // Hook para documentos da imobiliária
+  const { documentos, todosDocumentosVerificados, algumDocumentoPendente, refetch: refetchDocumentos } = useDocumentosImobiliaria();
+  
+  // Hook para contrato de parceria
+  const { contrato: contratoStatus, isLoading: loadingContrato } = useContratoParceria(id || '');
+
+  const getDocumentStatusIcon = (status: string) => {
+    switch (status) {
+      case 'verificado':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'rejeitado':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'verificando':
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+      default:
+        return <XCircle className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getDocumentStatusColor = (status: string) => {
+    switch (status) {
+      case 'verificado':
+        return 'bg-green-100 text-green-800';
+      case 'rejeitado':
+        return 'bg-red-100 text-red-800';
+      case 'verificando':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleUploadSuccess = () => {
+    refetchDocumentos();
+    toast({
+      title: "Upload realizado!",
+      description: "Documento enviado com sucesso.",
+    });
+  };
 
   if (isLoading) {
     return (
@@ -270,6 +317,128 @@ const DetalheImobiliaria = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Documentos */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Documentos da Imobiliária</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* CNPJ */}
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium">Cartão CNPJ</h4>
+                  {getDocumentStatusIcon(documentos?.status_cartao_cnpj || 'pendente')}
+                </div>
+                <Badge className={`mb-3 ${getDocumentStatusColor(documentos?.status_cartao_cnpj || 'pendente')}`}>
+                  {documentos?.status_cartao_cnpj === 'verificado' ? 'Verificado' :
+                   documentos?.status_cartao_cnpj === 'verificando' ? 'Em verificação' : 'Pendente'}
+                </Badge>
+                <div className="space-y-2">
+                  {documentos?.cartao_cnpj && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(documentos.cartao_cnpj, '_blank')}
+                      className="w-full"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver Documento
+                    </Button>
+                  )}
+                  <ComprovanteUpload
+                    onUploadSuccess={handleUploadSuccess}
+                  />
+                </div>
+              </div>
+
+              {/* Comprovante de Endereço */}
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium">Comprovante Endereço</h4>
+                  {getDocumentStatusIcon(documentos?.status_comprovante_endereco || 'pendente')}
+                </div>
+                <Badge className={`mb-3 ${getDocumentStatusColor(documentos?.status_comprovante_endereco || 'pendente')}`}>
+                  {documentos?.status_comprovante_endereco === 'verificado' ? 'Verificado' :
+                   documentos?.status_comprovante_endereco === 'verificando' ? 'Em verificação' : 'Pendente'}
+                </Badge>
+                <div className="space-y-2">
+                  {documentos?.comprovante_endereco && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(documentos.comprovante_endereco, '_blank')}
+                      className="w-full"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver Documento
+                    </Button>
+                  )}
+                  <ComprovanteUpload
+                    onUploadSuccess={handleUploadSuccess}
+                  />
+                </div>
+              </div>
+
+              {/* CRECI */}
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium">Cartão CRECI</h4>
+                  {getDocumentStatusIcon(documentos?.status_cartao_creci || 'pendente')}
+                </div>
+                <Badge className={`mb-3 ${getDocumentStatusColor(documentos?.status_cartao_creci || 'pendente')}`}>
+                  {documentos?.status_cartao_creci === 'verificado' ? 'Verificado' :
+                   documentos?.status_cartao_creci === 'verificando' ? 'Em verificação' : 'Pendente'}
+                </Badge>
+                <div className="space-y-2">
+                  {documentos?.cartao_creci && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(documentos.cartao_creci, '_blank')}
+                      className="w-full"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver Documento
+                    </Button>
+                  )}
+                  <ComprovanteUpload
+                    onUploadSuccess={handleUploadSuccess}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Contrato de Parceria */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Contrato de Parceria LocarPay</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <h4 className="font-medium">Status do Contrato</h4>
+                <p className="text-sm text-gray-600">
+                  {loadingContrato ? 'Carregando...' : 
+                   contratoStatus?.status_assinatura === 'assinado' ? 'Contrato assinado e ativo' :
+                   contratoStatus?.status_assinatura === 'pendente' ? 'Aguardando assinatura' :
+                   'Contrato não iniciado'}
+                </p>
+              </div>
+              <Badge className={
+                contratoStatus?.status_assinatura === 'assinado' ? 'bg-green-100 text-green-800' :
+                contratoStatus?.status_assinatura === 'pendente' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-gray-100 text-gray-800'
+              }>
+                {contratoStatus?.status_assinatura === 'assinado' ? 'Assinado' :
+                 contratoStatus?.status_assinatura === 'pendente' ? 'Pendente' : 'Não iniciado'}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Fianças Recentes */}
         <Card>

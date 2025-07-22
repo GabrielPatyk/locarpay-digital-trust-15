@@ -14,7 +14,11 @@ const ImobiliariaAccessGuard: React.FC<ImobiliariaAccessGuardProps> = ({ childre
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { podeAcessarPlataforma, precisaAssinarContrato, isLoading } = useContratoParceria();
+  const { contrato, isLoading } = useContratoParceria(user?.id || '');
+  
+  const precisaAssinarContrato = () => {
+    return user?.type === 'imobiliaria' && (!contrato || contrato.status_assinatura !== 'assinado');
+  };
 
   useEffect(() => {
     if (user?.type === 'imobiliaria' && !isLoading) {

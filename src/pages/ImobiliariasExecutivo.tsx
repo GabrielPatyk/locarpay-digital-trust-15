@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,9 +24,8 @@ import {
 } from 'lucide-react';
 
 const ImobiliariasExecutivo = () => {
+  const navigate = useNavigate();
   const [showNewForm, setShowNewForm] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedImobiliaria, setSelectedImobiliaria] = useState<ImobiliariaComPerfil | null>(null);
   const [formData, setFormData] = useState<NovaImobiliariaData>({
     nome: '',
     cnpj: '',
@@ -123,8 +123,7 @@ const ImobiliariasExecutivo = () => {
   };
 
   const handleVerDetalhes = (imobiliaria: ImobiliariaComPerfil) => {
-    setSelectedImobiliaria(imobiliaria);
-    setShowDetailModal(true);
+    navigate(`/detalhe-imobiliaria/${imobiliaria.id}`);
   };
 
   const formatPhoneForDisplay = (phone: string) => {
@@ -506,12 +505,6 @@ const ImobiliariasExecutivo = () => {
           </CardContent>
         </Card>
 
-        {/* Modal de Detalhes da Imobiliária */}
-        <ImobiliariaDetalhesModal
-          isOpen={showDetailModal}
-          onClose={() => setShowDetailModal(false)}
-          imobiliaria={selectedImobiliaria}
-        />
       </div>
     </Layout>
   );

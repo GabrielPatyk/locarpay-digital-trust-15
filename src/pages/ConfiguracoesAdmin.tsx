@@ -550,11 +550,8 @@ const ConfiguracoesAdmin = () => {
           </CardContent>
         </Card>
 
-            {/* Configurações do Status da Plataforma */}
-            <StatusPlataformaEditor />
-
-            {/* Status da Plataforma */}
-            <StatusPlataforma />
+        {/* Status da Plataforma com Editor */}
+        <StatusPlataformaEditor />
 
         {/* Modal de Confirmação */}
         <ConfirmationModal

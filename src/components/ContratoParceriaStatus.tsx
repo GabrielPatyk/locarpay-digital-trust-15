@@ -3,6 +3,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useContratoParceria } from '@/hooks/useContratoParceria';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   CheckCircle, 
   AlertTriangle, 
@@ -11,7 +12,8 @@ import {
 } from 'lucide-react';
 
 const ContratoParceriaStatus = () => {
-  const { contrato, isLoading } = useContratoParceria();
+  const { user } = useAuth();
+  const { contrato, isLoading } = useContratoParceria(user?.id || '');
 
   if (isLoading) {
     return (
