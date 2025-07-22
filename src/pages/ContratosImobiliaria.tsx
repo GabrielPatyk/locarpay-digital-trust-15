@@ -13,102 +13,82 @@ import {
   Calendar,
   DollarSign,
   User,
-  Building
+  Building,
+  Loader2
 } from 'lucide-react';
-
-interface Contrato {
-  id: string;
-  inquilino: string;
-  imovel: string;
-  dataInicio: string;
-  dataFim: string;
-  valor: number;
-  status: 'ativo' | 'vencido' | 'pendente' | 'cancelado';
-  tipo: 'residencial' | 'comercial';
-}
+import { useContratosImobiliaria } from '@/hooks/useContratosImobiliaria';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const ContratosImobiliaria = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
-  const contratos: Contrato[] = [
-    {
-      id: 'CTR-001',
-      inquilino: 'João Silva Santos',
-      imovel: 'Rua das Flores, 123 - Apt 45',
-      dataInicio: '2024-01-15',
-      dataFim: '2025-01-15',
-      valor: 2500,
-      status: 'ativo',
-      tipo: 'residencial'
-    },
-    {
-      id: 'CTR-002',
-      inquilino: 'Maria Oliveira Costa',
-      imovel: 'Av. Paulista, 456 - Sala 12',
-      dataInicio: '2024-02-01',
-      dataFim: '2025-02-01',
-      valor: 3200,
-      status: 'ativo',
-      tipo: 'comercial'
-    },
-    {
-      id: 'CTR-003',
-      inquilino: 'Pedro Ferreira Lima',
-      imovel: 'Rua Augusta, 789 - Casa',
-      dataInicio: '2023-12-01',
-      dataFim: '2024-12-01',
-      valor: 1800,
-      status: 'vencido',
-      tipo: 'residencial'
-    }
-  ];
+  const { contratos, isLoading, error, getStatusLabel, getStatusColor, getTipoLabel } = useContratosImobiliaria();
 
   const filteredContratos = contratos.filter(contrato =>
-    contrato.inquilino.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contrato.imovel.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contrato.inquilino_nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    `${contrato.imovel_endereco} ${contrato.imovel_numero}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contrato.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ativo':
-        return 'bg-green-100 text-green-800';
-      case 'vencido':
-        return 'bg-red-100 text-red-800';
-      case 'pendente':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'cancelado':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const handleVisualizarContrato = (contrato: any) => {
+    if (contrato.url_assinatura_inquilino) {
+      window.open(contrato.url_assinatura_inquilino, '_blank');
+    } else {
+      toast({
+        title: 'Link não disponível',
+        description: 'O link de assinatura ainda está sendo gerado.',
+        variant: 'destructive',
+      });
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'ativo':
-        return 'Ativo';
-      case 'vencido':
-        return 'Vencido';
-      case 'pendente':
-        return 'Pendente';
-      case 'cancelado':
-        return 'Cancelado';
-      default:
-        return status;
+  const handleDownloadContrato = (contrato: any) => {
+    if (contrato.url_assinatura_inquilino) {
+      window.open(contrato.url_assinatura_inquilino, '_blank');
+    } else {
+      toast({
+        title: 'Download não disponível',
+        description: 'O documento ainda não está disponível para download.',
+        variant: 'destructive',
+      });
     }
   };
 
-  const getTipoLabel = (tipo: string) => {
-    switch (tipo) {
-      case 'residencial':
-        return 'Residencial';
-      case 'comercial':
-        return 'Comercial';
-      default:
-        return tipo;
-    }
+  const calcularDataFim = (dataInicio: string, meses: number) => {
+    const data = new Date(dataInicio);
+    data.setMonth(data.getMonth() + meses);
+    return data.toLocaleDateString('pt-BR');
   };
+
+  if (isLoading) {
+    return (
+      <Layout title="Contratos">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <p>Carregando contratos...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout title="Contratos">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-red-600">Erro ao carregar contratos. Tente novamente.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="Contratos">
@@ -151,13 +131,13 @@ const ContratosImobiliaria = () => {
                       <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-base sm:text-lg">{contrato.id}</h3>
+                      <h3 className="font-semibold text-base sm:text-lg">{contrato.id.slice(0, 8)}</h3>
                       <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
-                        <Badge className={getStatusColor(contrato.status)}>
-                          {getStatusLabel(contrato.status)}
+                        <Badge className={getStatusColor(contrato.status_contrato)}>
+                          {getStatusLabel(contrato.status_contrato)}
                         </Badge>
                         <Badge variant="outline" className="text-xs">
-                          {getTipoLabel(contrato.tipo)}
+                          {getTipoLabel(contrato.imovel_tipo)}
                         </Badge>
                       </div>
                     </div>
@@ -165,7 +145,7 @@ const ContratosImobiliaria = () => {
                   <div className="text-right">
                     <p className="text-xs sm:text-sm text-gray-600">Valor Mensal</p>
                     <p className="text-lg sm:text-xl font-bold text-primary">
-                      R$ {contrato.valor.toLocaleString('pt-BR')}
+                      R$ {contrato.imovel_valor_aluguel.toLocaleString('pt-BR')}
                     </p>
                   </div>
                 </div>
@@ -175,14 +155,16 @@ const ContratosImobiliaria = () => {
                     <User className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">Inquilino</p>
-                      <p className="font-medium text-sm">{contrato.inquilino}</p>
+                      <p className="font-medium text-sm">{contrato.inquilino_nome_completo}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Building className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">Imóvel</p>
-                      <p className="font-medium text-sm">{contrato.imovel}</p>
+                      <p className="font-medium text-sm">
+                        {contrato.imovel_endereco}, {contrato.imovel_numero} - {contrato.imovel_bairro}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -190,7 +172,7 @@ const ContratosImobiliaria = () => {
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">Período</p>
                       <p className="font-medium text-sm">
-                        {new Date(contrato.dataInicio).toLocaleDateString('pt-BR')} - {new Date(contrato.dataFim).toLocaleDateString('pt-BR')}
+                        {new Date(contrato.data_criacao).toLocaleDateString('pt-BR')} - {calcularDataFim(contrato.data_criacao, contrato.imovel_tempo_locacao)}
                       </p>
                     </div>
                   </div>
@@ -198,18 +180,30 @@ const ContratosImobiliaria = () => {
                     <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">Valor Total</p>
-                      <p className="font-medium text-sm">R$ {(contrato.valor * 12).toLocaleString('pt-BR')}</p>
+                      <p className="font-medium text-sm">
+                        R$ {(contrato.imovel_valor_aluguel * contrato.imovel_tempo_locacao).toLocaleString('pt-BR')}
+                      </p>
                     </div>
                   </div>
                 </div>
                 
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" className="text-xs">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-xs"
+                    onClick={() => handleVisualizarContrato(contrato)}
+                  >
                     <Eye className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden sm:inline">Visualizar</span>
                     <span className="sm:hidden">Ver</span>
                   </Button>
-                  <Button variant="outline" size="sm" className="text-xs">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-xs"
+                    onClick={() => handleDownloadContrato(contrato)}
+                  >
                     <Download className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden sm:inline">Download</span>
                     <span className="sm:hidden">Down</span>
