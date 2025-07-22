@@ -1,21 +1,12 @@
-FROM node:18-alpine
-
+FROM node:18-alpine AS builder
 WORKDIR /app
-
-# Primeiro copia apenas os arquivos de dependência
 COPY package*.json ./
-
-# Instala as dependências
 RUN npm install
-
-# Copia o restante dos arquivos
 COPY . .
-
-# Constrói a aplicação
 RUN npm run build
 
-# Porta exposta
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app .
 EXPOSE 3000
-
-# Comando de inicialização
 CMD ["npm", "run", "preview"]
