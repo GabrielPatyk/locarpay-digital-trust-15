@@ -95,6 +95,25 @@ const DetalheImobiliaria = () => {
   // Hook para aprovar documentos (apenas para admin)
   const { aprovarDocumento, isProcessing } = useAprovarDocumentos();
 
+  // DEBUG: Logs para identificar problemas
+  console.log('=== DEBUG DETALHE IMOBILIÁRIA ===');
+  console.log('User atual:', user);
+  console.log('User cargo:', user?.cargo);
+  console.log('Is admin:', user?.cargo === 'admin');
+  console.log('Imobiliária ID:', id);
+  console.log('Documentos carregados:', documentos);
+  console.log('Status documentos:', {
+    cartao_cnpj: documentos?.status_cartao_cnpj,
+    comprovante_endereco: documentos?.status_comprovante_endereco,
+    cartao_creci: documentos?.status_cartao_creci
+  });
+  console.log('Documentos existem:', {
+    cartao_cnpj: !!documentos?.cartao_cnpj,
+    comprovante_endereco: !!documentos?.comprovante_endereco,
+    cartao_creci: !!documentos?.cartao_creci
+  });
+  console.log('=== FIM DEBUG ===');
+
   // Estados para rejeição de documentos
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [documentToReject, setDocumentToReject] = useState<{
@@ -408,6 +427,12 @@ const DetalheImobiliaria = () => {
                       Ver Documento
                     </Button>
                   )}
+                  {/* DEBUG: Mostrar condições para aparecer botões */}
+                  {user?.cargo === 'admin' && (
+                    <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-50 rounded">
+                      DEBUG: Admin={user?.cargo === 'admin'} | Doc existe={!!documentos?.cartao_cnpj} | Status={documentos?.status_cartao_cnpj}
+                    </div>
+                  )}
                   {user?.cargo === 'admin' && documentos?.cartao_cnpj && documentos?.status_cartao_cnpj === 'verificando' && (
                     <div className="flex gap-2">
                       <Button
@@ -488,6 +513,12 @@ const DetalheImobiliaria = () => {
                       Ver Documento
                     </Button>
                   )}
+                  {/* DEBUG: Mostrar condições para aparecer botões */}
+                  {user?.cargo === 'admin' && (
+                    <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-50 rounded">
+                      DEBUG: Admin={user?.cargo === 'admin'} | Doc existe={!!documentos?.comprovante_endereco} | Status={documentos?.status_comprovante_endereco}
+                    </div>
+                  )}
                   {user?.cargo === 'admin' && documentos?.comprovante_endereco && documentos?.status_comprovante_endereco === 'verificando' && (
                     <div className="flex gap-2">
                       <Button
@@ -567,6 +598,12 @@ const DetalheImobiliaria = () => {
                       <Eye className="mr-2 h-4 w-4" />
                       Ver Documento
                     </Button>
+                  )}
+                  {/* DEBUG: Mostrar condições para aparecer botões */}
+                  {user?.cargo === 'admin' && (
+                    <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-50 rounded">
+                      DEBUG: Admin={user?.cargo === 'admin'} | Doc existe={!!documentos?.cartao_creci} | Status={documentos?.status_cartao_creci}
+                    </div>
                   )}
                   {user?.cargo === 'admin' && documentos?.cartao_creci && documentos?.status_cartao_creci === 'verificando' && (
                     <div className="flex gap-2">

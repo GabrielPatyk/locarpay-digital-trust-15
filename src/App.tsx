@@ -135,6 +135,12 @@ function App() {
                         <DetalheImobiliaria />
                       </ProtectedRoute>
                     } />
+                    <Route path="/detalhe-imobiliaria/:id/documentos" element={
+                      <ProtectedRoute allowedRoles={['admin', 'executivo']}>
+                        <AppSidebar />
+                        <DetalheImobiliaria />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/editar-imobiliaria/:id" element={
                       <ProtectedRoute allowedRoles={['admin']}>
                         <AppSidebar />
