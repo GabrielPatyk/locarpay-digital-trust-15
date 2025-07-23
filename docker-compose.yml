@@ -6,7 +6,7 @@ services:
   # Nome do nosso serviço principal
   app:
     # A imagem que você construiu e enviou para o Docker Hub
-    image: locarpay/locarpay-digital-trust-10:1.1
+    image: locarpay/locarpay-digital-trust-10:1.0.0.2
     
     # Política para reiniciar o contêiner automaticamente se ele parar
     restart: always
