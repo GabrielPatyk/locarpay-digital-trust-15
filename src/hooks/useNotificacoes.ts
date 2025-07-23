@@ -15,16 +15,24 @@ export const useNotificacoes = () => {
     queryFn: async () => {
       if (!user?.id) return [];
 
+      console.log('Buscando notificações para usuário:', user.id);
+      
       const { data, error } = await supabase
         .from('notificacoes')
         .select('*')
         .eq('usuario_id', user.id)
         .order('data_criacao', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar notificações:', error);
+        throw error;
+      }
+      
+      console.log('Notificações encontradas:', data);
       return data || [];
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    refetchInterval: 30000 // Atualizar a cada 30 segundos
   });
 
   const marcarComoLida = useMutation({

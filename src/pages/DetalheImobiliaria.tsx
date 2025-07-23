@@ -409,10 +409,10 @@ const DetalheImobiliaria = () => {
                       </Button>
                     </div>
                   )}
-                  {user?.cargo === 'imobiliaria' && (
+                  {(user?.cargo === 'imobiliaria' || user?.cargo === 'executivo' || user?.cargo === 'admin') && (
                     <DocumentUpload
                       onUploadSuccess={handleUploadSuccess}
-                      label="Upload CNPJ"
+                      label={documentos?.cartao_cnpj ? "Substituir CNPJ" : "Upload CNPJ"}
                     />
                   )}
                 </div>
@@ -464,10 +464,10 @@ const DetalheImobiliaria = () => {
                       </Button>
                     </div>
                   )}
-                  {user?.cargo === 'imobiliaria' && (
+                  {(user?.cargo === 'imobiliaria' || user?.cargo === 'executivo' || user?.cargo === 'admin') && (
                     <DocumentUpload
                       onUploadSuccess={handleUploadSuccess}
-                      label="Upload Endereço"
+                      label={documentos?.comprovante_endereco ? "Substituir Endereço" : "Upload Endereço"}
                     />
                   )}
                 </div>
@@ -519,10 +519,10 @@ const DetalheImobiliaria = () => {
                       </Button>
                     </div>
                   )}
-                  {user?.cargo === 'imobiliaria' && (
+                  {(user?.cargo === 'imobiliaria' || user?.cargo === 'executivo' || user?.cargo === 'admin') && (
                     <DocumentUpload
                       onUploadSuccess={handleUploadSuccess}
-                      label="Upload CRECI"
+                      label={documentos?.cartao_creci ? "Substituir CRECI" : "Upload CRECI"}
                     />
                   )}
                 </div>
