@@ -14,7 +14,11 @@ const ImobiliariaAccessGuard: React.FC<ImobiliariaAccessGuardProps> = ({ childre
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { contrato, isLoading } = useContratoParceria(user?.id || '');
+  
+  // Only execute hook for imobiliarias, not for other user types (admin, executivo, etc.)
+  const { contrato, isLoading } = useContratoParceria(
+    user?.type === 'imobiliaria' ? (user?.id || '') : ''
+  );
   
   const precisaAssinarContrato = () => {
     return user?.type === 'imobiliaria' && (!contrato || contrato.status_assinatura !== 'assinado');
