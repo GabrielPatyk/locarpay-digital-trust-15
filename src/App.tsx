@@ -67,6 +67,7 @@ import EditarUsuario from './pages/EditarUsuario';
 import CRM from './pages/CRM';
 import Automacao from './pages/Automacao';
 import DetalheInquilino from "./pages/DetalheInquilino";
+import DetalheContrato from "./pages/DetalheContrato";
 
 function App() {
   return (
@@ -402,6 +403,14 @@ function App() {
                       <ProtectedRoute allowedRoles={['admin', 'analista', 'financeiro', 'imobiliaria', 'inquilino']}>
                         <AppSidebar />
                         <DetalheFianca />
+                      </ProtectedRoute>
+                    } />
+                    
+                    {/* Detalhe contrato - accessible to inquilino and admin */}
+                    <Route path="/detalhe-contrato/:id" element={
+                      <ProtectedRoute allowedRoles={['inquilino', 'admin']}>
+                        <AppSidebar />
+                        <DetalheContrato />
                       </ProtectedRoute>
                     } />
                   </Routes>

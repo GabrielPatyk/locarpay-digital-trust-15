@@ -69,24 +69,4 @@ export const useContratosInquilino = () => {
     },
     enabled: !!user?.id
   });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'gerando_link': return 'bg-yellow-500';
-      case 'aguardando_assinatura': return 'bg-blue-500';
-      case 'assinado': return 'bg-green-500';
-      case 'cancelado': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'gerando_link': return 'Gerando Link';
-      case 'aguardando_assinatura': return 'Aguardando Assinatura';
-      case 'assinado': return 'Assinado';
-      case 'cancelado': return 'Cancelado';
-      default: return status;
-    }
-  };
 };

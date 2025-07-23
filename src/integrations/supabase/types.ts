@@ -48,6 +48,8 @@ export type Database = {
           fianca_id: string
           id: string
           imobiliaria_id: string | null
+          imovel_endereco: string | null
+          imovel_tipo: string | null
           inquilino_cpf: string | null
           inquilino_email: string | null
           inquilino_nome: string | null
@@ -68,6 +70,8 @@ export type Database = {
           fianca_id: string
           id?: string
           imobiliaria_id?: string | null
+          imovel_endereco?: string | null
+          imovel_tipo?: string | null
           inquilino_cpf?: string | null
           inquilino_email?: string | null
           inquilino_nome?: string | null
@@ -88,6 +92,8 @@ export type Database = {
           fianca_id?: string
           id?: string
           imobiliaria_id?: string | null
+          imovel_endereco?: string | null
+          imovel_tipo?: string | null
           inquilino_cpf?: string | null
           inquilino_email?: string | null
           inquilino_nome?: string | null
