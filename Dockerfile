@@ -25,7 +25,7 @@ COPY package*.json ./
 # Instala apenas as dependências de produção (como o 'serve')
 RUN npm ci --omit=dev
 
-# Copia a pasta 'dist' gerada no estágio de build
+# AQUI ESTÁ A CORREÇÃO: Copia a pasta 'dist' gerada no estágio de build
 COPY --from=build /app/dist ./dist
 
 # Expõe a porta que o servidor vai usar
