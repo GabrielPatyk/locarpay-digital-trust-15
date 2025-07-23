@@ -400,38 +400,22 @@ const DetalheImobiliaria = () => {
                 )}
                 <div className="space-y-2">
                   {documentos?.cartao_cnpj && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        try {
-                          const newWindow = window.open(documentos.cartao_cnpj, '_blank');
-                          if (!newWindow) {
-                            // Fallback: force download
-                            const link = document.createElement('a');
-                            link.href = documentos.cartao_cnpj!;
-                            link.download = 'cartao_cnpj';
-                            link.click();
-                          }
-                        } catch {
-                          // Fallback: force download
-                          const link = document.createElement('a');
-                          link.href = documentos.cartao_cnpj!;
-                          link.download = 'cartao_cnpj';
-                          link.click();
-                        }
-                      }}
+                    <a
+                      href={documentos.cartao_cnpj}
+                      download="cartao_cnpj"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="w-full"
                     >
-                      <Eye className="mr-2 h-4 w-4" />
-                      Ver Documento
-                    </Button>
-                  )}
-                  {/* DEBUG: Mostrar condições para aparecer botões */}
-                  {user?.cargo === 'admin' && (
-                    <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-50 rounded">
-                      DEBUG: Admin={user?.cargo === 'admin'} | Doc existe={!!documentos?.cartao_cnpj} | Status={documentos?.status_cartao_cnpj}
-                    </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        Ver Documento
+                      </Button>
+                    </a>
                   )}
                   {user?.cargo === 'admin' && documentos?.cartao_cnpj && documentos?.status_cartao_cnpj === 'verificando' && (
                     <div className="flex gap-2">
@@ -486,38 +470,22 @@ const DetalheImobiliaria = () => {
                 )}
                 <div className="space-y-2">
                   {documentos?.comprovante_endereco && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        try {
-                          const newWindow = window.open(documentos.comprovante_endereco, '_blank');
-                          if (!newWindow) {
-                            // Fallback: force download
-                            const link = document.createElement('a');
-                            link.href = documentos.comprovante_endereco!;
-                            link.download = 'comprovante_endereco';
-                            link.click();
-                          }
-                        } catch {
-                          // Fallback: force download
-                          const link = document.createElement('a');
-                          link.href = documentos.comprovante_endereco!;
-                          link.download = 'comprovante_endereco';
-                          link.click();
-                        }
-                      }}
+                    <a
+                      href={documentos.comprovante_endereco}
+                      download="comprovante_endereco"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="w-full"
                     >
-                      <Eye className="mr-2 h-4 w-4" />
-                      Ver Documento
-                    </Button>
-                  )}
-                  {/* DEBUG: Mostrar condições para aparecer botões */}
-                  {user?.cargo === 'admin' && (
-                    <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-50 rounded">
-                      DEBUG: Admin={user?.cargo === 'admin'} | Doc existe={!!documentos?.comprovante_endereco} | Status={documentos?.status_comprovante_endereco}
-                    </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        Ver Documento
+                      </Button>
+                    </a>
                   )}
                   {user?.cargo === 'admin' && documentos?.comprovante_endereco && documentos?.status_comprovante_endereco === 'verificando' && (
                     <div className="flex gap-2">
@@ -572,38 +540,22 @@ const DetalheImobiliaria = () => {
                 )}
                 <div className="space-y-2">
                   {documentos?.cartao_creci && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        try {
-                          const newWindow = window.open(documentos.cartao_creci, '_blank');
-                          if (!newWindow) {
-                            // Fallback: force download
-                            const link = document.createElement('a');
-                            link.href = documentos.cartao_creci!;
-                            link.download = 'cartao_creci';
-                            link.click();
-                          }
-                        } catch {
-                          // Fallback: force download
-                          const link = document.createElement('a');
-                          link.href = documentos.cartao_creci!;
-                          link.download = 'cartao_creci';
-                          link.click();
-                        }
-                      }}
+                    <a
+                      href={documentos.cartao_creci}
+                      download="cartao_creci"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="w-full"
                     >
-                      <Eye className="mr-2 h-4 w-4" />
-                      Ver Documento
-                    </Button>
-                  )}
-                  {/* DEBUG: Mostrar condições para aparecer botões */}
-                  {user?.cargo === 'admin' && (
-                    <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-50 rounded">
-                      DEBUG: Admin={user?.cargo === 'admin'} | Doc existe={!!documentos?.cartao_creci} | Status={documentos?.status_cartao_creci}
-                    </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        Ver Documento
+                      </Button>
+                    </a>
                   )}
                   {user?.cargo === 'admin' && documentos?.cartao_creci && documentos?.status_cartao_creci === 'verificando' && (
                     <div className="flex gap-2">
