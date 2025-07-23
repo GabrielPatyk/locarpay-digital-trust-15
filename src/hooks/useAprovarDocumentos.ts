@@ -23,13 +23,13 @@ export const useAprovarDocumentos = () => {
       const motivoField = `motivo_rejeicao_${tipoDocumento}` as const;
       
       const updates: any = {
-        [statusField]: aprovar ? 'verificado' : 'pendente',
+        [statusField]: aprovar ? 'verificado' : 'rejeitado',
         [dataField]: new Date().toISOString()
       };
 
       if (!aprovar && motivo) {
         updates[motivoField] = motivo;
-        updates[statusField] = 'pendente'; // Status rejeitado vira pendente com motivo
+        updates[statusField] = 'rejeitado'; // Status rejeitado
       } else if (aprovar) {
         updates[statusField] = 'verificado';
         // Limpar motivo de rejeição se aprovar
@@ -50,6 +50,7 @@ export const useAprovarDocumentos = () => {
       queryClient.invalidateQueries({ queryKey: ['imobiliarias'] });
       queryClient.invalidateQueries({ queryKey: ['imobiliaria'] });
       queryClient.invalidateQueries({ queryKey: ['documentos-imobiliaria'] });
+      queryClient.invalidateQueries({ queryKey: ['documentos-imobiliaria-especifica'] });
       
       const acao = variables.aprovar ? 'aprovado' : 'rejeitado';
       toast({

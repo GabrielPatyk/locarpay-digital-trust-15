@@ -384,7 +384,24 @@ const DetalheImobiliaria = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(documentos.cartao_cnpj, '_blank')}
+                      onClick={() => {
+                        try {
+                          const newWindow = window.open(documentos.cartao_cnpj, '_blank');
+                          if (!newWindow) {
+                            // Fallback: force download
+                            const link = document.createElement('a');
+                            link.href = documentos.cartao_cnpj!;
+                            link.download = 'cartao_cnpj';
+                            link.click();
+                          }
+                        } catch {
+                          // Fallback: force download
+                          const link = document.createElement('a');
+                          link.href = documentos.cartao_cnpj!;
+                          link.download = 'cartao_cnpj';
+                          link.click();
+                        }
+                      }}
                       className="w-full"
                     >
                       <Eye className="mr-2 h-4 w-4" />
@@ -447,7 +464,24 @@ const DetalheImobiliaria = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(documentos.comprovante_endereco, '_blank')}
+                      onClick={() => {
+                        try {
+                          const newWindow = window.open(documentos.comprovante_endereco, '_blank');
+                          if (!newWindow) {
+                            // Fallback: force download
+                            const link = document.createElement('a');
+                            link.href = documentos.comprovante_endereco!;
+                            link.download = 'comprovante_endereco';
+                            link.click();
+                          }
+                        } catch {
+                          // Fallback: force download
+                          const link = document.createElement('a');
+                          link.href = documentos.comprovante_endereco!;
+                          link.download = 'comprovante_endereco';
+                          link.click();
+                        }
+                      }}
                       className="w-full"
                     >
                       <Eye className="mr-2 h-4 w-4" />
@@ -510,7 +544,24 @@ const DetalheImobiliaria = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(documentos.cartao_creci, '_blank')}
+                      onClick={() => {
+                        try {
+                          const newWindow = window.open(documentos.cartao_creci, '_blank');
+                          if (!newWindow) {
+                            // Fallback: force download
+                            const link = document.createElement('a');
+                            link.href = documentos.cartao_creci!;
+                            link.download = 'cartao_creci';
+                            link.click();
+                          }
+                        } catch {
+                          // Fallback: force download
+                          const link = document.createElement('a');
+                          link.href = documentos.cartao_creci!;
+                          link.download = 'cartao_creci';
+                          link.click();
+                        }
+                      }}
                       className="w-full"
                     >
                       <Eye className="mr-2 h-4 w-4" />
