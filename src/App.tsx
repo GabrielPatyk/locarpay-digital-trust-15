@@ -129,7 +129,7 @@ function App() {
                       </ProtectedRoute>
                     } />
                     <Route path="/detalhe-imobiliaria/:id" element={
-                      <ProtectedRoute allowedRoles={['admin']}>
+                      <ProtectedRoute allowedRoles={['admin', 'executivo']}>
                         <AppSidebar />
                         <DetalheImobiliaria />
                       </ProtectedRoute>

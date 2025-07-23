@@ -6,7 +6,7 @@ import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import Layout from '@/components/Layout';
 import ImageUpload from '@/components/ImageUpload';
 import ConfirmationModal from '@/components/ConfirmationModal';
-import StatusPlataformaEditor from '@/components/StatusPlataformaEditor';
+import StatusPlataformaConfig from '@/components/StatusPlataformaConfig';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -482,7 +482,7 @@ const ConfiguracoesAdmin = () => {
         </Card>
 
         {/* Status da Plataforma */}
-        <StatusPlataformaEditor />
+        <StatusPlataformaConfig />
 
         {/* Notifications - Bloqueada */}
         <Card className="opacity-60">

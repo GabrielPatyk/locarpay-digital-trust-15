@@ -10,19 +10,26 @@ export const useAprovarDocumentos = () => {
     mutationFn: async ({ 
       perfilId, 
       tipoDocumento, 
-      aprovar 
+      aprovar,
+      motivo 
     }: { 
       perfilId: string;
       tipoDocumento: 'cartao_cnpj' | 'comprovante_endereco' | 'cartao_creci';
       aprovar: boolean;
+      motivo?: string;
     }) => {
       const statusField = `status_${tipoDocumento}` as const;
       const dataField = `data_verificacao_${tipoDocumento}` as const;
+      const motivoField = `motivo_rejeicao_${tipoDocumento}` as const;
       
-      const updates = {
+      const updates: any = {
         [statusField]: aprovar ? 'verificado' : 'rejeitado',
         [dataField]: new Date().toISOString()
       };
+
+      if (!aprovar && motivo) {
+        updates[motivoField] = motivo;
+      }
 
       const { data, error } = await supabase
         .from('perfil_usuario')

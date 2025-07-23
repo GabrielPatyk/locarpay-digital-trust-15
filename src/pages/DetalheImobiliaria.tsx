@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import DocumentUpload from '@/components/DocumentUpload';
 import { useToast } from '@/hooks/use-toast';
 import { useAprovarDocumentos } from '@/hooks/useAprovarDocumentos';
+import RejectReasonModal from '@/components/RejectReasonModal';
 
 const DetalheImobiliaria = () => {
   const { id } = useParams<{ id: string }>();
@@ -94,6 +95,13 @@ const DetalheImobiliaria = () => {
   // Hook para aprovar documentos (apenas para admin)
   const { aprovarDocumento, isProcessing } = useAprovarDocumentos();
 
+  // Estados para rejeição de documentos
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [documentToReject, setDocumentToReject] = useState<{
+    tipo: 'cartao_cnpj' | 'comprovante_endereco' | 'cartao_creci';
+    nome: string;
+  } | null>(null);
+
   const getDocumentStatusIcon = (status: string) => {
     switch (status) {
       case 'verificado':
@@ -135,6 +143,22 @@ const DetalheImobiliaria = () => {
       perfilId: documentos.id,
       tipoDocumento,
       aprovar
+    });
+  };
+
+  const handleRejectDocument = (tipo: 'cartao_cnpj' | 'comprovante_endereco' | 'cartao_creci', nome: string) => {
+    setDocumentToReject({ tipo, nome });
+    setRejectModalOpen(true);
+  };
+
+  const confirmRejectDocument = (motivo: string) => {
+    if (!documentos?.id || !documentToReject) return;
+    
+    aprovarDocumento({
+      perfilId: documentos.id,
+      tipoDocumento: documentToReject.tipo,
+      aprovar: false,
+      motivo
     });
   };
 
@@ -376,7 +400,7 @@ const DetalheImobiliaria = () => {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleAprovarDocumento('cartao_cnpj', false)}
+                        onClick={() => handleRejectDocument('cartao_cnpj', 'Cartão CNPJ')}
                         disabled={isProcessing}
                         className="flex-1"
                       >
@@ -431,7 +455,7 @@ const DetalheImobiliaria = () => {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleAprovarDocumento('comprovante_endereco', false)}
+                        onClick={() => handleRejectDocument('comprovante_endereco', 'Comprovante de Endereço')}
                         disabled={isProcessing}
                         className="flex-1"
                       >
@@ -486,7 +510,7 @@ const DetalheImobiliaria = () => {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleAprovarDocumento('cartao_creci', false)}
+                        onClick={() => handleRejectDocument('cartao_creci', 'Cartão CRECI')}
                         disabled={isProcessing}
                         className="flex-1"
                       >
@@ -571,6 +595,15 @@ const DetalheImobiliaria = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Modal de Rejeição */}
+        <RejectReasonModal
+          isOpen={rejectModalOpen}
+          onClose={() => setRejectModalOpen(false)}
+          onConfirm={confirmRejectDocument}
+          documentType={documentToReject?.nome || ''}
+          isLoading={isProcessing}
+        />
       </div>
     </Layout>
   );
