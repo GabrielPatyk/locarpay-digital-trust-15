@@ -1,20 +1,50 @@
 version: '3.8'
 
 services:
+  # Serviço 1: Sua aplicação TypeScript
   app:
-    build: .
-    environment:
-      - NODE_ENV=production
-    deploy:
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.locarpay.rule=Host(`app.locarpay.com.br`)"
-        - "traefik.http.routers.locarpay.entrypoints=websecure"
-        - "traefik.http.routers.locarpay.tls.certresolver=myresolver"
-        - "traefik.http.services.locarpay.loadbalancer.server.port=3000"
+    # A imagem que você construiu e enviou para o Docker Hub
+    image: seu-usuario-dockerhub/locarpay-digital-trust-10:latest # <-- SUBSTITUA COM SEU USUÁRIO
+    restart: always
     networks:
-      - LocarPayNet
+      - traefik-public # Rede para comunicação externa via Traefik
+      - internal       # Rede para comunicação interna com o banco de dados
+    environment:
+      # Variáveis de ambiente que sua aplicação usa para conectar ao banco de dados
+      # O host 'db' é o nome do serviço do banco de dados abaixo
+      - DATABASE_URL=postgresql://postgres_user:SuaSenhaSuperSegura@db:5432/locarpay_db
+      # Adicione outras variáveis que sua aplicação precise aqui
+      # - NODE_ENV=production
+    depends_on:
+      - db # Garante que o contêiner do banco de dados inicie antes da sua aplicação
+    labels:
+      # --- Labels do Traefik (Apenas para a aplicação, NUNCA para o banco) ---
+      - "traefik.enable=true"
+      - "traefik.http.routers.locarpay-router.rule=Host(`app.locarpay.com.br`)"
+      - "traefik.http.routers.locarpay-router.entrypoints=websecure"
+      - "traefik.http.routers.locarpay-router.tls.certresolver=myresolver"
+      - "traefik.http.services.locarpay-service.loadbalancer.server.port=3000" # <-- Porta interna da sua aplicação
 
+  # Serviço 2: O banco de dados PostgreSQL
+  db:
+    image: postgres:15-alpine # Imagem oficial e leve do PostgreSQL
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres_user
+      - POSTGRES_PASSWORD=SuaSenhaSuperSegura # <-- MUDE PARA UMA SENHA FORTE
+      - POSTGRES_DB=locarpay_db
+    networks:
+      - internal # Apenas na rede interna, não fica exposto para a internet
+    volumes:
+      - postgres-data:/var/lib/postgresql/data # Garante que os dados do banco persistam
+
+# Volumes são usados para persistir dados, mesmo que os contêineres parem/reiniciem
+volumes:
+  postgres-data:
+
+# Redes para controlar a comunicação
 networks:
-  LocarPayNet:
+  traefik-public:
     external: true
+  internal:
+    driver: bridge
