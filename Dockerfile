@@ -1,28 +1,35 @@
 # --- Estágio 1: Build da Aplicação ---
 FROM node:18-alpine AS build
-
 WORKDIR /app
 
+# Copia os arquivos de manifesto
 COPY package*.json ./
 
-# AQUI ESTÁ A CORREÇÃO: Removemos a flag --omit=dev
-RUN npm install
+# Usa 'npm ci' que é mais rápido e confiável para builds
+RUN npm ci
 
+# Copia o resto do código
 COPY . .
 
+# Executa o build
 RUN npm run build
 
-# --- Estágio 2: Imagem Final de Produção ---
-# Esta parte continua igual e garante uma imagem final pequena
-FROM node:18-alpine
 
+# --- Estágio 2: Imagem Final de Produção ---
+FROM node:18-alpine
 WORKDIR /app
 
-COPY --from=build /app/package*.json ./
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/.next ./dist
-COPY --from=build /app/public ./public
+# Copia os arquivos de manifesto para instalar apenas as dependências de produção
+COPY package*.json ./
 
+# Instala apenas as dependências de produção (como o 'serve')
+RUN npm ci --omit=dev
+
+# Copia a pasta 'dist' gerada no estágio de build
+COPY --from=build /app/dist ./dist
+
+# Expõe a porta que o servidor vai usar
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# Comando final para iniciar o servidor, servindo a pasta 'dist' na porta 3000
+CMD [ "npx", "serve", "-s", "dist", "-l", "3000" ]
