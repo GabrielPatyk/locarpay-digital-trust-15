@@ -88,16 +88,6 @@ const Login = () => {
     window.open('https://locarpay.com.br/seja-um-parceiro', '_blank');
   };
 
-  const demoUsers = [
-    { type: 'Analista', email: 'analista@locarpay.com.br' },
-    { type: 'Jurídico', email: 'juridico@locarpay.com.br' },
-    { type: 'SDR', email: 'sdr@locarpay.com.br' },
-    { type: 'Executivo', email: 'executivo@locarpay.com.br' },
-    { type: 'Imobiliária', email: 'imobiliaria@locarpay.com.br' },
-    { type: 'Inquilino', email: 'inquilino@locarpay.com.br' },
-    { type: 'Financeiro', email: 'financeiro@locarpay.com.br' },
-    { type: 'Admin', email: 'admin@locarpay.com.br' },
-  ];
 
   return (
     <div className="min-h-screen w-full flex">
@@ -220,24 +210,6 @@ const Login = () => {
                   </Button>
                 </div>
 
-                <div className="pt-4 border-t border-[#BC942C]/20">
-                  <p className="text-sm text-[#0C1C2E] mb-3 text-center font-medium">
-                    <strong>Contas de demonstração (senha: 123456):</strong>
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    {demoUsers.map((user, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => setEmail(user.email)}
-                        className="text-left p-2 rounded-lg bg-gradient-to-r from-[#F4D573]/20 to-[#E6C46E]/20 hover:from-[#F4D573]/30 hover:to-[#E6C46E]/30 transition-all duration-200 border border-[#BC942C]/20"
-                      >
-                        <div className="font-medium text-[#0C1C2E]">{user.type}</div>
-                        <div className="text-[#0C1C2E]/70 truncate text-xs">{user.email}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
 
                 {/* Golden section at the bottom */}
                 <div className="mt-6 -mx-6 -mb-6 px-6 py-4 bg-gradient-to-r from-[#F4D573] via-[#E6C46E] to-[#BC942C] relative overflow-hidden">

@@ -1,58 +1,149 @@
 import React, { useState } from 'react';
-import Layout from '@/components/Layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { 
-  FileText, 
-  Search, 
-  Plus, 
-  Eye, 
-  Download, 
-  Calendar,
-  DollarSign,
-  User,
-  Building,
-  Loader2
-} from 'lucide-react';
-import { useContratosImobiliaria } from '@/hooks/useContratosImobiliaria';
-import { useNavigate } from 'react-router-dom';
+import { Loader2, Eye, Download, MapPin, User, DollarSign, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Layout from '@/components/Layout';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
+interface ContratoFianca {
+  id: string;
+  fianca_id: string;
+  status_contrato: string;
+  created_at: string;
+  url_assinatura_inquilino: string | null;
+  fiancas_locaticias: {
+    inquilino_nome_completo: string;
+    inquilino_email: string;
+    imovel_endereco: string;
+    imovel_numero: string;
+    imovel_bairro: string;
+    imovel_cidade: string;
+    imovel_valor_aluguel: number;
+    imovel_tempo_locacao: number;
+    imovel_tipo: string;
+    valor_fianca: number;
+    data_criacao: string;
+  };
+}
 
 const ContratosImobiliaria = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const { toast } = useToast();
-  
-  const { contratos, isLoading, error, getStatusLabel, getStatusColor, getTipoLabel } = useContratosImobiliaria();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const { data: contratos = [], isLoading, error } = useQuery({
+    queryKey: ['contratos-fianca-imobiliaria', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data, error } = await supabase
+        .from('contratos_fianca')
+        .select(`
+          id,
+          fianca_id,
+          status_contrato,
+          created_at,
+          url_assinatura_inquilino,
+          fiancas_locaticias!inner (
+            id_imobiliaria,
+            inquilino_nome_completo,
+            inquilino_email,
+            imovel_endereco,
+            imovel_numero,
+            imovel_bairro,
+            imovel_cidade,
+            imovel_valor_aluguel,
+            imovel_tempo_locacao,
+            imovel_tipo,
+            valor_fianca,
+            data_criacao
+          )
+        `)
+        .eq('fiancas_locaticias.id_imobiliaria', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Erro ao buscar contratos:', error);
+        throw error;
+      }
+
+      return data as ContratoFianca[];
+    },
+    enabled: !!user?.id && user.type === 'imobiliaria'
+  });
 
   const filteredContratos = contratos.filter(contrato =>
-    contrato.inquilino_nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${contrato.imovel_endereco} ${contrato.imovel_numero}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contrato.fiancas_locaticias.inquilino_nome_completo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contrato.fiancas_locaticias.inquilino_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contrato.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleVisualizarContrato = (contrato: any) => {
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'gerando_link':
+        return 'Gerando Link';
+      case 'assinatura_inquilino':
+        return 'Aguardando Assinatura';
+      case 'assinado':
+        return 'Assinado';
+      case 'cancelado':
+        return 'Cancelado';
+      default:
+        return status;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'assinado':
+        return 'bg-green-100 text-green-800';
+      case 'gerando_link':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'assinatura_inquilino':
+        return 'bg-blue-100 text-blue-800';
+      case 'cancelado':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getTipoLabel = (tipo: string) => {
+    switch (tipo) {
+      case 'residencial':
+        return 'Residencial';
+      case 'comercial':
+        return 'Comercial';
+      default:
+        return tipo;
+    }
+  };
+
+  const handleVisualizarContrato = (contrato: ContratoFianca) => {
     if (contrato.url_assinatura_inquilino) {
       window.open(contrato.url_assinatura_inquilino, '_blank');
     } else {
       toast({
-        title: 'Link não disponível',
-        description: 'O link de assinatura ainda está sendo gerado.',
-        variant: 'destructive',
+        title: "Link não disponível",
+        description: "O link de assinatura ainda não foi gerado para este contrato.",
+        variant: "destructive"
       });
     }
   };
 
-  const handleDownloadContrato = (contrato: any) => {
+  const handleDownloadContrato = (contrato: ContratoFianca) => {
     if (contrato.url_assinatura_inquilino) {
       window.open(contrato.url_assinatura_inquilino, '_blank');
     } else {
       toast({
-        title: 'Download não disponível',
-        description: 'O documento ainda não está disponível para download.',
-        variant: 'destructive',
+        title: "Download não disponível",
+        description: "O contrato ainda não está disponível para download.",
+        variant: "destructive"
       });
     }
   };
@@ -66,11 +157,8 @@ const ContratosImobiliaria = () => {
   if (isLoading) {
     return (
       <Layout title="Contratos">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="flex items-center space-x-2">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <p>Carregando contratos...</p>
-          </div>
+        <div className="flex justify-center items-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </Layout>
     );
@@ -79,153 +167,154 @@ const ContratosImobiliaria = () => {
   if (error) {
     return (
       <Layout title="Contratos">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <p className="text-red-600">Erro ao carregar contratos. Tente novamente.</p>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="max-w-md mx-auto">
+          <CardContent className="pt-6">
+            <p className="text-center text-red-600">
+              Erro ao carregar contratos. Tente novamente.
+            </p>
+          </CardContent>
+        </Card>
       </Layout>
     );
   }
 
   return (
     <Layout title="Contratos">
-      <div className="space-y-4 sm:space-y-6 animate-fade-in px-2 sm:px-0">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Contratos</h1>
-            <p className="text-gray-600 text-sm">Visualize todos os contratos vinculados às suas fianças</p>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Contratos</h1>
+          <p className="text-gray-600 mt-2">
+            Gerencie os contratos de fiança da sua imobiliária
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <Input
+              placeholder="Buscar por inquilino, e-mail ou ID do contrato..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-md"
+            />
           </div>
         </div>
 
-        {/* Search */}
-        <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Buscar contratos por inquilino, imóvel ou ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 text-sm"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Contratos List */}
-        <div className="grid gap-3 sm:gap-4">
-          {filteredContratos.map((contrato) => (
-            <Card key={contrato.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-0">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-primary/10 p-2 rounded-full">
-                      <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                    </div>
+        <div className="grid gap-6">
+          {filteredContratos.length === 0 ? (
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-center text-gray-500">
+                  {searchTerm ? 'Nenhum contrato encontrado com os filtros aplicados.' : 'Nenhum contrato encontrado.'}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredContratos.map((contrato) => (
+              <Card key={contrato.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-semibold text-base sm:text-lg">{contrato.id.slice(0, 8)}</h3>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                      <CardTitle className="text-lg">
+                        Contrato #{contrato.id.slice(0, 8)}
+                      </CardTitle>
+                      <div className="flex items-center gap-2 mt-2">
                         <Badge className={getStatusColor(contrato.status_contrato)}>
                           {getStatusLabel(contrato.status_contrato)}
                         </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {getTipoLabel(contrato.imovel_tipo)}
+                        <Badge variant="outline">
+                          {getTipoLabel(contrato.fiancas_locaticias.imovel_tipo)}
                         </Badge>
                       </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs sm:text-sm text-gray-600">Valor Mensal</p>
-                    <p className="text-lg sm:text-xl font-bold text-primary">
-                      R$ {contrato.imovel_valor_aluguel.toLocaleString('pt-BR')}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
-                  <div className="flex items-center space-x-2">
-                    <User className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
-                    <div>
-                      <p className="text-xs sm:text-sm text-gray-600">Inquilino</p>
-                      <p className="font-medium text-sm">{contrato.inquilino_nome_completo}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Building className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
-                    <div>
-                      <p className="text-xs sm:text-sm text-gray-600">Imóvel</p>
-                      <p className="font-medium text-sm">
-                        {contrato.imovel_endereco}, {contrato.imovel_numero} - {contrato.imovel_bairro}
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-green-600">
+                        R$ {contrato.fiancas_locaticias.imovel_valor_aluguel.toLocaleString('pt-BR', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}
                       </p>
+                      <p className="text-sm text-gray-500">Aluguel mensal</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
-                    <div>
-                      <p className="text-xs sm:text-sm text-gray-600">Período</p>
-                      <p className="font-medium text-sm">
-                        {new Date(contrato.data_criacao).toLocaleDateString('pt-BR')} - {calcularDataFim(contrato.data_criacao, contrato.imovel_tempo_locacao)}
-                      </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <p className="font-medium">{contrato.fiancas_locaticias.inquilino_nome_completo}</p>
+                          <p className="text-sm text-gray-500">{contrato.fiancas_locaticias.inquilino_email}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <p className="font-medium">
+                            {contrato.fiancas_locaticias.imovel_endereco}, {contrato.fiancas_locaticias.imovel_numero}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {contrato.fiancas_locaticias.imovel_bairro}, {contrato.fiancas_locaticias.imovel_cidade}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
-                    <div>
-                      <p className="text-xs sm:text-sm text-gray-600">Valor Total</p>
-                      <p className="font-medium text-sm">
-                        R$ {(contrato.imovel_valor_aluguel * contrato.imovel_tempo_locacao).toLocaleString('pt-BR')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex flex-wrap gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-xs"
-                    onClick={() => handleVisualizarContrato(contrato)}
-                  >
-                    <Eye className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Visualizar</span>
-                    <span className="sm:hidden">Ver</span>
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-xs"
-                    onClick={() => handleDownloadContrato(contrato)}
-                  >
-                    <Download className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Download</span>
-                    <span className="sm:hidden">Down</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
 
-        {filteredContratos.length === 0 && (
-          <Card>
-            <CardContent className="p-6 sm:p-8 text-center">
-              <FileText className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mb-4" />
-              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-                Nenhum contrato encontrado
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {searchTerm 
-                  ? 'Tente ajustar sua busca.'
-                  : 'Nenhum contrato encontrado para esta imobiliária.'
-                }
-              </p>
-            </CardContent>
-          </Card>
-        )}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <p className="font-medium">Período do Contrato</p>
+                          <p className="text-sm text-gray-500">
+                            {contrato.fiancas_locaticias.imovel_tempo_locacao} meses
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Fim: {calcularDataFim(contrato.fiancas_locaticias.data_criacao, contrato.fiancas_locaticias.imovel_tempo_locacao)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <p className="font-medium">Valor Total da Fiança</p>
+                          <p className="text-lg font-semibold text-green-600">
+                            R$ {contrato.fiancas_locaticias.valor_fianca.toLocaleString('pt-BR', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-4 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleVisualizarContrato(contrato)}
+                      className="flex items-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Visualizar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadContrato(contrato)}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
     </Layout>
   );
