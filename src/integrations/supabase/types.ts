@@ -824,6 +824,10 @@ export type Database = {
         Args: Record<PropertyKey, never> | { p_email: string }
         Returns: string
       }
+      get_user_id_from_email: {
+        Args: { user_email: string }
+        Returns: string
+      }
       hash_password: {
         Args: { password: string }
         Returns: string
