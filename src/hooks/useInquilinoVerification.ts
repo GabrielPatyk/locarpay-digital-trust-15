@@ -35,12 +35,14 @@ export const useInquilinoVerification = () => {
     try {
       console.log('Verificando se inquilino já existe...');
       
-      const { data: usuarioEncontrado, error } = await supabase
+      const { data: usuarios, error } = await supabase
         .from('usuarios')
         .select('id, email, nome, cpf')
         .or(`email.eq.${dadosInquilino.email},cpf.eq.${dadosInquilino.cpf}`)
         .eq('cargo', 'inquilino')
-        .maybeSingle();
+        .limit(1);
+
+      const usuarioEncontrado = usuarios && usuarios.length > 0 ? usuarios[0] : null;
 
       if (error) {
         console.error('Erro ao verificar usuário existente:', error);
