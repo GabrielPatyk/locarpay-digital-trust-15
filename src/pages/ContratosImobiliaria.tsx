@@ -64,7 +64,7 @@ const ContratosImobiliaria = () => {
             data_criacao
           )
         `)
-        .eq('fiancas_locaticias.id_imobiliaria', user.id)
+        .eq('imobiliaria_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -74,7 +74,7 @@ const ContratosImobiliaria = () => {
 
       return data as ContratoFianca[];
     },
-    enabled: !!user?.id && user.type === 'imobiliaria'
+    enabled: !!user?.id && user.cargo === 'imobiliaria'
   });
 
   const filteredContratos = contratos.filter(contrato =>

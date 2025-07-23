@@ -23,12 +23,17 @@ export const useAprovarDocumentos = () => {
       const motivoField = `motivo_rejeicao_${tipoDocumento}` as const;
       
       const updates: any = {
-        [statusField]: aprovar ? 'verificado' : 'rejeitado',
+        [statusField]: aprovar ? 'verificado' : 'pendente',
         [dataField]: new Date().toISOString()
       };
 
       if (!aprovar && motivo) {
         updates[motivoField] = motivo;
+        updates[statusField] = 'pendente'; // Status rejeitado vira pendente com motivo
+      } else if (aprovar) {
+        updates[statusField] = 'verificado';
+        // Limpar motivo de rejeição se aprovar
+        updates[motivoField] = null;
       }
 
       const { data, error } = await supabase

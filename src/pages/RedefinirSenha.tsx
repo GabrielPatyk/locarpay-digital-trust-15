@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Lock, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
 
 const RedefinirSenha = () => {
   const [searchParams] = useSearchParams();
@@ -93,8 +94,18 @@ const RedefinirSenha = () => {
       return;
     }
 
-    if (password.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres.');
+    // Validar força da senha
+    const requirements = [
+      { test: (p: string) => p.length >= 12, message: 'A senha deve ter pelo menos 12 caracteres' },
+      { test: (p: string) => /[A-Z]/.test(p), message: 'A senha deve ter pelo menos 1 letra maiúscula' },
+      { test: (p: string) => /[a-z]/.test(p), message: 'A senha deve ter pelo menos 1 letra minúscula' },
+      { test: (p: string) => /\d/.test(p), message: 'A senha deve ter pelo menos 1 número' },
+      { test: (p: string) => /[^A-Za-z0-9!]/.test(p), message: 'A senha deve ter pelo menos 1 caractere especial (exceto !)' }
+    ];
+
+    const unmetRequirement = requirements.find(req => !req.test(password));
+    if (unmetRequirement) {
+      setError(unmetRequirement.message);
       setIsLoading(false);
       return;
     }
@@ -283,6 +294,10 @@ const RedefinirSenha = () => {
                       />
                     </div>
                   </div>
+
+                  {password && (
+                    <PasswordStrengthIndicator password={password} />
+                  )}
 
                   {error && (
                     <Alert variant="destructive">

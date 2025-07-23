@@ -47,6 +47,10 @@ export type Database = {
           documentos: Json | null
           fianca_id: string
           id: string
+          id_analista: string | null
+          id_executivo: string | null
+          id_financeiro: string | null
+          id_inquilino: string | null
           imobiliaria_id: string | null
           imovel_endereco: string | null
           imovel_tipo: string | null
@@ -69,6 +73,10 @@ export type Database = {
           documentos?: Json | null
           fianca_id: string
           id?: string
+          id_analista?: string | null
+          id_executivo?: string | null
+          id_financeiro?: string | null
+          id_inquilino?: string | null
           imobiliaria_id?: string | null
           imovel_endereco?: string | null
           imovel_tipo?: string | null
@@ -91,6 +99,10 @@ export type Database = {
           documentos?: Json | null
           fianca_id?: string
           id?: string
+          id_analista?: string | null
+          id_executivo?: string | null
+          id_financeiro?: string | null
+          id_inquilino?: string | null
           imobiliaria_id?: string | null
           imovel_endereco?: string | null
           imovel_tipo?: string | null
@@ -494,6 +506,9 @@ export type Database = {
           endereco: string | null
           estado: string | null
           id: string
+          motivo_rejeicao_cartao_cnpj: string | null
+          motivo_rejeicao_cartao_creci: string | null
+          motivo_rejeicao_comprovante_endereco: string | null
           nome_empresa: string | null
           numero: string | null
           pais: string | null
@@ -519,6 +534,9 @@ export type Database = {
           endereco?: string | null
           estado?: string | null
           id?: string
+          motivo_rejeicao_cartao_cnpj?: string | null
+          motivo_rejeicao_cartao_creci?: string | null
+          motivo_rejeicao_comprovante_endereco?: string | null
           nome_empresa?: string | null
           numero?: string | null
           pais?: string | null
@@ -544,6 +562,9 @@ export type Database = {
           endereco?: string | null
           estado?: string | null
           id?: string
+          motivo_rejeicao_cartao_cnpj?: string | null
+          motivo_rejeicao_cartao_creci?: string | null
+          motivo_rejeicao_comprovante_endereco?: string | null
           nome_empresa?: string | null
           numero?: string | null
           pais?: string | null

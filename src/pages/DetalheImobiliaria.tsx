@@ -409,7 +409,7 @@ const DetalheImobiliaria = () => {
                       </Button>
                     </div>
                   )}
-                  {(user?.cargo === 'imobiliaria' || user?.cargo === 'executivo' || user?.cargo === 'admin') && id && (
+                  {((user?.cargo === 'executivo' && imobiliaria?.criado_por === user?.id) || user?.cargo === 'admin') && id && (
                     <DocumentoImobiliariaUpload
                       onUploadSuccess={handleUploadSuccess}
                       label={documentos?.cartao_cnpj ? "Substituir CNPJ" : "Upload CNPJ"}
@@ -466,7 +466,7 @@ const DetalheImobiliaria = () => {
                       </Button>
                     </div>
                   )}
-                  {(user?.cargo === 'imobiliaria' || user?.cargo === 'executivo' || user?.cargo === 'admin') && id && (
+                  {((user?.cargo === 'executivo' && imobiliaria?.criado_por === user?.id) || user?.cargo === 'admin') && id && (
                     <DocumentoImobiliariaUpload
                       onUploadSuccess={handleUploadSuccess}
                       label={documentos?.comprovante_endereco ? "Substituir Endereço" : "Upload Endereço"}
@@ -523,7 +523,7 @@ const DetalheImobiliaria = () => {
                       </Button>
                     </div>
                   )}
-                  {(user?.cargo === 'imobiliaria' || user?.cargo === 'executivo' || user?.cargo === 'admin') && id && (
+                  {((user?.cargo === 'executivo' && imobiliaria?.criado_por === user?.id) || user?.cargo === 'admin') && id && (
                     <DocumentoImobiliariaUpload
                       onUploadSuccess={handleUploadSuccess}
                       label={documentos?.cartao_creci ? "Substituir CRECI" : "Upload CRECI"}
