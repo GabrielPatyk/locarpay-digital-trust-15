@@ -15,6 +15,7 @@ export const useNotificacoes = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
+      // Configurar header com email do usuário para RLS
       const { data, error } = await supabase
         .from('notificacoes')
         .select('*')
@@ -22,6 +23,7 @@ export const useNotificacoes = () => {
         .order('data_criacao', { ascending: false });
 
       if (error) {
+        console.error('Erro ao buscar notificações:', error);
         throw error;
       }
       
