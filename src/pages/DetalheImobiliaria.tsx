@@ -8,10 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building, Mail, Phone, FileText, Users, Calendar, ArrowLeft, Upload, Eye, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useDocumentosImobiliaria } from '@/hooks/useDocumentosImobiliaria';
+import { useDocumentosImobiliariaEspecifica } from '@/hooks/useDocumentosImobiliariaEspecifica';
 import { useContratoParceria } from '@/hooks/useContratoParceria';
 import { useAuth } from '@/contexts/AuthContext';
-import DocumentUpload from '@/components/DocumentUpload';
+import DocumentoImobiliariaUpload from '@/components/DocumentoImobiliariaUpload';
 import { useToast } from '@/hooks/use-toast';
 import { useAprovarDocumentos } from '@/hooks/useAprovarDocumentos';
 import RejectReasonModal from '@/components/RejectReasonModal';
@@ -86,8 +86,8 @@ const DetalheImobiliaria = () => {
     enabled: !!id
   });
 
-  // Hook para documentos da imobiliária
-  const { documentos, todosDocumentosVerificados, algumDocumentoPendente, refetch: refetchDocumentos } = useDocumentosImobiliaria();
+  // Hook para documentos da imobiliária específica
+  const { documentos, todosDocumentosVerificados, algumDocumentoPendente, refetch: refetchDocumentos } = useDocumentosImobiliariaEspecifica(id);
   
   // Hook para contrato de parceria
   const { contrato: contratoStatus, isLoading: loadingContrato } = useContratoParceria(id || '');
@@ -409,10 +409,12 @@ const DetalheImobiliaria = () => {
                       </Button>
                     </div>
                   )}
-                  {(user?.cargo === 'imobiliaria' || user?.cargo === 'executivo' || user?.cargo === 'admin') && (
-                    <DocumentUpload
+                  {(user?.cargo === 'imobiliaria' || user?.cargo === 'executivo' || user?.cargo === 'admin') && id && (
+                    <DocumentoImobiliariaUpload
                       onUploadSuccess={handleUploadSuccess}
                       label={documentos?.cartao_cnpj ? "Substituir CNPJ" : "Upload CNPJ"}
+                      imobiliariaId={id}
+                      tipoDocumento="cartao_cnpj"
                     />
                   )}
                 </div>
@@ -464,10 +466,12 @@ const DetalheImobiliaria = () => {
                       </Button>
                     </div>
                   )}
-                  {(user?.cargo === 'imobiliaria' || user?.cargo === 'executivo' || user?.cargo === 'admin') && (
-                    <DocumentUpload
+                  {(user?.cargo === 'imobiliaria' || user?.cargo === 'executivo' || user?.cargo === 'admin') && id && (
+                    <DocumentoImobiliariaUpload
                       onUploadSuccess={handleUploadSuccess}
                       label={documentos?.comprovante_endereco ? "Substituir Endereço" : "Upload Endereço"}
+                      imobiliariaId={id}
+                      tipoDocumento="comprovante_endereco"
                     />
                   )}
                 </div>
@@ -519,10 +523,12 @@ const DetalheImobiliaria = () => {
                       </Button>
                     </div>
                   )}
-                  {(user?.cargo === 'imobiliaria' || user?.cargo === 'executivo' || user?.cargo === 'admin') && (
-                    <DocumentUpload
+                  {(user?.cargo === 'imobiliaria' || user?.cargo === 'executivo' || user?.cargo === 'admin') && id && (
+                    <DocumentoImobiliariaUpload
                       onUploadSuccess={handleUploadSuccess}
                       label={documentos?.cartao_creci ? "Substituir CRECI" : "Upload CRECI"}
+                      imobiliariaId={id}
+                      tipoDocumento="cartao_creci"
                     />
                   )}
                 </div>

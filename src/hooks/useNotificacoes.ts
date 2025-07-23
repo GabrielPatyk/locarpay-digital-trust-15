@@ -14,8 +14,6 @@ export const useNotificacoes = () => {
     queryKey: ['notificacoes', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-
-      console.log('Buscando notificações para usuário:', user.id);
       
       const { data, error } = await supabase
         .from('notificacoes')
@@ -24,11 +22,9 @@ export const useNotificacoes = () => {
         .order('data_criacao', { ascending: false });
 
       if (error) {
-        console.error('Erro ao buscar notificações:', error);
         throw error;
       }
       
-      console.log('Notificações encontradas:', data);
       return data || [];
     },
     enabled: !!user?.id,

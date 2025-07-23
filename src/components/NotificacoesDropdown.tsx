@@ -30,6 +30,8 @@ const NotificacoesDropdown = () => {
     // Navegar para a página relacionada se necessário
     if (notificacao.dados_extras?.fianca_id) {
       navigate(`/detalhe-fianca/${notificacao.dados_extras.fianca_id}`);
+    } else if (notificacao.dados_extras?.usuario_id) {
+      navigate(`/detalhe-imobiliaria/${notificacao.dados_extras.usuario_id}`);
     }
   };
 
@@ -45,6 +47,9 @@ const NotificacoesDropdown = () => {
         return 'text-red-600';
       case 'pagamento_confirmado':
         return 'text-blue-600';
+      case 'documento_anexado':
+      case 'documento_status_alterado':
+        return 'text-orange-600';
       default:
         return 'text-gray-600';
     }
