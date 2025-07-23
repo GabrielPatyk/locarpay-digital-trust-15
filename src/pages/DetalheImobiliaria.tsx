@@ -371,8 +371,14 @@ const DetalheImobiliaria = () => {
                 </div>
                 <Badge className={`mb-3 ${getDocumentStatusColor(documentos?.status_cartao_cnpj || 'pendente')}`}>
                   {documentos?.status_cartao_cnpj === 'verificado' ? 'Verificado' :
-                   documentos?.status_cartao_cnpj === 'verificando' ? 'Em verificação' : 'Pendente'}
+                   documentos?.status_cartao_cnpj === 'verificando' ? 'Em verificação' : 
+                   documentos?.status_cartao_cnpj === 'rejeitado' ? 'Rejeitado' : 'Pendente'}
                 </Badge>
+                {documentos?.motivo_rejeicao_cartao_cnpj && (
+                  <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                    <strong>Motivo da rejeição:</strong> {documentos.motivo_rejeicao_cartao_cnpj}
+                  </div>
+                )}
                 <div className="space-y-2">
                   {documentos?.cartao_cnpj && (
                     <Button
@@ -428,8 +434,14 @@ const DetalheImobiliaria = () => {
                 </div>
                 <Badge className={`mb-3 ${getDocumentStatusColor(documentos?.status_comprovante_endereco || 'pendente')}`}>
                   {documentos?.status_comprovante_endereco === 'verificado' ? 'Verificado' :
-                   documentos?.status_comprovante_endereco === 'verificando' ? 'Em verificação' : 'Pendente'}
+                   documentos?.status_comprovante_endereco === 'verificando' ? 'Em verificação' : 
+                   documentos?.status_comprovante_endereco === 'rejeitado' ? 'Rejeitado' : 'Pendente'}
                 </Badge>
+                {documentos?.motivo_rejeicao_comprovante_endereco && (
+                  <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                    <strong>Motivo da rejeição:</strong> {documentos.motivo_rejeicao_comprovante_endereco}
+                  </div>
+                )}
                 <div className="space-y-2">
                   {documentos?.comprovante_endereco && (
                     <Button
@@ -485,8 +497,14 @@ const DetalheImobiliaria = () => {
                 </div>
                 <Badge className={`mb-3 ${getDocumentStatusColor(documentos?.status_cartao_creci || 'pendente')}`}>
                   {documentos?.status_cartao_creci === 'verificado' ? 'Verificado' :
-                   documentos?.status_cartao_creci === 'verificando' ? 'Em verificação' : 'Pendente'}
+                   documentos?.status_cartao_creci === 'verificando' ? 'Em verificação' : 
+                   documentos?.status_cartao_creci === 'rejeitado' ? 'Rejeitado' : 'Pendente'}
                 </Badge>
+                {documentos?.motivo_rejeicao_cartao_creci && (
+                  <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                    <strong>Motivo da rejeição:</strong> {documentos.motivo_rejeicao_cartao_creci}
+                  </div>
+                )}
                 <div className="space-y-2">
                   {documentos?.cartao_creci && (
                     <Button
