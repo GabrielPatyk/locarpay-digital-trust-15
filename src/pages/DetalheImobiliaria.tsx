@@ -95,25 +95,6 @@ const DetalheImobiliaria = () => {
   // Hook para aprovar documentos (apenas para admin)
   const { aprovarDocumento, isProcessing } = useAprovarDocumentos();
 
-  // DEBUG: Logs para identificar problemas
-  console.log('=== DEBUG DETALHE IMOBILIÁRIA ===');
-  console.log('User atual:', user);
-  console.log('User cargo:', user?.cargo);
-  console.log('Is admin:', user?.cargo === 'admin');
-  console.log('Imobiliária ID:', id);
-  console.log('Documentos carregados:', documentos);
-  console.log('Status documentos:', {
-    cartao_cnpj: documentos?.status_cartao_cnpj,
-    comprovante_endereco: documentos?.status_comprovante_endereco,
-    cartao_creci: documentos?.status_cartao_creci
-  });
-  console.log('Documentos existem:', {
-    cartao_cnpj: !!documentos?.cartao_cnpj,
-    comprovante_endereco: !!documentos?.comprovante_endereco,
-    cartao_creci: !!documentos?.cartao_creci
-  });
-  console.log('=== FIM DEBUG ===');
-
   // Estados para rejeição de documentos
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [documentToReject, setDocumentToReject] = useState<{
@@ -400,22 +381,32 @@ const DetalheImobiliaria = () => {
                 )}
                 <div className="space-y-2">
                   {documentos?.cartao_cnpj && (
-                    <a
-                      href={documentos.cartao_cnpj}
-                      download="cartao_cnpj"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        try {
+                          const newWindow = window.open(documentos.cartao_cnpj, '_blank');
+                          if (!newWindow) {
+                            // Fallback: force download
+                            const link = document.createElement('a');
+                            link.href = documentos.cartao_cnpj!;
+                            link.download = 'cartao_cnpj';
+                            link.click();
+                          }
+                        } catch {
+                          // Fallback: force download
+                          const link = document.createElement('a');
+                          link.href = documentos.cartao_cnpj!;
+                          link.download = 'cartao_cnpj';
+                          link.click();
+                        }
+                      }}
                       className="w-full"
                     >
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        Ver Documento
-                      </Button>
-                    </a>
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver Documento
+                    </Button>
                   )}
                   {user?.cargo === 'admin' && documentos?.cartao_cnpj && documentos?.status_cartao_cnpj === 'verificando' && (
                     <div className="flex gap-2">
@@ -470,22 +461,32 @@ const DetalheImobiliaria = () => {
                 )}
                 <div className="space-y-2">
                   {documentos?.comprovante_endereco && (
-                    <a
-                      href={documentos.comprovante_endereco}
-                      download="comprovante_endereco"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        try {
+                          const newWindow = window.open(documentos.comprovante_endereco, '_blank');
+                          if (!newWindow) {
+                            // Fallback: force download
+                            const link = document.createElement('a');
+                            link.href = documentos.comprovante_endereco!;
+                            link.download = 'comprovante_endereco';
+                            link.click();
+                          }
+                        } catch {
+                          // Fallback: force download
+                          const link = document.createElement('a');
+                          link.href = documentos.comprovante_endereco!;
+                          link.download = 'comprovante_endereco';
+                          link.click();
+                        }
+                      }}
                       className="w-full"
                     >
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        Ver Documento
-                      </Button>
-                    </a>
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver Documento
+                    </Button>
                   )}
                   {user?.cargo === 'admin' && documentos?.comprovante_endereco && documentos?.status_comprovante_endereco === 'verificando' && (
                     <div className="flex gap-2">
@@ -540,22 +541,32 @@ const DetalheImobiliaria = () => {
                 )}
                 <div className="space-y-2">
                   {documentos?.cartao_creci && (
-                    <a
-                      href={documentos.cartao_creci}
-                      download="cartao_creci"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        try {
+                          const newWindow = window.open(documentos.cartao_creci, '_blank');
+                          if (!newWindow) {
+                            // Fallback: force download
+                            const link = document.createElement('a');
+                            link.href = documentos.cartao_creci!;
+                            link.download = 'cartao_creci';
+                            link.click();
+                          }
+                        } catch {
+                          // Fallback: force download
+                          const link = document.createElement('a');
+                          link.href = documentos.cartao_creci!;
+                          link.download = 'cartao_creci';
+                          link.click();
+                        }
+                      }}
                       className="w-full"
                     >
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        Ver Documento
-                      </Button>
-                    </a>
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver Documento
+                    </Button>
                   )}
                   {user?.cargo === 'admin' && documentos?.cartao_creci && documentos?.status_cartao_creci === 'verificando' && (
                     <div className="flex gap-2">
