@@ -488,7 +488,13 @@ const DetalheImobiliaria = () => {
                       Ver Documento
                     </Button>
                   )}
-                  {user?.cargo === 'admin' && documentos?.comprovante_endereco && documentos?.status_comprovante_endereco === 'verificando' && (
+                  {(() => {
+                    console.log('DEBUG ADMIN BUTTONS - user?.cargo:', user?.cargo);
+                    console.log('DEBUG ADMIN BUTTONS - documentos?.comprovante_endereco:', documentos?.comprovante_endereco);
+                    console.log('DEBUG ADMIN BUTTONS - documentos?.status_comprovante_endereco:', documentos?.status_comprovante_endereco);
+                    console.log('DEBUG ADMIN BUTTONS - condition result:', user?.cargo === 'admin' && documentos?.comprovante_endereco && documentos?.status_comprovante_endereco === 'verificando');
+                    return user?.cargo === 'admin' && documentos?.comprovante_endereco && documentos?.status_comprovante_endereco === 'verificando';
+                  })() && (
                     <div className="flex gap-2">
                       <Button
                         variant="default"
