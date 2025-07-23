@@ -2,7 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface DocumentosStatus {
+export interface DocumentosStatus {
+  id?: string;
   cartao_cnpj?: string | null;
   comprovante_endereco?: string | null;
   cartao_creci?: string | null;
@@ -30,6 +31,7 @@ export const useDocumentosImobiliaria = () => {
       const { data, error } = await supabase
         .from('perfil_usuario')
         .select(`
+          id,
           cartao_cnpj,
           comprovante_endereco,
           cartao_creci,
@@ -46,6 +48,7 @@ export const useDocumentosImobiliaria = () => {
       if (error) throw error;
 
       return data ? {
+        id: data.id,
         cartao_cnpj: data.cartao_cnpj,
         comprovante_endereco: data.comprovante_endereco,
         cartao_creci: data.cartao_creci,

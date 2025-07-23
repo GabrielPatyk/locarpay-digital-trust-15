@@ -13,6 +13,7 @@ import { useContratoParceria } from '@/hooks/useContratoParceria';
 import { useAuth } from '@/contexts/AuthContext';
 import DocumentUpload from '@/components/DocumentUpload';
 import { useToast } from '@/hooks/use-toast';
+import { useAprovarDocumentos } from '@/hooks/useAprovarDocumentos';
 
 const DetalheImobiliaria = () => {
   const { id } = useParams<{ id: string }>();
@@ -89,6 +90,9 @@ const DetalheImobiliaria = () => {
   
   // Hook para contrato de parceria
   const { contrato: contratoStatus, isLoading: loadingContrato } = useContratoParceria(id || '');
+  
+  // Hook para aprovar documentos (apenas para admin)
+  const { aprovarDocumento, isProcessing } = useAprovarDocumentos();
 
   const getDocumentStatusIcon = (status: string) => {
     switch (status) {
@@ -121,6 +125,16 @@ const DetalheImobiliaria = () => {
     toast({
       title: "Upload realizado!",
       description: "Documento enviado com sucesso.",
+    });
+  };
+
+  const handleAprovarDocumento = (tipoDocumento: 'cartao_cnpj' | 'comprovante_endereco' | 'cartao_creci', aprovar: boolean) => {
+    if (!documentos?.id) return;
+    
+    aprovarDocumento({
+      perfilId: documentos.id,
+      tipoDocumento,
+      aprovar
     });
   };
 
@@ -347,10 +361,36 @@ const DetalheImobiliaria = () => {
                       Ver Documento
                     </Button>
                   )}
-                  <DocumentUpload
-                    onUploadSuccess={handleUploadSuccess}
-                    label="Upload CNPJ"
-                  />
+                  {user?.cargo === 'admin' && documentos?.cartao_cnpj && documentos?.status_cartao_cnpj === 'verificando' && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleAprovarDocumento('cartao_cnpj', true)}
+                        disabled={isProcessing}
+                        className="flex-1"
+                      >
+                        <CheckCircle className="mr-1 h-4 w-4" />
+                        Aprovar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleAprovarDocumento('cartao_cnpj', false)}
+                        disabled={isProcessing}
+                        className="flex-1"
+                      >
+                        <XCircle className="mr-1 h-4 w-4" />
+                        Rejeitar
+                      </Button>
+                    </div>
+                  )}
+                  {user?.cargo === 'imobiliaria' && (
+                    <DocumentUpload
+                      onUploadSuccess={handleUploadSuccess}
+                      label="Upload CNPJ"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -376,10 +416,36 @@ const DetalheImobiliaria = () => {
                       Ver Documento
                     </Button>
                   )}
-                  <DocumentUpload
-                    onUploadSuccess={handleUploadSuccess}
-                    label="Upload Endereço"
-                  />
+                  {user?.cargo === 'admin' && documentos?.comprovante_endereco && documentos?.status_comprovante_endereco === 'verificando' && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleAprovarDocumento('comprovante_endereco', true)}
+                        disabled={isProcessing}
+                        className="flex-1"
+                      >
+                        <CheckCircle className="mr-1 h-4 w-4" />
+                        Aprovar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleAprovarDocumento('comprovante_endereco', false)}
+                        disabled={isProcessing}
+                        className="flex-1"
+                      >
+                        <XCircle className="mr-1 h-4 w-4" />
+                        Rejeitar
+                      </Button>
+                    </div>
+                  )}
+                  {user?.cargo === 'imobiliaria' && (
+                    <DocumentUpload
+                      onUploadSuccess={handleUploadSuccess}
+                      label="Upload Endereço"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -405,10 +471,36 @@ const DetalheImobiliaria = () => {
                       Ver Documento
                     </Button>
                   )}
-                  <DocumentUpload
-                    onUploadSuccess={handleUploadSuccess}
-                    label="Upload CRECI"
-                  />
+                  {user?.cargo === 'admin' && documentos?.cartao_creci && documentos?.status_cartao_creci === 'verificando' && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleAprovarDocumento('cartao_creci', true)}
+                        disabled={isProcessing}
+                        className="flex-1"
+                      >
+                        <CheckCircle className="mr-1 h-4 w-4" />
+                        Aprovar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleAprovarDocumento('cartao_creci', false)}
+                        disabled={isProcessing}
+                        className="flex-1"
+                      >
+                        <XCircle className="mr-1 h-4 w-4" />
+                        Rejeitar
+                      </Button>
+                    </div>
+                  )}
+                  {user?.cargo === 'imobiliaria' && (
+                    <DocumentUpload
+                      onUploadSuccess={handleUploadSuccess}
+                      label="Upload CRECI"
+                    />
+                  )}
                 </div>
               </div>
             </div>

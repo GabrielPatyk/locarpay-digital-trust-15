@@ -8,7 +8,11 @@ type Usuario = Tables<'usuarios'>;
 type PerfilUsuario = Tables<'perfil_usuario'>;
 
 export interface ImobiliariaCompleta extends Usuario {
-  perfil_usuario?: PerfilUsuario;
+  perfil_usuario?: PerfilUsuario & {
+    status_cartao_cnpj?: string;
+    status_comprovante_endereco?: string;
+    status_cartao_creci?: string;
+  };
   _count?: {
     fiancas_ativas: number;
   };
@@ -29,7 +33,12 @@ export const useImobiliarias = () => {
         .from('usuarios')
         .select(`
           *,
-          perfil_usuario(*)
+          perfil_usuario(
+            *,
+            status_cartao_cnpj,
+            status_comprovante_endereco,
+            status_cartao_creci
+          )
         `)
         .eq('cargo', 'imobiliaria')
         .order('criado_em', { ascending: false });

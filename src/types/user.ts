@@ -14,6 +14,7 @@ export interface User {
   email: string;
   name: string;
   type: UserType;
+  cargo?: string;
   avatar?: string;
   imobiliariaId?: string;
   executivoId?: string;

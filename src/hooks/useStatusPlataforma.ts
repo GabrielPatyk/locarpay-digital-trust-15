@@ -27,10 +27,10 @@ export const useStatusPlataforma = () => {
       const { data, error } = await supabase
         .from('status_plataforma')
         .select('*')
-        .single();
+        .limit(1);
 
       if (error) throw error;
-      return data as StatusPlataforma;
+      return data && data.length > 0 ? data[0] as StatusPlataforma : null;
     }
   });
 

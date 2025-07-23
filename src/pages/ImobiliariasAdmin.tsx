@@ -17,7 +17,10 @@ import {
   Edit,
   UserX,
   Trash2,
-  Search
+  Search,
+  CheckCircle,
+  XCircle,
+  Clock
 } from 'lucide-react';
 
 const ImobiliariasAdmin = () => {
@@ -71,6 +74,32 @@ const ImobiliariasAdmin = () => {
 
   const handleEditImobiliaria = (imobiliariaId: string) => {
     navigate(`/editar-imobiliaria/${imobiliariaId}`);
+  };
+
+  const getDocumentStatusIcon = (status: string | undefined) => {
+    switch (status) {
+      case 'verificado':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'rejeitado':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'verificando':
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+      default:
+        return <XCircle className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getDocumentStatusText = (status: string | undefined) => {
+    switch (status) {
+      case 'verificado':
+        return 'Verificado';
+      case 'rejeitado':
+        return 'Rejeitado';
+      case 'verificando':
+        return 'Em verificação';
+      default:
+        return 'Pendente';
+    }
   };
 
   const filteredImobiliarias = imobiliarias.filter(imobiliaria => {
@@ -217,6 +246,40 @@ const ImobiliariasAdmin = () => {
                           <div className="min-w-0">
                             <p className="text-sm text-gray-500">Fianças Ativas</p>
                             <p className="font-medium">0</p>
+                          </div>
+                        </div>
+                        
+                        {/* Status dos Documentos */}
+                        <div className="border-t pt-3 mt-3">
+                          <p className="text-sm font-medium text-gray-700 mb-2">Status dos Documentos:</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="flex items-center gap-2">
+                              {getDocumentStatusIcon(imobiliaria.perfil_usuario?.status_cartao_cnpj)}
+                              <div>
+                                <p className="text-xs text-gray-500">CNPJ</p>
+                                <p className="text-sm font-medium">
+                                  {getDocumentStatusText(imobiliaria.perfil_usuario?.status_cartao_cnpj)}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {getDocumentStatusIcon(imobiliaria.perfil_usuario?.status_comprovante_endereco)}
+                              <div>
+                                <p className="text-xs text-gray-500">Endereço</p>
+                                <p className="text-sm font-medium">
+                                  {getDocumentStatusText(imobiliaria.perfil_usuario?.status_comprovante_endereco)}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {getDocumentStatusIcon(imobiliaria.perfil_usuario?.status_cartao_creci)}
+                              <div>
+                                <p className="text-xs text-gray-500">CRECI</p>
+                                <p className="text-sm font-medium">
+                                  {getDocumentStatusText(imobiliaria.perfil_usuario?.status_cartao_creci)}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
