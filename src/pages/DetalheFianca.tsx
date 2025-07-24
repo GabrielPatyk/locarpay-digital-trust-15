@@ -39,6 +39,15 @@ const DetalheFianca = () => {
   const { anexarDocumento, atualizarDocumento, isAnexando, isAtualizando } = useFiancaDocumentosExecutivo(id || '');
   const { data: contratoFianca } = useContratoFianca(id || '');
 
+  // Debug logs temporários para verificar dados do contrato
+  console.log('🔍 Debug Contract Data:', {
+    contratoFianca,
+    status: contratoFianca?.status_contrato,
+    urlAssinatura: contratoFianca?.url_assinatura_inquilino,
+    hasUrl: !!contratoFianca?.url_assinatura_inquilino,
+    shouldShowButton: (contratoFianca?.status_contrato === 'assinatura_inquilino' || contratoFianca?.status_contrato === 'assinatura_locarpay') && contratoFianca?.url_assinatura_inquilino
+  });
+
   // Verificar se o usuário tem permissão (admin, analista, financeiro, executivo, imobiliária dona da fiança ou inquilino da fiança)
   React.useEffect(() => {
     if (user && fianca) {
