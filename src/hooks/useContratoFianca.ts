@@ -26,11 +26,14 @@ export const useContratoFianca = (fiancaId: string) => {
 
       if (error) {
         console.error('Erro ao buscar contrato da fiança:', error);
-        return null;
+        console.error('Error details:', error);
+        throw error;
       }
 
+      console.log('🔍 Hook Debug - Contract found:', data);
       return data as ContratoFianca | null;
     },
-    enabled: !!fiancaId
+    enabled: !!fiancaId,
+    retry: 1
   });
 };
