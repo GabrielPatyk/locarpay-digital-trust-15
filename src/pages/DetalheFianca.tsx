@@ -11,6 +11,7 @@ import { useCargoRedirect } from '@/hooks/useCargoRedirect';
 import { useAuth } from '@/contexts/AuthContext';
 import DocumentUpload from '@/components/DocumentUpload';
 import { useFiancaDocumentosExecutivo } from '@/hooks/useFiancaDocumentosExecutivo';
+import { useContratoFianca } from '@/hooks/useContratoFianca';
 import { 
   ArrowLeft, 
   User, 
@@ -24,7 +25,9 @@ import {
   Loader2,
   CreditCard,
   CheckCircle,
-  LinkIcon
+  LinkIcon,
+  Download,
+  AlertTriangle
 } from 'lucide-react';
 
 const DetalheFianca = () => {
@@ -34,6 +37,7 @@ const DetalheFianca = () => {
   const { fianca, historico, isLoading } = useFiancaDetails(id || '');
   const { getCargoHomePage } = useCargoRedirect();
   const { anexarDocumento, atualizarDocumento, isAnexando, isAtualizando } = useFiancaDocumentosExecutivo(id || '');
+  const { data: contratoFianca } = useContratoFianca(id || '');
 
   // Verificar se o usuário tem permissão (admin, analista, financeiro, executivo, imobiliária dona da fiança ou inquilino da fiança)
   React.useEffect(() => {
@@ -238,6 +242,46 @@ const DetalheFianca = () => {
       taxaFianca,
       valorFianca
     };
+  };
+
+  // Função para download de documento
+  const handleDownloadDocument = async (documentos: any) => {
+    if (!documentos) return;
+    
+    try {
+      // Se documentos for uma string (URL), fazer download direto
+      if (typeof documentos === 'string') {
+        const link = document.createElement('a');
+        link.href = documentos;
+        link.download = 'contrato_fianca.pdf';
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+      
+      // Se for objeto JSON, tentar encontrar URL
+      if (typeof documentos === 'object') {
+        const url = documentos.url || documentos.contrato || documentos.documento;
+        if (url) {
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'contrato_fianca.pdf';
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao baixar documento:', error);
+    }
+  };
+
+  // Função para abrir link de assinatura
+  const handleOpenSignatureLink = (url: string) => {
+    window.open(url, '_blank');
   };
 
   // Filtrar histórico para evitar duplicatas
@@ -752,22 +796,50 @@ const DetalheFianca = () => {
                   <div className="p-4 border border-gray-200 rounded-lg">
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-semibold text-gray-800">Contrato de Fiança</h4>
-                      <Badge variant="outline" className="text-orange-600 border-orange-600">
-                        Aguardando Assinatura
-                      </Badge>
+                      {contratoFianca?.url_assinatura_inquilino ? (
+                        <Badge variant="outline" className="text-green-600 border-green-600">
+                          Link Disponível
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-orange-600 border-orange-600">
+                          {contratoFianca ? 'Gerando Link' : 'Aguardando Contrato'}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 mb-3">
                       Contrato principal da fiança locatícia entre inquilino e LocarPay
                     </p>
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
-                        <FileText className="mr-2 h-4 w-4" />
-                        Visualizar
-                      </Button>
-                      <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                        <LinkIcon className="mr-2 h-4 w-4" />
-                        Enviar para Assinatura
-                      </Button>
+                      {contratoFianca?.documentos && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDownloadDocument(contratoFianca.documentos)}
+                        >
+                          <Download className="mr-2 h-4 w-4" />
+                          Visualizar
+                        </Button>
+                      )}
+                      {contratoFianca?.url_assinatura_inquilino ? (
+                        <Button 
+                          size="sm" 
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                          onClick={() => handleOpenSignatureLink(contratoFianca.url_assinatura_inquilino!)}
+                        >
+                          <LinkIcon className="mr-2 h-4 w-4" />
+                          Abrir Link de Assinatura
+                        </Button>
+                      ) : contratoFianca ? (
+                        <div className="flex items-center text-orange-600 text-sm">
+                          <AlertTriangle className="mr-2 h-4 w-4" />
+                          Link sendo gerado, ficará disponível em breve
+                        </div>
+                      ) : (
+                        <div className="flex items-center text-gray-500 text-sm">
+                          <Clock className="mr-2 h-4 w-4" />
+                          Contrato será criado automaticamente
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -794,15 +866,34 @@ const DetalheFianca = () => {
                   </div>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-start">
-                    <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
-                    <div className="text-sm text-blue-800">
-                      <p className="font-medium mb-1">Próximos Passos</p>
-                      <p>Após o pagamento ser confirmado, os contratos são automaticamente gerados e enviados para o inquilino assinar via plataforma digital.</p>
+                {contratoFianca && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-start">
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 mr-2 flex-shrink-0" />
+                      <div className="text-sm text-green-800">
+                        <p className="font-medium mb-1">Contrato Gerado</p>
+                        <p>O contrato foi criado automaticamente após a confirmação do pagamento.</p>
+                        {contratoFianca.created_at && (
+                          <p className="mt-1">
+                            <strong>Criado em:</strong> {new Date(contratoFianca.created_at).toLocaleDateString('pt-BR')}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {!contratoFianca && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start">
+                      <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+                      <div className="text-sm text-blue-800">
+                        <p className="font-medium mb-1">Próximos Passos</p>
+                        <p>Após o pagamento ser confirmado, os contratos são automaticamente gerados e enviados para o inquilino assinar via plataforma digital.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

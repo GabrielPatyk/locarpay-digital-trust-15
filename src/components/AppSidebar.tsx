@@ -258,6 +258,11 @@ const AppSidebar = () => {
         icon: Users,
       },
       {
+        title: 'Análises',
+        url: '/analista',
+        icon: FileText,
+      },
+      {
         title: 'Fianças',
         url: '/fiancas-admin',
         icon: FileText,

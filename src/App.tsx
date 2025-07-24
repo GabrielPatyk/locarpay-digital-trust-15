@@ -178,9 +178,9 @@ function App() {
                       </ProtectedRoute>
                     } />
 
-                    {/* Analista routes */}
+                     {/* Analista routes */}
                     <Route path="/analista" element={
-                      <ProtectedRoute allowedRoles={['analista']}>
+                      <ProtectedRoute allowedRoles={['analista', 'admin']}>
                         <AppSidebar />
                         <Analista />
                       </ProtectedRoute>
