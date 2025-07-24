@@ -27,7 +27,8 @@ import {
   CheckCircle,
   LinkIcon,
   Download,
-  AlertTriangle
+  AlertTriangle,
+  ExternalLink
 } from 'lucide-react';
 
 const DetalheFianca = () => {
@@ -37,16 +38,7 @@ const DetalheFianca = () => {
   const { fianca, historico, isLoading } = useFiancaDetails(id || '');
   const { getCargoHomePage } = useCargoRedirect();
   const { anexarDocumento, atualizarDocumento, isAnexando, isAtualizando } = useFiancaDocumentosExecutivo(id || '');
-  const { data: contratoFianca } = useContratoFianca(id || '');
-
-  // Debug logs temporários para verificar dados do contrato
-  console.log('🔍 Debug Contract Data:', {
-    contratoFianca,
-    status: contratoFianca?.status_contrato,
-    urlAssinatura: contratoFianca?.url_assinatura_inquilino,
-    hasUrl: !!contratoFianca?.url_assinatura_inquilino,
-    shouldShowButton: (contratoFianca?.status_contrato === 'assinatura_inquilino' || contratoFianca?.status_contrato === 'assinatura_locarpay') && contratoFianca?.url_assinatura_inquilino
-  });
+  const { data: contratoFianca, isLoading: isLoadingContrato, error: errorContrato } = useContratoFianca(id || '');
 
   // Verificar se o usuário tem permissão (admin, analista, financeiro, executivo, imobiliária dona da fiança ou inquilino da fiança)
   React.useEffect(() => {
@@ -836,16 +828,26 @@ const DetalheFianca = () => {
                            <Download className="mr-2 h-4 w-4" />
                            Ver Contrato
                          </Button>
-                       )}
-                        {(contratoFianca?.status_contrato === 'assinatura_inquilino' || contratoFianca?.status_contrato === 'assinatura_locarpay') && contratoFianca?.url_assinatura_inquilino && (
-                          <Button 
-                            size="sm" 
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                            onClick={() => handleOpenSignatureLink(contratoFianca.url_assinatura_inquilino!)}
-                          >
-                            <LinkIcon className="mr-2 h-4 w-4" />
-                            Assinatura Inquilino
-                          </Button>
+                        )}
+                         {/* Botão de assinatura melhorado com feedback de carregamento */}
+                         {(contratoFianca?.status_contrato === 'assinatura_inquilino' || contratoFianca?.status_contrato === 'assinatura_locarpay') && (
+                           <div className="space-y-2">
+                             {contratoFianca?.url_assinatura_inquilino ? (
+                               <Button 
+                                 size="sm" 
+                                 className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                 onClick={() => handleOpenSignatureLink(contratoFianca.url_assinatura_inquilino!)}
+                               >
+                                 <LinkIcon className="mr-2 h-4 w-4" />
+                                 Assinar Contrato
+                               </Button>
+                             ) : (
+                               <div className="flex items-center text-amber-600 text-sm">
+                                 <Clock className="mr-2 h-4 w-4" />
+                                 Link de assinatura sendo gerado...
+                               </div>
+                             )}
+                           </div>
                         )}
                        {contratoFianca?.status_contrato === 'gerando_link' && (
                          <div className="flex items-center text-orange-600 text-sm">
