@@ -488,6 +488,30 @@ export type Database = {
         }
         Relationships: []
       }
+      password_reset_attempts: {
+        Row: {
+          attempts: number | null
+          blocked_until: string | null
+          email: string
+          id: string
+          last_attempt: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          blocked_until?: string | null
+          email: string
+          id?: string
+          last_attempt?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          blocked_until?: string | null
+          email?: string
+          id?: string
+          last_attempt?: string | null
+        }
+        Relationships: []
+      }
       perfil_usuario: {
         Row: {
           atualizado_em: string
@@ -807,6 +831,10 @@ export type Database = {
       }
       atualizar_imagem_perfil: {
         Args: { p_usuario_id: string; p_imagem_url: string }
+        Returns: boolean
+      }
+      check_password_reset_rate_limit: {
+        Args: { user_email: string }
         Returns: boolean
       }
       criar_contrato_apos_pagamento: {
