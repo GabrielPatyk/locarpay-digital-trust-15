@@ -800,10 +800,10 @@ const DetalheFianca = () => {
                          <Badge variant="outline" className="text-green-600 border-green-600">
                            Assinado
                          </Badge>
-                       ) : contratoFianca?.status_contrato === 'assinatura_inquilino' ? (
-                         <Badge variant="outline" className="text-yellow-600 border-yellow-600">
-                           Aguardando Inquilino Assinar
-                         </Badge>
+                        ) : (contratoFianca?.status_contrato === 'assinatura_inquilino' || contratoFianca?.status_contrato === 'assinatura_locarpay') ? (
+                          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                            Aguardando Inquilino Assinar
+                          </Badge>
                        ) : contratoFianca?.status_contrato === 'gerando_link' ? (
                          <Badge variant="outline" className="text-orange-600 border-orange-600">
                            Contrato será criado automaticamente
@@ -828,16 +828,16 @@ const DetalheFianca = () => {
                            Ver Contrato
                          </Button>
                        )}
-                       {contratoFianca?.status_contrato === 'assinatura_inquilino' && contratoFianca?.url_assinatura_inquilino && (
-                         <Button 
-                           size="sm" 
-                           className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                           onClick={() => handleOpenSignatureLink(contratoFianca.url_assinatura_inquilino!)}
-                         >
-                           <LinkIcon className="mr-2 h-4 w-4" />
-                           Assinatura Inquilino
-                         </Button>
-                       )}
+                        {(contratoFianca?.status_contrato === 'assinatura_inquilino' || contratoFianca?.status_contrato === 'assinatura_locarpay') && contratoFianca?.url_assinatura_inquilino && (
+                          <Button 
+                            size="sm" 
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                            onClick={() => handleOpenSignatureLink(contratoFianca.url_assinatura_inquilino!)}
+                          >
+                            <LinkIcon className="mr-2 h-4 w-4" />
+                            Assinatura Inquilino
+                          </Button>
+                        )}
                        {contratoFianca?.status_contrato === 'gerando_link' && (
                          <div className="flex items-center text-orange-600 text-sm">
                            <AlertTriangle className="mr-2 h-4 w-4" />
