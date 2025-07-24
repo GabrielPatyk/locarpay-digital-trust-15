@@ -106,7 +106,7 @@ serve(async (req) => {
 
     // Enviar webhook
     try {
-      const webhookResponse = await fetch('https://webhook.lesenechal.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6', {
+      const webhookResponse = await fetch('https://webhook.locarpay.com.br/webhook/ae5ec49a-0e3e-4122-afec-101b2984f9a6', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

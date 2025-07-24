@@ -45,7 +45,7 @@ serve(async (req) => {
       timestamp: new Date().toISOString()
     };
 
-    const webhookResponse = await fetch('https://webhook.lesenechal.com.br/webhook/Esqueci-A-Minha-Senha-LocarPay-Webhook', {
+    const webhookResponse = await fetch('https://webhook.locarpay.com.br/webhook/Esqueci-A-Minha-Senha-LocarPay-Webhook', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

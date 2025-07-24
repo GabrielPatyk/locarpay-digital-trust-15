@@ -39,7 +39,7 @@ export const useEmailVerification = () => {
         link: `${window.location.origin}/verificar-email?token=${tokenData}`
       };
 
-      await fetch('https://webhook.lesenechal.com.br/webhook/Validar-Email-Da-Conta-LocarPay-Webhook', {
+      await fetch('https://webhook.locarpay.com.br/webhook/Validar-Email-Da-Conta-LocarPay-Webhook', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
