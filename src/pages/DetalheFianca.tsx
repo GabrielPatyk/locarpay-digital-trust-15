@@ -793,55 +793,65 @@ const DetalheFianca = () => {
             <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-gray-800">Contrato de Fiança</h4>
-                      {contratoFianca?.url_assinatura_inquilino ? (
-                        <Badge variant="outline" className="text-green-600 border-green-600">
-                          Link Disponível
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-orange-600 border-orange-600">
-                          {contratoFianca ? 'Gerando Link' : 'Aguardando Contrato'}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">
-                      Contrato principal da fiança locatícia entre inquilino e LocarPay
-                    </p>
-                    <div className="flex space-x-2">
-                      {contratoFianca?.documentos && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDownloadDocument(contratoFianca.documentos)}
-                        >
-                          <Download className="mr-2 h-4 w-4" />
-                          Visualizar
-                        </Button>
-                      )}
-                      {contratoFianca?.url_assinatura_inquilino ? (
-                        <Button 
-                          size="sm" 
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                          onClick={() => handleOpenSignatureLink(contratoFianca.url_assinatura_inquilino!)}
-                        >
-                          <LinkIcon className="mr-2 h-4 w-4" />
-                          Abrir Link de Assinatura
-                        </Button>
-                      ) : contratoFianca ? (
-                        <div className="flex items-center text-orange-600 text-sm">
-                          <AlertTriangle className="mr-2 h-4 w-4" />
-                          Link sendo gerado, ficará disponível em breve
-                        </div>
-                      ) : (
-                        <div className="flex items-center text-gray-500 text-sm">
-                          <Clock className="mr-2 h-4 w-4" />
-                          Contrato será criado automaticamente
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                   <div className="p-4 border border-gray-200 rounded-lg">
+                     <div className="flex items-center justify-between mb-3">
+                       <h4 className="font-semibold text-gray-800">Contrato de Fiança</h4>
+                       {contratoFianca?.status_contrato === 'assinado' ? (
+                         <Badge variant="outline" className="text-green-600 border-green-600">
+                           Assinado
+                         </Badge>
+                       ) : contratoFianca?.status_contrato === 'assinatura_inquilino' ? (
+                         <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                           Aguardando Inquilino Assinar
+                         </Badge>
+                       ) : contratoFianca?.status_contrato === 'gerando_link' ? (
+                         <Badge variant="outline" className="text-orange-600 border-orange-600">
+                           Contrato será criado automaticamente
+                         </Badge>
+                       ) : (
+                         <Badge variant="outline" className="text-gray-600 border-gray-600">
+                           Aguardando Contrato
+                         </Badge>
+                       )}
+                     </div>
+                     <p className="text-sm text-gray-600 mb-3">
+                       Contrato principal da fiança locatícia entre inquilino e LocarPay
+                     </p>
+                     <div className="flex space-x-2">
+                       {contratoFianca?.status_contrato === 'assinado' && contratoFianca?.documentos && (
+                         <Button 
+                           variant="outline" 
+                           size="sm"
+                           onClick={() => handleDownloadDocument(contratoFianca.documentos!)}
+                         >
+                           <Download className="mr-2 h-4 w-4" />
+                           Ver Contrato
+                         </Button>
+                       )}
+                       {contratoFianca?.status_contrato === 'assinatura_inquilino' && contratoFianca?.url_assinatura_inquilino && (
+                         <Button 
+                           size="sm" 
+                           className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                           onClick={() => handleOpenSignatureLink(contratoFianca.url_assinatura_inquilino!)}
+                         >
+                           <LinkIcon className="mr-2 h-4 w-4" />
+                           Assinatura Inquilino
+                         </Button>
+                       )}
+                       {contratoFianca?.status_contrato === 'gerando_link' && (
+                         <div className="flex items-center text-orange-600 text-sm">
+                           <AlertTriangle className="mr-2 h-4 w-4" />
+                           Contrato será criado automaticamente
+                         </div>
+                       )}
+                       {!contratoFianca && (
+                         <div className="flex items-center text-gray-500 text-sm">
+                           <Clock className="mr-2 h-4 w-4" />
+                           Aguardando contrato - será criado após pagamento confirmado
+                         </div>
+                       )}
+                     </div>
+                   </div>
                   
                   <div className="p-4 border border-gray-200 rounded-lg">
                     <div className="flex items-center justify-between mb-3">

@@ -44,7 +44,7 @@ export type Database = {
           created_at: string | null
           data_assinatura: string | null
           data_envio: string | null
-          documentos: Json | null
+          documentos: string | null
           fianca_id: string
           id: string
           id_analista: string | null
@@ -70,7 +70,7 @@ export type Database = {
           created_at?: string | null
           data_assinatura?: string | null
           data_envio?: string | null
-          documentos?: Json | null
+          documentos?: string | null
           fianca_id: string
           id?: string
           id_analista?: string | null
@@ -96,7 +96,7 @@ export type Database = {
           created_at?: string | null
           data_assinatura?: string | null
           data_envio?: string | null
-          documentos?: Json | null
+          documentos?: string | null
           fianca_id?: string
           id?: string
           id_analista?: string | null

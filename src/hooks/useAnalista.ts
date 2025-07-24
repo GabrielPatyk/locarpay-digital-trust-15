@@ -146,10 +146,10 @@ export const useAnalista = () => {
   };
 
   useEffect(() => {
-    if (user?.type === 'analista') {
+    if (user?.cargo === 'analista' || user?.cargo === 'admin') {
       buscarFiancasPendentes();
     }
-  }, [user]);
+  }, [user?.cargo]);
 
   return {
     fiancas,

@@ -6,7 +6,7 @@ export interface ContratoFianca {
   fianca_id: string;
   status_contrato: string;
   url_assinatura_inquilino: string | null;
-  documentos: any;
+  documentos: string | null;
   data_envio: string | null;
   data_assinatura: string | null;
   created_at: string;
