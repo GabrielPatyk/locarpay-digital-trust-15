@@ -1,11 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { createSupabaseClient } from '@/integrations/supabase/client';
+import { useSession } from '@/contexts/AuthContext'; // ou onde você pega o token
 
 export const useContratoParceria = (imobiliariaId: string) => {
+  const { session } = useSession(); // precisa ter accessToken aqui
+
   const { data: contrato, isLoading } = useQuery({
     queryKey: ['contrato-parceria', imobiliariaId],
     queryFn: async () => {
-      if (!imobiliariaId) return null;
+      if (!imobiliariaId || !session?.access_token) return null;
+
+      const supabase = createSupabaseClient(session.access_token);
 
       const { data, error } = await supabase
         .from('contratos_parceria')
@@ -13,13 +18,13 @@ export const useContratoParceria = (imobiliariaId: string) => {
         .eq('imobiliaria_id', imobiliariaId);
 
       if (error) {
+        console.error('Erro Supabase:', error);
         throw error;
       }
 
-      // Retorna o primeiro item do array ou null se não houver dados
       return data && data.length > 0 ? data[0] : null;
     },
-    enabled: !!imobiliariaId
+    enabled: !!imobiliariaId && !!session?.access_token
   });
 
   return {
