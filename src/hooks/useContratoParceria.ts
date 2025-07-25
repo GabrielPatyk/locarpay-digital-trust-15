@@ -10,14 +10,14 @@ export const useContratoParceria = (imobiliariaId: string) => {
       const { data, error } = await supabase
         .from('contratos_parceria')
         .select('*')
-        .eq('imobiliaria_id', imobiliariaId)
-        .single();
+        .eq('imobiliaria_id', imobiliariaId);
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error;
       }
 
-      return data;
+      // Retorna o primeiro item do array ou null se não houver dados
+      return data && data.length > 0 ? data[0] : null;
     },
     enabled: !!imobiliariaId
   });

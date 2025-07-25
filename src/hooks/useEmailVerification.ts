@@ -14,17 +14,18 @@ export const useEmailVerification = () => {
       const { data: userData, error: userError } = await supabase
         .from('usuarios')
         .select('id')
-        .eq('email', email)
-        .single();
+        .eq('email', email);
 
-      if (userError || !userData) {
+      if (userError || !userData || userData.length === 0) {
         throw new Error('Usuário não encontrado');
       }
+
+      const user = userData[0];
 
       // Gerar novo token de verificação
       const { data: tokenData, error: tokenError } = await supabase.rpc(
         'gerar_token_verificacao',
-        { usuario_id: userData.id }
+        { usuario_id: user.id }
       );
 
       if (tokenError) {
@@ -35,7 +36,7 @@ export const useEmailVerification = () => {
       const webhookData = {
         email,
         token: tokenData,
-        usuario_id: userData.id,
+        usuario_id: user.id,
         link: `${window.location.origin}/verificar-email?token=${tokenData}`
       };
 

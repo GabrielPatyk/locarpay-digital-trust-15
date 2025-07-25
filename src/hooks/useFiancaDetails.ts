@@ -28,14 +28,15 @@ export const useFiancaDetails = (fiancaId: string) => {
           telefone
         )
         `)
-        .eq('id', fiancaId)
-        .single();
+        .eq('id', fiancaId);
 
       if (error) {
         console.error('Erro ao buscar fiança:', error);
         throw error;
       }
-      return data;
+      
+      // Retorna o primeiro item do array ou null se não houver dados
+      return data && data.length > 0 ? data[0] : null;
     },
     enabled: !!fiancaId
   });

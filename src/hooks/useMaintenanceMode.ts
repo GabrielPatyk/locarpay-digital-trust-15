@@ -10,17 +10,19 @@ export const useMaintenanceMode = () => {
     try {
       const { data, error } = await supabase
         .from('configuracoes_sistema')
-        .select('manutencao_ativa, motivo_manutencao')
-        .single();
+        .select('manutencao_ativa, motivo_manutencao');
 
       if (error) {
         console.error('Erro ao verificar status de manutenção:', error);
         return { active: false, reason: '' };
       }
 
+      // Retorna o primeiro item do array ou dados padrão se não houver dados
+      const configItem = data && data.length > 0 ? data[0] : null;
+
       return {
-        active: data?.manutencao_ativa || false,
-        reason: data?.motivo_manutencao || ''
+        active: configItem?.manutencao_ativa || false,
+        reason: configItem?.motivo_manutencao || ''
       };
     } catch (error) {
       console.error('Erro ao verificar status de manutenção:', error);
@@ -38,7 +40,7 @@ export const useMaintenanceMode = () => {
       const { error } = await supabase
         .from('configuracoes_sistema')
         .update(updateData)
-        .eq('id', (await supabase.from('configuracoes_sistema').select('id').single()).data?.id);
+        .eq('id', (await supabase.from('configuracoes_sistema').select('id')).data?.[0]?.id);
 
       if (error) {
         console.error('Erro ao atualizar modo manutenção:', error);
