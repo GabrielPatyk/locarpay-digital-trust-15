@@ -607,6 +607,44 @@ export type Database = {
           },
         ]
       }
+      security_audit_log: {
+        Row: {
+          created_at: string | null
+          event_details: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_audit_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       status_plataforma: {
         Row: {
           apis_integracoes: Json | null
@@ -853,6 +891,10 @@ export type Database = {
         Args: { usuario_id: string }
         Returns: string
       }
+      gerar_token_verificacao_seguro: {
+        Args: { usuario_id: string }
+        Returns: string
+      }
       get_current_user_email: {
         Args: Record<PropertyKey, never> | { user_id: string }
         Returns: string
@@ -897,6 +939,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      log_security_event: {
+        Args: {
+          p_user_id: string
+          p_event_type: string
+          p_event_details?: Json
+          p_ip_address?: unknown
+          p_user_agent?: string
+        }
+        Returns: undefined
+      }
       user_is_signer: {
         Args:
           | { contract_signers: Json }
@@ -909,9 +961,6 @@ export type Database = {
           id: string
           email: string
           nome: string
-          telefone: string
-          cargo: string
-          ativo: boolean
           verificado: boolean
         }[]
       }
@@ -920,7 +969,9 @@ export type Database = {
         Returns: boolean
       }
       verify_password: {
-        Args: { password: string } | { password: string; hash: string }
+        Args:
+          | { password: string }
+          | { password_input: string; password_hash: string }
         Returns: boolean
       }
     }
