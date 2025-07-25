@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { createSupabaseClient } from '@/integrations/supabase/client';
+import { createSupabaseClient, supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useContratoParceria = (imobiliariaId: string) => {
@@ -8,11 +8,18 @@ export const useContratoParceria = (imobiliariaId: string) => {
   const { data: contrato, isLoading } = useQuery({
     queryKey: ['contrato-parceria', imobiliariaId],
     queryFn: async () => {
-      if (!imobiliariaId || !user?.access_token) return null;
+      if (!imobiliariaId || !user) return null;
 
-      const supabase = createSupabaseClient(user.access_token);
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
-      const { data, error } = await supabase
+      if (sessionError || !sessionData.session?.access_token) {
+        console.error('Erro ao obter sessão:', sessionError);
+        return null;
+      }
+
+      const supabaseWithToken = createSupabaseClient(sessionData.session.access_token);
+
+      const { data, error } = await supabaseWithToken
         .from('contratos_parceria')
         .select('*')
         .eq('imobiliaria_id', imobiliariaId);
@@ -24,7 +31,7 @@ export const useContratoParceria = (imobiliariaId: string) => {
 
       return data && data.length > 0 ? data[0] : null;
     },
-    enabled: !!imobiliariaId && !!user?.access_token
+    enabled: !!imobiliariaId && !!user
   });
 
   return {
