@@ -76,7 +76,7 @@ const ForgotPassword = () => {
           link: resetLink
         };
 
-        const webhookResponse = await fetch('https://webhook.locarpay.com.br/webhook/Validar-Email-Da-Conta-LocarPay-Webhook', {
+        const webhookResponse = await fetch('https://webhook.locarpay.com.br/webhook/Esqueci-A-Minha-Senha-LocarPay-Webhook', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
