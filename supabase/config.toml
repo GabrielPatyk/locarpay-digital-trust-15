@@ -1,1 +1,21 @@
 project_id = "jefofujjcqwblavoybfx"
+
+# Edge Functions Configuration
+
+[functions.esqueci-senha-webhook]
+verify_jwt = false
+
+[functions.primeiro-acesso-webhook] 
+verify_jwt = false
+
+[functions.send-verification-email]
+verify_jwt = false
+
+[functions.verify-email]
+verify_jwt = false
+
+[functions.hash-password]
+verify_jwt = false
+
+[functions.criar-contrato-parceria]
+verify_jwt = false

@@ -143,12 +143,18 @@ const RedefinirSenha = () => {
     }
 
     try {
-      // Hash da nova senha usando a função do Supabase
-      const { data: hashedPassword, error: hashError } = await supabase
-        .rpc('hash_password', { password: password });
+      // Hash da nova senha usando edge function
+      const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: password }
+      });
 
       if (hashError) {
         console.error('Erro ao gerar hash da senha:', hashError);
+        throw new Error('Erro ao processar nova senha');
+      }
+
+      const hashedPassword = hashResult?.hashedPassword;
+      if (!hashedPassword) {
         throw new Error('Erro ao processar nova senha');
       }
 
