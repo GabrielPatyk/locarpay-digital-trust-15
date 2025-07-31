@@ -40,8 +40,11 @@ const RedefinirSenha = () => {
       }
 
       try {
+        console.log('Token recebido da URL:', token);
+        
         // Verificar se o token existe, não foi usado e foi criado há menos de 30 minutos
         const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+        console.log('Verificando tokens criados após:', thirtyMinutesAgo);
         
         const { data: tokenData, error: tokenError } = await supabase
           .from('tokens_redefinicao_senha')
@@ -51,6 +54,8 @@ const RedefinirSenha = () => {
           .gte('criado_em', thirtyMinutesAgo)
           .maybeSingle();
 
+        console.log('Resultado da consulta token:', { tokenData, tokenError });
+
         if (tokenError) {
           console.error('Erro ao validar token:', tokenError);
           setError('Erro ao validar token.');
@@ -59,7 +64,24 @@ const RedefinirSenha = () => {
         }
 
         if (!tokenData) {
-          setError('Link inválido ou expirado. Solicite uma nova redefinição de senha.');
+          // Vamos verificar se o token existe mas com outros problemas
+          const { data: allTokenData, error: allTokenError } = await supabase
+            .from('tokens_redefinicao_senha')
+            .select('usuario_id, usado, criado_em')
+            .eq('token', token)
+            .maybeSingle();
+          
+          console.log('Token encontrado (sem filtros):', { allTokenData, allTokenError });
+          
+          if (allTokenData) {
+            if (allTokenData.usado) {
+              setError('Este link já foi utilizado. Solicite uma nova redefinição de senha.');
+            } else {
+              setError('Link expirado. Solicite uma nova redefinição de senha.');
+            }
+          } else {
+            setError('Link inválido. Solicite uma nova redefinição de senha.');
+          }
           setIsValidating(false);
           return;
         }

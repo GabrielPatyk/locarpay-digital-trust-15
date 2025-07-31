@@ -76,7 +76,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Criar o link de redefinição
-    const resetLink = `https://fc7122af-f31c-4e3d-9668-b43390b92a24.lovableproject.com/redefinir-senha?token=${token}`;
+    const resetLink = `https://app.locarpay.com.br/redefinir-senha?token=${token}`;
 
     // Preparar dados para o webhook
     const webhookData = {
