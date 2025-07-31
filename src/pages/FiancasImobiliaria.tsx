@@ -34,6 +34,14 @@ import {
   Loader2
 } from 'lucide-react';
 
+
+async function buscarEnderecoPorCep(cep: string) {
+  const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+  const data = await response.json();
+  if (data.erro) throw new Error('CEP não encontrado');
+  return data;
+}
+
 const FiancasImobiliaria = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -55,6 +63,7 @@ const FiancasImobiliaria = () => {
     email: '',
     whatsapp: '+55',
     rendaMensal: '',
+    inquilinoCep: '',
     // Endereço do Inquilino
     inquilinoEndereco: '',
     inquilinoNumero: '',
@@ -70,6 +79,7 @@ const FiancasImobiliaria = () => {
     descricaoImovel: '',
     areaMetros: '',
     tempoLocacao: '',
+    imovelCep: '',
     // Endereço do Imóvel
     imovelEndereco: '',
     imovelNumero: '',
@@ -116,9 +126,9 @@ const FiancasImobiliaria = () => {
     }
   };
 
-  const handleSubmitFianca = () => {
+  const handleSubmitFianca = async () => {
     const errors = validateFiancaForm(formData);
-    
+
     if (errors.length > 0) {
       toast({
         title: "Erro na validação",
@@ -128,51 +138,57 @@ const FiancasImobiliaria = () => {
       return;
     }
 
-    createFianca(formData, {
-      onSuccess: () => {
-        toast({
-          title: "Fiança criada com sucesso!",
-          description: "A fiança foi enviada para análise.",
-        });
-        setIsDialogOpen(false);
-        // Reset form
-        setFormData({
-          nomeCompleto: '',
-          cpf: '',
-          email: '',
-          whatsapp: '+55',
-          rendaMensal: '',
-          inquilinoEndereco: '',
-          inquilinoNumero: '',
-          inquilinoComplemento: '',
-          inquilinoBairro: '',
-          inquilinoCidade: '',
-          inquilinoEstado: '',
-          inquilinoPais: 'Brasil',
-          tipoImovel: '',
-          tipoLocacao: '',
-          valorAluguel: '',
-          descricaoImovel: '',
-          areaMetros: '',
-          tempoLocacao: '',
-          imovelEndereco: '',
-          imovelNumero: '',
-          imovelComplemento: '',
-          imovelBairro: '',
-          imovelCidade: '',
-          imovelEstado: '',
-          imovelPais: 'Brasil',
-          cnpjImobiliaria: ''
-        });
-      },
-      onError: (error) => {
-        toast({
-          title: "Erro ao criar fiança",
-          description: error.message,
-          variant: "destructive"
-        });
+    try {
+      
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao criar fiança');
       }
-    });
+
+      toast({
+        title: "Fiança criada com sucesso!",
+        description: "A fiança foi enviada para análise.",
+      });
+      setIsDialogOpen(false);
+      // Reset form
+      setFormData({
+        nomeCompleto: '',
+        cpf: '',
+        email: '',
+        whatsapp: '+55',
+        rendaMensal: '',
+        inquilinoEndereco: '',
+        inquilinoNumero: '',
+        inquilinoComplemento: '',
+        inquilinoBairro: '',
+        inquilinoCidade: '',
+        inquilinoEstado: '',
+        inquilinoPais: 'Brasil',
+        tipoImovel: '',
+        tipoLocacao: '',
+        valorAluguel: '',
+        descricaoImovel: '',
+        areaMetros: '',
+        tempoLocacao: '',
+        imovelEndereco: '',
+        imovelNumero: '',
+        imovelComplemento: '',
+        imovelBairro: '',
+        imovelCidade: '',
+        imovelEstado: '',
+        imovelPais: 'Brasil',
+        cnpjImobiliaria: '',
+        inquilinoCep: '',
+        imovelCep: ''
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao criar fiança",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   };
 
   const handleAcceptFianca = (fiancaId: string) => {
@@ -465,28 +481,60 @@ const FiancasImobiliaria = () => {
                         </div>
                       </div>
                       
+                      {/* Endereço do Inquilino */}
                       <div className="space-y-4">
                         <h4 className="text-lg font-medium">Endereço do Inquilino</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="md:col-span-2">
-                            <Label htmlFor="inquilinoEndereco">Endereço *</Label>
+                          <div>
+                            <Label htmlFor="inquilinoCep">CEP *</Label>
                             <Input
-                              id="inquilinoEndereco"
-                              value={formData.inquilinoEndereco}
-                              onChange={(e) => handleInputChange('inquilinoEndereco', e.target.value)}
-                              placeholder="Rua, Avenida, etc."
+                              id="inquilinoCep"
+                              value={formData.inquilinoCep}
+                              onChange={async (e) => {
+                                const cep = e.target.value.replace(/\D/g, '');
+                                setFormData((prev) => ({ ...prev, inquilinoCep: cep }));
+                                if (cep.length === 8) {
+                                  try {
+                                    const data = await buscarEnderecoPorCep(cep);
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      inquilinoEndereco: data.logradouro || '',
+                                      inquilinoBairro: data.bairro || '',
+                                      inquilinoCidade: data.localidade || '',
+                                      inquilinoEstado: data.uf || '',
+                                      inquilinoCep: cep,
+                                    }));
+                                  } catch {
+                                    // opcional: mostrar erro de CEP inválido
+                                  }
+                                }
+                              }}
+                              placeholder="00000000"
                               required
+                              maxLength={8}
                             />
                           </div>
-                          <div>
-                            <Label htmlFor="inquilinoNumero">Número *</Label>
-                            <Input
-                              id="inquilinoNumero"
-                              value={formData.inquilinoNumero}
-                              onChange={(e) => handleInputChange('inquilinoNumero', e.target.value)}
-                              placeholder="123"
-                              required
-                            />
+                          <div className="md:col-span-2 flex gap-4">
+                            <div className="flex-1">
+                              <Label htmlFor="inquilinoEndereco">Endereço *</Label>
+                              <Input
+                                id="inquilinoEndereco"
+                                value={formData.inquilinoEndereco}
+                                onChange={(e) => handleInputChange('inquilinoEndereco', e.target.value)}
+                                placeholder="Rua, Avenida, etc."
+                                required
+                              />
+                            </div>
+                            <div style={{ minWidth: 90 }}>
+                              <Label htmlFor="inquilinoNumero">Número *</Label>
+                              <Input
+                                id="inquilinoNumero"
+                                value={formData.inquilinoNumero}
+                                onChange={(e) => handleInputChange('inquilinoNumero', e.target.value)}
+                                placeholder="123"
+                                required
+                              />
+                            </div>
                           </div>
                         </div>
                         
@@ -618,28 +666,60 @@ const FiancasImobiliaria = () => {
                         />
                       </div>
                       
+                      {/* Endereço do Imóvel */}
                       <div className="space-y-4">
                         <h4 className="text-lg font-medium">Endereço do Imóvel</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="md:col-span-2">
-                            <Label htmlFor="imovelEndereco">Endereço *</Label>
+                          <div>
+                            <Label htmlFor="imovelCep">CEP *</Label>
                             <Input
-                              id="imovelEndereco"
-                              value={formData.imovelEndereco}
-                              onChange={(e) => handleInputChange('imovelEndereco', e.target.value)}
-                              placeholder="Rua, Avenida, etc."
+                              id="imovelCep"
+                              value={formData.imovelCep}
+                              onChange={async (e) => {
+                                const cep = e.target.value.replace(/\D/g, '');
+                                setFormData((prev) => ({ ...prev, imovelCep: cep }));
+                                if (cep.length === 8) {
+                                  try {
+                                    const data = await buscarEnderecoPorCep(cep);
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      imovelEndereco: data.logradouro || '',
+                                      imovelBairro: data.bairro || '',
+                                      imovelCidade: data.localidade || '',
+                                      imovelEstado: data.uf || '',
+                                      imovelCep: cep,
+                                    }));
+                                  } catch {
+                                    // opcional: mostrar erro de CEP inválido
+                                  }
+                                }
+                              }}
+                              placeholder="00000000"
                               required
+                              maxLength={8}
                             />
                           </div>
-                          <div>
-                            <Label htmlFor="imovelNumero">Número *</Label>
-                            <Input
-                              id="imovelNumero"
-                              value={formData.imovelNumero}
-                              onChange={(e) => handleInputChange('imovelNumero', e.target.value)}
-                              placeholder="123"
-                              required
-                            />
+                          <div className="md:col-span-2 flex gap-4">
+                            <div className="flex-1">
+                              <Label htmlFor="imovelEndereco">Endereço *</Label>
+                              <Input
+                                id="imovelEndereco"
+                                value={formData.imovelEndereco}
+                                onChange={(e) => handleInputChange('imovelEndereco', e.target.value)}
+                                placeholder="Rua, Avenida, etc."
+                                required
+                              />
+                            </div>
+                            <div style={{ minWidth: 90 }}>
+                              <Label htmlFor="imovelNumero">Número *</Label>
+                              <Input
+                                id="imovelNumero"
+                                value={formData.imovelNumero}
+                                onChange={(e) => handleInputChange('imovelNumero', e.target.value)}
+                                placeholder="123"
+                                required
+                              />
+                            </div>
                           </div>
                         </div>
                         
