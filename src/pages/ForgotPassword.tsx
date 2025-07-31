@@ -35,129 +35,28 @@ const ForgotPassword = () => {
     }
 
     try {
-      // Verificar se o usuário existe
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('id, nome, email')
-        .eq('email', email.trim())
-        .single();
+      // Chamar Edge Function para processar redefinição
+      const { data, error } = await supabase.functions.invoke('esqueci-senha-webhook', {
+        body: { email: email.trim() }
+      });
 
-      if (userError || !userData) {
-        setError('E-mail não encontrado em nosso sistema.');
-        setIsLoading(false);
-        return;
+      if (error) {
+        console.error('Erro na Edge Function:', error);
+        throw new Error(error.message || 'Erro ao processar solicitação');
       }
 
-      // Gerar token único
-      const token = crypto.randomUUID();
-
-      // Salvar token na tabela
-      const { error: tokenError } = await supabase
-        .from('tokens_redefinicao_senha')
-        .insert({
-          usuario_id: userData.id,
-          token: token
-        });
-
-      if (tokenError) {
-        console.error('Erro ao salvar token:', tokenError);
-        throw new Error('Erro interno. Tente novamente.');
+      if (!data.success) {
+        throw new Error(data.error || 'Erro ao processar solicitação');
       }
 
-      // Criar o link de redefinição
-      const resetLink = `${window.location.origin}/redefinir-senha?token=${token}`;
-
-      // Disparar webhook
-      try {
-        const webhookData = {
-          email: email.trim(),
-          token: token,
-          usuario_id: userData.id,
-          link: resetLink
-        };
-
-        console.log('Tentando disparar webhook para:', 'https://webhook.locarpay.com.br/webhook/Esqueci-A-Minha-Senha-LocarPay-Webhook');
-        
-        const webhookResponse = await fetch('https://webhook.locarpay.com.br/webhook/Esqueci-A-Minha-Senha-LocarPay-Webhook', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(webhookData),
-          // Adicionar timeout para evitar travamento
-          signal: AbortSignal.timeout(10000) // 10 segundos
-        });
-
-        if (!webhookResponse.ok) {
-          console.error('Erro no webhook - Status:', webhookResponse.status);
-        } else {
-          console.log('Webhook disparado com sucesso');
-        }
-      } catch (webhookError) {
-        console.error('Erro ao disparar webhook:', webhookError);
-        console.log('Webhook falhou, mas processo continua normalmente');
-        // Não falhar se o webhook não funcionar, continuar com o processo
-      }
-
-      // Enviar e-mail via edge function (backup)
-      try {
-        await supabase.functions.invoke('send-verification-email', {
-          body: {
-            to: email.trim(),
-            subject: 'Redefinição de Senha - LocarPay',
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background: linear-gradient(135deg, #F4D573 0%, #BC942C 100%); padding: 30px; text-align: center;">
-                  <h1 style="color: #0C1C2E; margin: 0; font-size: 28px;">LocarPay</h1>
-                  <p style="color: #0C1C2E; margin: 10px 0 0 0; opacity: 0.8;">Redefinição de Senha</p>
-                </div>
-                
-                <div style="padding: 40px 30px; background: white;">
-                  <h2 style="color: #0C1C2E; margin-bottom: 20px;">Olá, ${userData.nome}!</h2>
-                  
-                  <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
-                    Recebemos uma solicitação para redefinir a senha da sua conta na LocarPay.
-                    Se você não fez esta solicitação, pode ignorar este e-mail.
-                  </p>
-                  
-                  <div style="text-align: center; margin: 30px 0;">
-                    <a href="${resetLink}" 
-                       style="background: linear-gradient(135deg, #F4D573 0%, #BC942C 100%); 
-                              color: #0C1C2E; 
-                              padding: 15px 30px; 
-                              text-decoration: none; 
-                              border-radius: 8px; 
-                              font-weight: bold; 
-                              display: inline-block;">
-                      Redefinir Senha
-                    </a>
-                  </div>
-                  
-                  <p style="color: #999; font-size: 14px; line-height: 1.5;">
-                    Este link expira em 30 minutos por motivos de segurança.<br>
-                    Se o botão não funcionar, copie e cole este link no seu navegador:<br>
-                    <span style="word-break: break-all;">${resetLink}</span>
-                  </p>
-                </div>
-                
-                <div style="background: #f8f9fa; padding: 20px; text-align: center;">
-                  <p style="color: #999; margin: 0; font-size: 12px;">
-                    Este é um e-mail automático. Não responda a esta mensagem.
-                  </p>
-                </div>
-              </div>
-            `
-          }
-        });
-      } catch (emailError) {
-        console.error('Erro ao enviar e-mail:', emailError);
-        // Não falhar se o e-mail não for enviado, o webhook já foi disparado
-      }
+      console.log('Resposta da Edge Function:', data);
 
       setSuccess(true);
       toast({
         title: "Solicitação enviada!",
-        description: "O processo de redefinição foi iniciado. Verifique sua caixa de entrada.",
+        description: data.webhook_status === 'success' 
+          ? "E-mail de redefinição enviado com sucesso." 
+          : "Processo iniciado. Aguarde as instruções.",
       });
 
     } catch (err: any) {
