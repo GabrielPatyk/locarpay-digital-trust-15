@@ -19,6 +19,8 @@ import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
 import RejectedFiancaTooltip from '@/components/RejectedFiancaTooltip';
 import ApprovedFiancaTooltip from '@/components/ApprovedFiancaTooltip';
 import AguardandoPagamentoTooltip from '@/components/AguardandoPagamentoTooltip';
+import EmAnaliseTooltip from '@/components/EmAnaliseTooltip';
+import PagamentoConfirmadoTooltip from '@/components/PagamentoConfirmadoTooltip';
 import { 
   FileText, 
   Plus, 
@@ -216,7 +218,8 @@ const FiancasImobiliaria = () => {
       'enviada_ao_financeiro': 'bg-green-500',
       'aguardando_geracao_pagamento': 'bg-yellow-500',
       'pagamento_disponivel': 'bg-yellow-500',
-      'comprovante_enviado': 'bg-blue-500'
+      'comprovante_enviado': 'bg-blue-500',
+      'pagamento_confirmado': 'bg-green-500'
     };
     return colors[status] || 'bg-gray-500';
   };
@@ -232,7 +235,8 @@ const FiancasImobiliaria = () => {
       'enviada_ao_financeiro': 'Enviada ao Financeiro',
       'aguardando_geracao_pagamento': 'Aguardando Pagamento',
       'pagamento_disponivel': 'Aguardando Pagamento',
-      'comprovante_enviado': 'Comprovante Enviado'
+      'comprovante_enviado': 'Comprovante Enviado',
+      'pagamento_confirmado': 'Pagamento Confirmado'
     };
     return labels[status] || status;
   };
@@ -885,6 +889,25 @@ const FiancasImobiliaria = () => {
                               {getStatusLabel(fianca.status_fianca)}
                             </Badge>
                           </AguardandoPagamentoTooltip>
+                        ) : fianca.status_fianca === 'em_analise' ? (
+                          <EmAnaliseTooltip
+                            dataCriacao={fianca.data_criacao}
+                            nomeInquilino={fianca.inquilino_nome_completo}
+                          >
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help text-xs`}>
+                              {getStatusLabel(fianca.status_fianca)}
+                            </Badge>
+                          </EmAnaliseTooltip>
+                        ) : fianca.status_fianca === 'pagamento_confirmado' ? (
+                          <PagamentoConfirmadoTooltip
+                            dataConfirmacao={fianca.data_atualizacao}
+                            valorFianca={fianca.imovel_valor_aluguel}
+                            nomeInquilino={fianca.inquilino_nome_completo}
+                          >
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help text-xs`}>
+                              {getStatusLabel(fianca.status_fianca)}
+                            </Badge>
+                          </PagamentoConfirmadoTooltip>
                         ) : (
                           <Badge className={`${getStatusColor(fianca.status_fianca)} text-white text-xs`}>
                             {getStatusLabel(fianca.status_fianca)}
@@ -975,6 +998,25 @@ const FiancasImobiliaria = () => {
                               {getStatusLabel(fianca.status_fianca)}
                             </Badge>
                           </AguardandoPagamentoTooltip>
+                        ) : fianca.status_fianca === 'em_analise' ? (
+                          <EmAnaliseTooltip
+                            dataCriacao={fianca.data_criacao}
+                            nomeInquilino={fianca.inquilino_nome_completo}
+                          >
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
+                              {getStatusLabel(fianca.status_fianca)}
+                            </Badge>
+                          </EmAnaliseTooltip>
+                        ) : fianca.status_fianca === 'pagamento_confirmado' ? (
+                          <PagamentoConfirmadoTooltip
+                            dataConfirmacao={fianca.data_atualizacao}
+                            valorFianca={fianca.imovel_valor_aluguel}
+                            nomeInquilino={fianca.inquilino_nome_completo}
+                          >
+                            <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
+                              {getStatusLabel(fianca.status_fianca)}
+                            </Badge>
+                          </PagamentoConfirmadoTooltip>
                         ) : (
                           <Badge className={`${getStatusColor(fianca.status_fianca)} text-white`}>
                             {getStatusLabel(fianca.status_fianca)}
