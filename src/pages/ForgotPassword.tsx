@@ -76,19 +76,26 @@ const ForgotPassword = () => {
           link: resetLink
         };
 
+        console.log('Tentando disparar webhook para:', 'https://webhook.locarpay.com.br/webhook/Esqueci-A-Minha-Senha-LocarPay-Webhook');
+        
         const webhookResponse = await fetch('https://webhook.locarpay.com.br/webhook/Esqueci-A-Minha-Senha-LocarPay-Webhook', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(webhookData)
+          body: JSON.stringify(webhookData),
+          // Adicionar timeout para evitar travamento
+          signal: AbortSignal.timeout(10000) // 10 segundos
         });
 
         if (!webhookResponse.ok) {
-          console.error('Erro no webhook:', webhookResponse.status);
+          console.error('Erro no webhook - Status:', webhookResponse.status);
+        } else {
+          console.log('Webhook disparado com sucesso');
         }
       } catch (webhookError) {
         console.error('Erro ao disparar webhook:', webhookError);
+        console.log('Webhook falhou, mas processo continua normalmente');
         // Não falhar se o webhook não funcionar, continuar com o processo
       }
 
