@@ -136,6 +136,17 @@ export const useImobiliariasExecutivo = () => {
     mutationFn: async (dados: NovaImobiliariaData) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
+      // Verificar se o email já existe
+      const { data: emailExists } = await supabase
+        .from('usuarios')
+        .select('email')
+        .eq('email', dados.email)
+        .single();
+
+      if (emailExists) {
+        throw new Error('Este email já está cadastrado no sistema');
+      }
+
       // Gerar senha temporária
       const senhaTemporaria = Math.random().toString(36).slice(-8);
 
@@ -185,11 +196,12 @@ export const useImobiliariasExecutivo = () => {
         description: "Imobiliária cadastrada com sucesso.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erro ao criar imobiliária:', error);
+      const errorMessage = error.message || "Erro ao cadastrar imobiliária. Tente novamente.";
       toast({
         title: "Erro",
-        description: "Erro ao cadastrar imobiliária. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
