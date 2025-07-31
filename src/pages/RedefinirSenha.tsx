@@ -62,6 +62,8 @@ const RedefinirSenha = () => {
           .gte('criado_em', thirtyMinutesAgo)
           .maybeSingle();
 
+        console.log('SQL Query equivalente:');
+        console.log(`SELECT usuario_id, usado, criado_em FROM tokens_redefinicao_senha WHERE token = '${token}' AND usado = false AND criado_em >= '${thirtyMinutesAgo}'`);
         console.log('Resultado da consulta token:', { tokenData, tokenError });
 
         if (tokenError) {
