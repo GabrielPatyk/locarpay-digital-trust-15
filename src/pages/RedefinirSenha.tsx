@@ -33,14 +33,22 @@ const RedefinirSenha = () => {
 
   useEffect(() => {
     const validateToken = async () => {
+      console.log('=== INICIANDO VALIDAÇÃO DO TOKEN ===');
+      console.log('URL completa:', window.location.href);
+      console.log('Query params:', window.location.search);
+      console.log('Token extraído:', token);
+      
       if (!token) {
+        console.log('❌ Token não encontrado na URL');
         setError('Token não encontrado na URL.');
         setIsValidating(false);
         return;
       }
 
       try {
-        console.log('Token recebido da URL:', token);
+        console.log('✅ Token recebido da URL:', token);
+        console.log('Tipo do token:', typeof token);
+        console.log('Comprimento do token:', token.length);
         
         // Verificar se o token existe, não foi usado e foi criado há menos de 30 minutos
         const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
