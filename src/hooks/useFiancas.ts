@@ -15,6 +15,7 @@ export interface FiancaFormData {
   whatsapp: string;
   rendaMensal: string;
   // Endereço do Inquilino
+  inquilinoCep: string;
   inquilinoEndereco: string;
   inquilinoNumero: string;
   inquilinoComplemento: string;
@@ -30,6 +31,7 @@ export interface FiancaFormData {
   areaMetros: string;
   tempoLocacao: string;
   // Endereço do Imóvel
+  imovelCep: string;
   imovelEndereco: string;
   imovelNumero: string;
   imovelComplemento: string;

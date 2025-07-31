@@ -139,17 +139,13 @@ const FiancasImobiliaria = () => {
     }
 
     try {
+      await createFianca(formData);
       
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro ao criar fiança');
-      }
-
       toast({
-        title: "Fiança criada com sucesso!",
-        description: "A fiança foi enviada para análise.",
+        title: "Sucesso!",
+        description: "Fiança criada com sucesso.",
       });
+      
       setIsDialogOpen(false);
       // Reset form
       setFormData({
@@ -158,6 +154,7 @@ const FiancasImobiliaria = () => {
         email: '',
         whatsapp: '+55',
         rendaMensal: '',
+        inquilinoCep: '',
         inquilinoEndereco: '',
         inquilinoNumero: '',
         inquilinoComplemento: '',
@@ -171,6 +168,7 @@ const FiancasImobiliaria = () => {
         descricaoImovel: '',
         areaMetros: '',
         tempoLocacao: '',
+        imovelCep: '',
         imovelEndereco: '',
         imovelNumero: '',
         imovelComplemento: '',
@@ -178,9 +176,7 @@ const FiancasImobiliaria = () => {
         imovelCidade: '',
         imovelEstado: '',
         imovelPais: 'Brasil',
-        cnpjImobiliaria: '',
-        inquilinoCep: '',
-        imovelCep: ''
+        cnpjImobiliaria: ''
       });
     } catch (error: any) {
       toast({
