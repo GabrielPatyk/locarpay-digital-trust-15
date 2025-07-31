@@ -488,30 +488,6 @@ export type Database = {
         }
         Relationships: []
       }
-      password_reset_attempts: {
-        Row: {
-          attempts: number | null
-          blocked_until: string | null
-          email: string
-          id: string
-          last_attempt: string | null
-        }
-        Insert: {
-          attempts?: number | null
-          blocked_until?: string | null
-          email: string
-          id?: string
-          last_attempt?: string | null
-        }
-        Update: {
-          attempts?: number | null
-          blocked_until?: string | null
-          email?: string
-          id?: string
-          last_attempt?: string | null
-        }
-        Relationships: []
-      }
       perfil_usuario: {
         Row: {
           atualizado_em: string
