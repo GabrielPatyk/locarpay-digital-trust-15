@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts"
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
+import { hash } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,8 +9,7 @@ const corsHeaders = {
 // Função para gerar hash da senha usando bcrypt (compatível com o sistema existente)
 async function hashPassword(password: string): Promise<string> {
   // Usar 10 rounds como as senhas existentes ($2a$10$...)
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const hashedPassword = await hash(password, 10);
   return hashedPassword;
 }
 
