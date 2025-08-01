@@ -6,39 +6,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Função para validar senha comparando com hash personalizado
-async function validatePassword(password: string, hash: string): Promise<boolean> {
-  if (!hash.startsWith('$2a$10$')) {
-    return false;
-  }
-  
-  // Extrair salt e hash do formato $2a$10$salt$hash
-  const saltBase64 = hash.substring(7, 29); // 22 caracteres após $2a$10$
-  const storedHashBase64 = hash.substring(29); // resto é o hash
-  
+// Função para validar senha usando bcrypt através do banco de dados
+async function validatePassword(email: string, password: string, supabase: any): Promise<boolean> {
   try {
-    // Decodificar salt
-    const saltBytes = new Uint8Array(atob(saltBase64).split('').map(c => c.charCodeAt(0)));
-    
-    // Recriar hash com a mesma senha e salt
-    const encoder = new TextEncoder();
-    const passwordBytes = encoder.encode(password + saltBytes);
-    
-    let newHash = await crypto.subtle.digest('SHA-256', passwordBytes);
-    
-    // 1024 iterações para simular bcrypt com 10 rounds
-    for (let i = 0; i < 1023; i++) {
-      const combined = new Uint8Array(newHash.byteLength + saltBytes.length);
-      combined.set(new Uint8Array(newHash));
-      combined.set(saltBytes, newHash.byteLength);
-      newHash = await crypto.subtle.digest('SHA-256', combined);
+    // Usar a função verify_password do PostgreSQL que suporta bcrypt
+    const { data, error } = await supabase.rpc('verify_password', {
+      email_input: email,
+      password_input: password
+    });
+
+    if (error) {
+      console.error('Erro na validação de senha via RPC:', error);
+      return false;
     }
-    
-    // Converter para base64 e comparar
-    const newHashArray = Array.from(new Uint8Array(newHash));
-    const newHashBase64 = btoa(String.fromCharCode(...newHashArray)).substring(0, 31);
-    
-    return newHashBase64 === storedHashBase64;
+
+    return data && data.length > 0;
   } catch (error) {
     console.error('Erro ao validar senha:', error);
     return false;
@@ -99,7 +81,7 @@ serve(async (req) => {
     }
 
     // Validar senha
-    const isValidPassword = await validatePassword(password, user.senha);
+    const isValidPassword = await validatePassword(email, password, supabase);
     
     if (!isValidPassword) {
       return new Response(
