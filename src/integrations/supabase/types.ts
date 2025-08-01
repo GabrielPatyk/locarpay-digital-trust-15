@@ -946,9 +946,15 @@ export type Database = {
       }
       verify_password: {
         Args:
+          | { email_input: string; password_input: string }
           | { password: string }
-          | { password_input: string; password_hash: string }
-        Returns: boolean
+        Returns: {
+          id: string
+          email: string
+          nome: string
+          verificado: boolean
+          ativo: boolean
+        }[]
       }
     }
     Enums: {

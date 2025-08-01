@@ -6,26 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Função para validar senha usando bcrypt através do banco de dados
-async function validatePassword(email: string, password: string, supabase: any): Promise<boolean> {
-  try {
-    // Usar a função verify_password do PostgreSQL que suporta bcrypt
-    const { data, error } = await supabase.rpc('verify_password', {
-      email_input: email,
-      password_input: password
-    });
-
-    if (error) {
-      console.error('Erro na validação de senha via RPC:', error);
-      return false;
-    }
-
-    return data && data.length > 0;
-  } catch (error) {
-    console.error('Erro ao validar senha:', error);
-    return false;
-  }
-}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -52,14 +32,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Buscar usuário por email
-    const { data: user, error: userError } = await supabase
-      .from('usuarios')
-      .select('id, email, nome, senha, verificado, ativo')
-      .eq('email', email)
-      .single();
+    // Validar credenciais usando bcrypt através do banco de dados
+    const { data: loginResult, error: loginError } = await supabase.rpc('verify_password', {
+      email_input: email,
+      password_input: password
+    });
 
-    if (userError || !user) {
+    if (loginError) {
+      console.error('Erro na validação de senha:', loginError);
       return new Response(
         JSON.stringify({ success: false, message: 'Credenciais inválidas' }), 
         { 
@@ -68,24 +48,24 @@ serve(async (req) => {
         }
       );
     }
+
+    // Se não retornou nenhum usuário, credenciais inválidas
+    if (!loginResult || loginResult.length === 0) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Credenciais inválidas' }), 
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    const user = loginResult[0];
 
     // Verificar se usuário está ativo
     if (!user.ativo) {
       return new Response(
         JSON.stringify({ success: false, message: 'Usuário inativo' }), 
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Validar senha
-    const isValidPassword = await validatePassword(email, password, supabase);
-    
-    if (!isValidPassword) {
-      return new Response(
-        JSON.stringify({ success: false, message: 'Credenciais inválidas' }), 
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
