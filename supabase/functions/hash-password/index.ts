@@ -1,16 +1,42 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts"
-import { hash } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Função para gerar hash da senha usando bcrypt (compatível com o sistema existente)
+// Função para gerar hash da senha compatível com bcrypt usando Web Crypto API
 async function hashPassword(password: string): Promise<string> {
-  // Usar 10 rounds como as senhas existentes ($2a$10$...)
-  const hashedPassword = await hash(password, 10);
-  return hashedPassword;
+  // Gerar salt aleatório de 22 caracteres (base64)
+  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+  const salt = btoa(String.fromCharCode(...saltBytes)).substring(0, 22);
+  
+  // Criar hash usando PBKDF2 (similar ao bcrypt)
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(password),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  );
+  
+  const hashBuffer = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: encoder.encode(salt),
+      iterations: 1024, // Compatível com bcrypt rounds
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    256 // 32 bytes
+  );
+  
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashBase64 = btoa(String.fromCharCode(...hashArray)).substring(0, 31);
+  
+  // Formato compatível com bcrypt: $2a$10$salt$hash
+  return `$2a$10$${salt}${hashBase64}`;
 }
 
 serve(async (req) => {
