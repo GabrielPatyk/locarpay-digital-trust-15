@@ -17,5 +17,8 @@ verify_jwt = false
 [functions.hash-password]
 verify_jwt = false
 
+[functions.validate-login]
+verify_jwt = false
+
 [functions.criar-contrato-parceria]
 verify_jwt = false

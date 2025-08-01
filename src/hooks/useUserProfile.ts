@@ -146,13 +146,12 @@ export const useUserProfile = () => {
     try {
       setLoading(true);
 
-      // Primeiro, verificar a senha atual
-      const { data: validationData, error: validationError } = await supabase.rpc('validar_login', {
-        email_input: user.email,
-        senha_input: currentPassword
+      // Primeiro, verificar a senha atual usando o novo Edge Function
+      const { data: validationResult, error: validationError } = await supabase.functions.invoke('validate-login', {
+        body: { email: user.email, password: currentPassword }
       });
 
-      if (validationError || !validationData || validationData.length === 0) {
+      if (validationError || !validationResult?.success) {
         toast({
           title: "Senha incorreta",
           description: "A senha atual está incorreta.",
@@ -161,12 +160,12 @@ export const useUserProfile = () => {
         return false;
       }
 
-      // Se a senha atual está correta, hash da nova senha e atualizar
-      const { data: hashedPassword, error: hashError } = await supabase.rpc('hash_password', {
-        password: newPassword
+      // Se a senha atual está correta, hash da nova senha usando o Edge Function
+      const { data: hashResult, error: hashError } = await supabase.functions.invoke('hash-password', {
+        body: { password: newPassword }
       });
 
-      if (hashError || !hashedPassword) {
+      if (hashError || !hashResult?.hashedPassword) {
         console.error('Erro ao gerar hash da senha:', hashError);
         toast({
           title: "Erro interno",
@@ -178,7 +177,7 @@ export const useUserProfile = () => {
 
       const { error: updateError } = await supabase
         .from('usuarios')
-        .update({ senha: hashedPassword })
+        .update({ senha: hashResult.hashedPassword })
         .eq('id', user.id);
 
       if (updateError) {

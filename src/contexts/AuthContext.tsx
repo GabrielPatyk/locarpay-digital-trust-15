@@ -65,23 +65,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
-      // Usar a função do Supabase para validar login
-      const { data, error } = await supabase.rpc('validar_login', {
-        email_input: email,
-        senha_input: password
+      // Usar o novo Edge Function para validar login
+      const { data: loginResult, error: loginError } = await supabase.functions.invoke('validate-login', {
+        body: { email, password }
       });
 
-      if (error) {
-        console.error('Erro na validação do login:', error);
+      if (loginError || !loginResult?.success) {
+        console.error('Erro na validação do login:', loginError);
         return { success: false };
       }
 
-      if (!data || data.length === 0) {
-        console.log('Credenciais inválidas');
+      const userData = loginResult.user;
+      if (!userData) {
         return { success: false };
       }
 
-      const userData = data[0];
       console.log('Dados do usuário retornados:', userData);
 
       // Verificar se o e-mail foi verificado

@@ -5,38 +5,33 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Função para gerar hash da senha compatível com bcrypt usando Web Crypto API
+// Implementação simples de bcrypt-like usando Web Crypto
 async function hashPassword(password: string): Promise<string> {
-  // Gerar salt aleatório de 22 caracteres (base64)
+  // Gerar salt de 16 bytes
   const saltBytes = crypto.getRandomValues(new Uint8Array(16));
-  const salt = btoa(String.fromCharCode(...saltBytes)).substring(0, 22);
   
-  // Criar hash usando PBKDF2 (similar ao bcrypt)
+  // Converter para formato bcrypt
   const encoder = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(password),
-    { name: 'PBKDF2' },
-    false,
-    ['deriveBits']
-  );
+  const passwordBytes = encoder.encode(password + saltBytes);
   
-  const hashBuffer = await crypto.subtle.deriveBits(
-    {
-      name: 'PBKDF2',
-      salt: encoder.encode(salt),
-      iterations: 1024, // Compatível com bcrypt rounds
-      hash: 'SHA-256'
-    },
-    keyMaterial,
-    256 // 32 bytes
-  );
+  // Hash usando SHA-256 com múltiplas iterações (simula bcrypt rounds)
+  let hash = await crypto.subtle.digest('SHA-256', passwordBytes);
   
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  // 1024 iterações para simular bcrypt com 10 rounds
+  for (let i = 0; i < 1023; i++) {
+    const combined = new Uint8Array(hash.byteLength + saltBytes.length);
+    combined.set(new Uint8Array(hash));
+    combined.set(saltBytes, hash.byteLength);
+    hash = await crypto.subtle.digest('SHA-256', combined);
+  }
+  
+  // Converter para base64
+  const hashArray = Array.from(new Uint8Array(hash));
   const hashBase64 = btoa(String.fromCharCode(...hashArray)).substring(0, 31);
+  const saltBase64 = btoa(String.fromCharCode(...saltBytes)).substring(0, 22);
   
-  // Formato compatível com bcrypt: $2a$10$salt$hash
-  return `$2a$10$${salt}${hashBase64}`;
+  // Retornar no formato bcrypt: $2a$10$salt$hash
+  return `$2a$10$${saltBase64}${hashBase64}`;
 }
 
 serve(async (req) => {
