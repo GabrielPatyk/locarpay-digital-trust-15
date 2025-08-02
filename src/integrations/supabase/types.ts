@@ -200,6 +200,7 @@ export type Database = {
           id_imobiliaria: string
           imovel_area_metros: number | null
           imovel_bairro: string
+          imovel_cep: string | null
           imovel_cidade: string
           imovel_complemento: string | null
           imovel_descricao: string | null
@@ -212,6 +213,7 @@ export type Database = {
           imovel_tipo_locacao: string
           imovel_valor_aluguel: number
           inquilino_bairro: string
+          inquilino_cep: string | null
           inquilino_cidade: string
           inquilino_complemento: string | null
           inquilino_cpf: string
@@ -256,6 +258,7 @@ export type Database = {
           id_imobiliaria: string
           imovel_area_metros?: number | null
           imovel_bairro: string
+          imovel_cep?: string | null
           imovel_cidade: string
           imovel_complemento?: string | null
           imovel_descricao?: string | null
@@ -268,6 +271,7 @@ export type Database = {
           imovel_tipo_locacao: string
           imovel_valor_aluguel: number
           inquilino_bairro: string
+          inquilino_cep?: string | null
           inquilino_cidade: string
           inquilino_complemento?: string | null
           inquilino_cpf: string
@@ -312,6 +316,7 @@ export type Database = {
           id_imobiliaria?: string
           imovel_area_metros?: number | null
           imovel_bairro?: string
+          imovel_cep?: string | null
           imovel_cidade?: string
           imovel_complemento?: string | null
           imovel_descricao?: string | null
@@ -324,6 +329,7 @@ export type Database = {
           imovel_tipo_locacao?: string
           imovel_valor_aluguel?: number
           inquilino_bairro?: string
+          inquilino_cep?: string | null
           inquilino_cidade?: string
           inquilino_complemento?: string | null
           inquilino_cpf?: string

@@ -449,7 +449,7 @@ const DetalheFianca = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">CEP</p>
-                <p className="text-base">{formatCep(fianca.inquilino_cep)}</p>
+                <p className="text-base">{formatCep((fianca as any).inquilino_cep)}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Endereço</p>
@@ -538,7 +538,7 @@ const DetalheFianca = () => {
             
             <div>
               <p className="text-sm font-medium text-gray-500">CEP</p>
-              <p className="text-base">{formatCep(fianca.imovel_cep)}</p>
+              <p className="text-base">{formatCep((fianca as any).imovel_cep)}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Endereço Completo do Imóvel</p>
