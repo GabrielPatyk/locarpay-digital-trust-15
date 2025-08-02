@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useFiancas, type FiancaFormData } from '@/hooks/useFiancas';
 import { validateFiancaForm, formatCurrency } from '@/components/FiancaFormValidation';
 import { usePhoneFormatter } from '@/hooks/usePhoneFormatter';
+import { useAnalystName } from '@/hooks/useAnalystName';
 import RejectedFiancaTooltip from '@/components/RejectedFiancaTooltip';
 import ApprovedFiancaTooltip from '@/components/ApprovedFiancaTooltip';
 import AguardandoPagamentoTooltip from '@/components/AguardandoPagamentoTooltip';
@@ -50,6 +51,12 @@ const FiancasImobiliaria = () => {
   const navigate = useNavigate();
   const { formatPhone } = usePhoneFormatter();
   const { fiancas, isLoading, createFianca, isCreating, acceptFianca, isAccepting, getFiancasStats } = useFiancas();
+
+  // Hook para buscar nome dos analistas
+  const getAnalystName = (analystId: string | null) => {
+    const { data: analystName } = useAnalystName(analystId);
+    return analystName || 'Analista Responsável';
+  };
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -861,7 +868,7 @@ const FiancasImobiliaria = () => {
                             rejectionReason={fianca.motivo_reprovacao || 'Não informado'}
                             rejectionDate={fianca.data_analise || fianca.data_atualizacao}
                             score={fianca.score_credito}
-                            analystName="Analista Responsável"
+                            analystName={getAnalystName(fianca.id_analista)}
                           >
                             <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help text-xs`}>
                               {getStatusLabel(fianca.status_fianca)}
@@ -872,7 +879,7 @@ const FiancasImobiliaria = () => {
                             approvalDate={fianca.data_analise || fianca.data_atualizacao}
                             score={fianca.score_credito}
                             rate={fianca.taxa_aplicada}
-                            analystName="Analista Responsável"
+                            analystName={getAnalystName(fianca.id_analista)}
                             observations={fianca.observacoes_aprovacao}
                           >
                             <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help text-xs`}>
@@ -970,7 +977,7 @@ const FiancasImobiliaria = () => {
                             rejectionReason={fianca.motivo_reprovacao || 'Não informado'}
                             rejectionDate={fianca.data_analise || fianca.data_atualizacao}
                             score={fianca.score_credito}
-                            analystName="Analista Responsável"
+                            analystName={getAnalystName(fianca.id_analista)}
                           >
                             <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
                               {getStatusLabel(fianca.status_fianca)}
@@ -981,7 +988,7 @@ const FiancasImobiliaria = () => {
                             approvalDate={fianca.data_analise || fianca.data_atualizacao}
                             score={fianca.score_credito}
                             rate={fianca.taxa_aplicada}
-                            analystName="Analista Responsável"
+                            analystName={getAnalystName(fianca.id_analista)}
                             observations={fianca.observacoes_aprovacao}
                           >
                             <Badge className={`${getStatusColor(fianca.status_fianca)} text-white cursor-help`}>
