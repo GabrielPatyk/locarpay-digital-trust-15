@@ -285,22 +285,54 @@ const DetalheFianca = () => {
     window.open(url, '_blank');
   };
 
-  // Filtrar histórico para evitar duplicatas
+  // Função para formatar CEP
+  const formatCep = (cep: string) => {
+    if (!cep) return 'Não informado';
+    const numbers = cep.replace(/\D/g, '');
+    if (numbers.length === 8) {
+      return `${numbers.slice(0, 5)}-${numbers.slice(5)}`;
+    }
+    return cep;
+  };
+
+  // Filtrar histórico para evitar duplicatas - versão melhorada
   const historicoFiltrado = React.useMemo(() => {
     if (!historico || historico.length === 0) return [];
     
-    // Remover duplicatas baseado em ação e data (mesmo minuto)
-    const uniqueHistorico = historico.filter((item, index, arr) => {
-      const sameActions = arr.filter(h => 
-        h.acao === item.acao && 
-        new Date(h.data_criacao).getTime() === new Date(item.data_criacao).getTime()
-      );
+    // Agrupar por ação similar e manter apenas o mais completo
+    const groupedHistorico = historico.reduce((acc: any[], item) => {
+      // Normalizar ação para agrupar similares
+      const acaoNormalizada = item.acao.toLowerCase();
       
-      // Manter apenas o primeiro de cada grupo de duplicatas
-      return sameActions.indexOf(item) === 0;
-    });
+      // Buscar item similar no acumulador
+      const existingIndex = acc.findIndex(existing => {
+        const existingAcaoNormalizada = existing.acao.toLowerCase();
+        return existingAcaoNormalizada.includes('aprovada') && acaoNormalizada.includes('aprovada') ||
+               existingAcaoNormalizada.includes('rejeitada') && acaoNormalizada.includes('rejeitada') ||
+               existingAcaoNormalizada === acaoNormalizada;
+      });
+      
+      if (existingIndex >= 0) {
+        // Se já existe, manter o mais recente E com mais detalhes
+        const existing = acc[existingIndex];
+        const itemDate = new Date(item.data_criacao);
+        const existingDate = new Date(existing.data_criacao);
+        
+        // Priorizar: 1) Mais recente 2) Com mais detalhes
+        const itemHasMoreDetails = (item.detalhes?.length || 0) > (existing.detalhes?.length || 0);
+        const isNewer = itemDate > existingDate;
+        
+        if (isNewer || (itemDate.getTime() === existingDate.getTime() && itemHasMoreDetails)) {
+          acc[existingIndex] = item;
+        }
+      } else {
+        acc.push(item);
+      }
+      
+      return acc;
+    }, []);
 
-    return uniqueHistorico.sort((a, b) => 
+    return groupedHistorico.sort((a, b) => 
       new Date(b.data_criacao).getTime() - new Date(a.data_criacao).getTime()
     );
   }, [historico]);
@@ -416,6 +448,10 @@ const DetalheFianca = () => {
                 </p>
               </div>
               <div>
+                <p className="text-sm font-medium text-gray-500">CEP</p>
+                <p className="text-base">{formatCep(fianca.inquilino_cep)}</p>
+              </div>
+              <div>
                 <p className="text-sm font-medium text-gray-500">Endereço</p>
                 <p className="text-base">
                   {fianca.inquilino_endereco}, {fianca.inquilino_numero}
@@ -500,6 +536,10 @@ const DetalheFianca = () => {
               </div>
             )}
             
+            <div>
+              <p className="text-sm font-medium text-gray-500">CEP</p>
+              <p className="text-base">{formatCep(fianca.imovel_cep)}</p>
+            </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Endereço Completo do Imóvel</p>
               <p className="text-base">

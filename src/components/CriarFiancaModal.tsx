@@ -20,6 +20,38 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
   const { createFianca, isCreating } = useFiancas();
   const { cnpj } = useImobiliariaData();
   const { toast } = useToast();
+
+  // Função para buscar endereço por CEP
+  const buscarEnderecoPorCep = async (cep: string) => {
+    const cepLimpo = cep.replace(/\D/g, '');
+    if (cepLimpo.length === 8) {
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+        const data = await response.json();
+        if (data.erro) {
+          throw new Error('CEP não encontrado');
+        }
+        return data;
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "CEP não encontrado ou inválido",
+          variant: "destructive",
+        });
+        return null;
+      }
+    }
+    return null;
+  };
+
+  // Função para formatar CEP
+  const formatCep = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 5) {
+      return numbers;
+    }
+    return `${numbers.slice(0, 5)}-${numbers.slice(5, 8)}`;
+  };
   
   const [formData, setFormData] = useState<FiancaFormData>({
     nomeCompleto: '',
@@ -52,8 +84,59 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
     cnpjImobiliaria: ''
   });
 
+  const handleCepChange = async (field: 'inquilinoCep' | 'imovelCep', value: string) => {
+    const formattedCep = formatCep(value);
+    setFormData(prev => ({ ...prev, [field]: formattedCep }));
+
+    // Se CEP está completo, buscar endereço
+    if (formattedCep.replace(/\D/g, '').length === 8) {
+      const endereco = await buscarEnderecoPorCep(formattedCep);
+      if (endereco) {
+        if (field === 'inquilinoCep') {
+          setFormData(prev => ({
+            ...prev,
+            inquilinoEndereco: endereco.logradouro || '',
+            inquilinoBairro: endereco.bairro || '',
+            inquilinoCidade: endereco.localidade || '',
+            inquilinoEstado: endereco.uf || ''
+          }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            imovelEndereco: endereco.logradouro || '',
+            imovelBairro: endereco.bairro || '',
+            imovelCidade: endereco.localidade || '',
+            imovelEstado: endereco.uf || ''
+          }));
+        }
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validar CEPs
+    const inquilinoCepLimpo = formData.inquilinoCep.replace(/\D/g, '');
+    const imovelCepLimpo = formData.imovelCep.replace(/\D/g, '');
+    
+    if (inquilinoCepLimpo.length !== 8) {
+      toast({
+        title: "Erro de validação",
+        description: "CEP do inquilino deve ter 8 dígitos",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (imovelCepLimpo.length !== 8) {
+      toast({
+        title: "Erro de validação", 
+        description: "CEP do imóvel deve ter 8 dígitos",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       await createFianca(formData);
@@ -164,12 +247,80 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
                 />
               </div>
               <div>
+                <Label htmlFor="inquilinoCep">CEP *</Label>
+                <Input
+                  id="inquilinoCep"
+                  value={formData.inquilinoCep}
+                  onChange={(e) => handleCepChange('inquilinoCep', e.target.value)}
+                  placeholder="00000-000"
+                  maxLength={9}
+                  required
+                />
+              </div>
+              <div>
                 <Label htmlFor="cnpjImobiliaria">CNPJ da Imobiliária</Label>
                 <Input
                   id="cnpjImobiliaria"
                   value={formData.cnpjImobiliaria}
                   onChange={(e) => setFormData({...formData, cnpjImobiliaria: e.target.value})}
                   placeholder={cnpj || "00.000.000/0000-00"}
+                />
+              </div>
+            </div>
+            
+            {/* Endereço do Inquilino */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="inquilinoEndereco">Endereço *</Label>
+                <Input
+                  id="inquilinoEndereco"
+                  value={formData.inquilinoEndereco}
+                  onChange={(e) => setFormData({...formData, inquilinoEndereco: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="inquilinoNumero">Número *</Label>
+                <Input
+                  id="inquilinoNumero"
+                  value={formData.inquilinoNumero}
+                  onChange={(e) => setFormData({...formData, inquilinoNumero: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="inquilinoComplemento">Complemento</Label>
+                <Input
+                  id="inquilinoComplemento"
+                  value={formData.inquilinoComplemento}
+                  onChange={(e) => setFormData({...formData, inquilinoComplemento: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label htmlFor="inquilinoBairro">Bairro *</Label>
+                <Input
+                  id="inquilinoBairro"
+                  value={formData.inquilinoBairro}
+                  onChange={(e) => setFormData({...formData, inquilinoBairro: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="inquilinoCidade">Cidade *</Label>
+                <Input
+                  id="inquilinoCidade"
+                  value={formData.inquilinoCidade}
+                  onChange={(e) => setFormData({...formData, inquilinoCidade: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="inquilinoEstado">Estado *</Label>
+                <Input
+                  id="inquilinoEstado"
+                  value={formData.inquilinoEstado}
+                  onChange={(e) => setFormData({...formData, inquilinoEstado: e.target.value})}
+                  required
                 />
               </div>
             </div>
@@ -231,11 +382,31 @@ const CriarFiancaModal: React.FC<CriarFiancaModalProps> = ({ isOpen, onClose, re
                 />
               </div>
               <div>
+                <Label htmlFor="imovelCep">CEP *</Label>
+                <Input
+                  id="imovelCep"
+                  value={formData.imovelCep}
+                  onChange={(e) => handleCepChange('imovelCep', e.target.value)}
+                  placeholder="00000-000"
+                  maxLength={9}
+                  required
+                />
+              </div>
+              <div>
                 <Label htmlFor="imovelCidade">Cidade *</Label>
                 <Input
                   id="imovelCidade"
                   value={formData.imovelCidade}
                   onChange={(e) => setFormData({...formData, imovelCidade: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="imovelEstado">Estado *</Label>
+                <Input
+                  id="imovelEstado"
+                  value={formData.imovelEstado}
+                  onChange={(e) => setFormData({...formData, imovelEstado: e.target.value})}
                   required
                 />
               </div>
