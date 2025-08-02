@@ -125,7 +125,7 @@ export const useFiancas = (imobiliariaId?: string, searchTerm?: string) => {
       await registrarLog({
         fiancaId: data.id,
         acao: 'Fiança criada',
-        detalhes: `Nova solicitação de fiança para o inquilino ${formData.nomeCompleto}`
+        detalhes: `Nova solicitação de fiança gerada para ${formData.nomeCompleto}`
       });
 
       return data;
